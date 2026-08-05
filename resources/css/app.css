@@ -1,12 +1,424 @@
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source "../**/*.blade.php";
-@source "../**/*.js";
-@source "../**/*.vue";
+/* Fuentes self-hosted: sin peticiones a Google Fonts (mejor privacidad,
+   rendimiento y funcionamiento en la intranet del hospital). */
+@import '@fontsource-variable/montserrat';
+@import '@fontsource-variable/work-sans';
 
+@source '../views';
+
+/* ---------------------------------------------------------------------------
+   SISTEMA DE COLOR SEMÁNTICO
+   ---------------------------------------------------------------------------
+   Cada token describe su FUNCIÓN, no su color. Esto permite que el modo de
+   alto contraste redefina el valor de cada variable (más abajo) y que todas
+   las utilidades de Tailwind cambien con él, sin filtros CSS ni clases extra.
+
+   Regla de oro: un color que se usa como FONDO y como TEXTO necesita dos
+   tokens distintos. El azul institucional aparece tres veces —superficie
+   (bg-navy), texto (text-heading) y regla decorativa (border-rule-brand)—
+   porque en alto contraste cada uso necesita un valor diferente.
+--------------------------------------------------------------------------- */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Work Sans Variable', 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-display: 'Montserrat Variable', Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+    /* --- Superficies ------------------------------------------------------ */
+    --color-page: #ffffff;        /* fondo general del documento            */
+    --color-card: #ffffff;        /* tarjetas, paneles y desplegables       */
+    --color-surface: #f6f7f9;     /* franjas alternas                       */
+    --color-tint: #f2f5fa;        /* chips y estados suaves                 */
+    --color-tint-hover: #eceff4;  /* hover sobre fondo claro                */
+
+    /* --- Superficies de marca -------------------------------------------- */
+    --color-navy: #2b3b80;        /* franja institucional                   */
+    --color-navy-dark: #1d2a5e;   /* hover sobre navy                       */
+    --color-navy-deep: #14275e;   /* bloque de transparencia                */
+    --color-navy-soft: #1d3576;   /* hover sobre navy-deep                  */
+    /* El acento original del diseño (#2b7fe0) da 4.03:1 con texto blanco y
+       4.03:1 como texto sobre blanco: por debajo del 4.5:1 del nivel AA que
+       exige la Resolución 1519 de 2020 (NTC 5854) para un portal público.
+       Se oscurece lo mínimo imprescindible —#2676d2, 4.56:1— de modo que el
+       azul institucional sigue leyéndose igual a simple vista.
+       El filete decorativo conserva el tono original (--color-rule-accent),
+       porque un borde sin texto se rige por el 3:1 de la pauta 1.4.11. */
+    --color-azure: #2676d2;       /* superficie de acento / estado activo   */
+    --color-azure-dark: #1f6ac4;  /* hover sobre acento                     */
+
+    /* --- Texto sobre superficies de marca --------------------------------- */
+    --color-on-brand: #ffffff;
+    --color-on-accent: #ffffff;
+    --color-on-brand-label: #a9c2e8;
+    --color-on-brand-muted: #b6c6e4;
+    --color-on-brand-text: #dbe5f5;
+
+    /* --- Texto sobre la página ------------------------------------------- */
+    --color-heading: #2b3b80;       /* títulos y enlaces de navegación      */
+    --color-heading-hover: #1d2a5e;
+    --color-link: #2676d2;          /* llamadas a la acción en texto        */
+    --color-ink: #33383f;
+    --color-ink-soft: #3d4552;
+    --color-body: #4a5160;
+    --color-muted: #5c6373;
+    --color-faint: #8a90a0;
+    --color-hint: #7b8194;
+    --color-disabled: #a2a8b6;
+    --color-azure-mist: #9fc3f0;    /* antetítulo sobre banner oscuro       */
+    --color-azure-pale: #6f9be0;    /* numeración de transparencia          */
+
+    /* --- Líneas ----------------------------------------------------------- */
+    --color-line: #e4e7ee;
+    --color-line-soft: #eceef2;
+    --color-line-pale: #e8eaf0;
+    --color-stroke: #d7dae2;
+    --color-stroke-strong: #c3cbdd;
+    --color-tint-line: #dde3ee;
+    --color-divider: #dde0e7;
+    --color-rule-brand: #2b3b80;             /* reglas gruesas de marca     */
+    --color-rule-accent: #2b7fe0;            /* filetes de acento           */
+    --color-brand-hairline: rgba(255, 255, 255, 0.16);
+
+    /* --- Controles del carrusel ------------------------------------------- */
+    --color-control: rgba(60, 64, 72, 0.62);
+    --color-control-hover: rgba(43, 59, 128, 0.9);
+    --color-controlbar: rgba(96, 100, 108, 0.82);
+    --color-on-control: #ffffff;
+    --color-dot-active: #ffffff;
+
+    /* --- Varios ----------------------------------------------------------- */
+    --color-hero-shell: #dfe3ea;
+    --color-slide-shell: #e9ecf1;
+    --color-overlay: rgba(20, 39, 94, 0.45);
+    --color-focus: #f0b323;
+
+    --container-page: 1240px;
+
+    /* Escala tipográfica en rem (equivalente en px del diseño).
+       Al ser rem, el control «A+ / A−» del rail de accesibilidad escala
+       realmente todo el texto del sitio. */
+    --text-9: 0.5625rem;      /*  9px   */
+    --text-10-5: 0.65625rem;  /* 10.5px */
+    --text-11: 0.6875rem;     /* 11px   */
+    --text-11-5: 0.71875rem;  /* 11.5px */
+    --text-12: 0.75rem;       /* 12px   */
+    --text-12-5: 0.78125rem;  /* 12.5px */
+    --text-13: 0.8125rem;     /* 13px   */
+    --text-13-5: 0.84375rem;  /* 13.5px */
+    --text-14: 0.875rem;      /* 14px   */
+    --text-14-5: 0.90625rem;  /* 14.5px */
+    --text-15: 0.9375rem;     /* 15px   */
+    --text-16: 1rem;          /* 16px   */
+    --text-16-5: 1.03125rem;  /* 16.5px */
+    --text-17: 1.0625rem;     /* 17px   */
+    --text-19: 1.1875rem;     /* 19px   */
+    --text-20: 1.25rem;       /* 20px   */
+    --text-21: 1.3125rem;     /* 21px   */
+    --text-22: 1.375rem;      /* 22px   */
+    --text-24: 1.5rem;        /* 24px   */
+    --text-25: 1.5625rem;     /* 25px   */
+    --text-26: 1.625rem;      /* 26px   */
+    --text-27: 1.6875rem;     /* 27px   */
+    --text-33: 2.0625rem;     /* 33px   */
+    --text-37: 2.3125rem;     /* 37px   */
+    --text-40: 2.5rem;        /* 40px   */
+    --text-62: 3.875rem;      /* 62px   */
+}
+
+/* Veladuras del banner principal. Fuera de @theme porque no generan
+   utilidades: se aplican con style="background: var(--huv-scrim-…)". */
+:root {
+    --huv-scrim-light: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.86) 0%,
+        rgba(255, 255, 255, 0.72) 55%,
+        rgba(255, 255, 255, 0.5) 100%
+    );
+    --huv-scrim-light-strong: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(255, 255, 255, 0.7) 55%,
+        rgba(255, 255, 255, 0.35) 100%
+    );
+    --huv-scrim-dark: linear-gradient(
+        90deg,
+        rgba(20, 34, 80, 0.9) 0%,
+        rgba(20, 34, 80, 0.66) 60%,
+        rgba(20, 34, 80, 0.25) 100%
+    );
+}
+
+/* ---------------------------------------------------------------------------
+   MODO DE ALTO CONTRASTE
+   ---------------------------------------------------------------------------
+   Tema real, no un filtro. Paleta negro / blanco / amarillo, la convención de
+   los portales públicos y del modo de contraste alto de Windows.
+
+   Ratios de contraste sobre #000000:
+     #ffffff → 21.0:1   #ffff00 → 19.6:1   #e6e6e6 → 17.4:1   #cccccc → 13.6:1
+   Todos superan el 7:1 exigido por WCAG 2.1 nivel AAA (1.4.6), muy por encima
+   del 4.5:1 del nivel AA que pide la Resolución 1519 de 2020 del MinTIC vía
+   la NTC 5854.
+
+   Ventaja adicional frente al `filter: invert()` anterior: un elemento con
+   `filter` distinto de `none` se convierte en bloque contenedor de sus
+   descendientes `position: fixed`, lo que dejaba el rail de accesibilidad y el
+   cajón móvil anclados al documento en vez de al viewport. Sin filtro, ambos
+   vuelven a comportarse con normalidad al hacer scroll.
+--------------------------------------------------------------------------- */
+html[data-huv-contrast='on'] {
+    color-scheme: dark;
+
+    /* Superficies: negro puro en todas. La jerarquía la marcan las reglas
+       blancas y los títulos en amarillo, no los matices de fondo. */
+    --color-page: #000000;
+    --color-card: #000000;
+    --color-surface: #000000;
+    --color-tint: #000000;
+    --color-tint-hover: #333333;
+
+    --color-navy: #000000;
+    --color-navy-dark: #333333;
+    --color-navy-deep: #000000;
+    --color-navy-soft: #333333;
+    --color-azure: #ffff00;
+    --color-azure-dark: #ffffff;
+
+    --color-on-brand: #ffffff;
+    --color-on-accent: #000000;
+    --color-on-brand-label: #ffffff;
+    --color-on-brand-muted: #ffffff;
+    --color-on-brand-text: #ffffff;
+
+    --color-heading: #ffff00;
+    --color-heading-hover: #ffffff;
+    --color-link: #ffff00;
+    --color-ink: #ffffff;
+    --color-ink-soft: #ffffff;
+    --color-body: #ffffff;
+    --color-muted: #e6e6e6;
+    --color-faint: #cccccc;
+    --color-hint: #cccccc;
+    --color-disabled: #999999;
+    --color-azure-mist: #ffff00;
+    --color-azure-pale: #ffff00;
+
+    --color-line: #ffffff;
+    --color-line-soft: #ffffff;
+    --color-line-pale: #ffffff;
+    --color-stroke: #ffffff;
+    --color-stroke-strong: #ffffff;
+    --color-tint-line: #ffffff;
+    --color-divider: #ffffff;
+    --color-rule-brand: #ffff00;
+    --color-rule-accent: #ffff00;
+    --color-brand-hairline: #ffffff;
+
+    --color-control: #000000;
+    --color-control-hover: #ffff00;
+    --color-controlbar: #000000;
+    --color-on-control: #ffffff;
+    --color-dot-active: #ffff00;
+
+    --color-hero-shell: #000000;
+    --color-slide-shell: #000000;
+    --color-overlay: rgba(0, 0, 0, 0.88);
+    --color-focus: #ffffff;
+
+    /* Las fotografías del banner quedan cubiertas: el texto sobreimpreso debe
+       mantener el ratio AAA y ninguna imagen puede garantizarlo. */
+    --huv-scrim-light: rgba(0, 0, 0, 0.94);
+    --huv-scrim-light-strong: rgba(0, 0, 0, 0.94);
+    --huv-scrim-dark: rgba(0, 0, 0, 0.94);
+}
+
+html[data-huv-contrast='on'] {
+    /* Los controles translúcidos del carrusel necesitan borde propio: sobre
+       negro sólido ya no se distinguen por su fondo. */
+    & [data-huv-control] {
+        border: 1px solid var(--color-on-control);
+    }
+
+    /* Al pasar el cursor la superficie se vuelve amarilla: el icono y el borde
+       deben voltear a negro, igual que cualquier otra superficie de acento.
+       De lo contrario el trazo blanco sobre amarillo queda en 1.07:1 y la
+       flecha desaparece justo en el modo pensado para baja visión. */
+    & [data-huv-control]:hover {
+        color: var(--color-on-accent);
+        border-color: var(--color-on-accent);
+    }
+
+    & [data-huv-controlbar] {
+        border-top: 1px solid var(--color-on-control);
+    }
+
+    /* Los paneles flotantes se despegan del fondo con una regla propia. */
+    & [data-huv-panel] {
+        border: 1px solid var(--color-line);
+    }
+
+    /* Cada franja queda separada por una regla, ya que todos los fondos
+       comparten el mismo negro. */
+    & main > section + section {
+        border-top: 1px solid var(--color-line);
+    }
+
+    /* WCAG 1.4.1: los enlaces dentro de un párrafo no pueden distinguirse
+       solo por el color. */
+    & address a,
+    & main p a {
+        text-decoration: underline;
+    }
+
+    /* Anillo de foco blanco con halo negro: legible tanto sobre el fondo
+       negro como sobre los botones amarillos. */
+    & :focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px #000000;
+    }
+}
+
+/* Modo de contraste forzado del sistema operativo (Windows High Contrast).
+   Se respetan los colores del sistema y solo se garantiza que los bordes
+   decorativos sigan siendo visibles. */
+@media (forced-colors: active) {
+    *,
+    *::before,
+    *::after {
+        forced-color-adjust: auto;
+    }
+
+    [data-huv-control],
+    [data-huv-panel] {
+        border: 1px solid CanvasText;
+    }
+
+    :focus-visible {
+        outline: 3px solid Highlight;
+        outline-offset: 2px;
+    }
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font-sans);
+        color: var(--color-ink);
+        background: var(--color-page);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    a {
+        color: var(--color-heading);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--color-heading-hover);
+        text-decoration: underline;
+    }
+
+    button {
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    input {
+        font-family: inherit;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
+
+    /* Respeta la preferencia del sistema de reducir movimiento. */
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /* Contenedor institucional: 1240px con respiración progresiva. */
+    .huv-container {
+        margin-inline: auto;
+        width: 100%;
+        max-width: var(--container-page);
+        padding-inline: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+        .huv-container {
+            padding-inline: 2rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .huv-container {
+            padding-inline: 3.5rem;
+        }
+    }
+
+    /* Enlace de salto: visible solo al tabular. */
+    .huv-skip {
+        position: absolute;
+        left: 1rem;
+        top: -100%;
+        z-index: 100;
+        background: var(--color-navy);
+        color: var(--color-on-brand);
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 0.75rem 1.25rem;
+        border: 1px solid var(--color-line);
+        border-radius: 0 0 4px 4px;
+        transition: top 0.15s ease-out;
+    }
+
+    .huv-skip:focus {
+        top: 0;
+        color: var(--color-on-brand);
+        text-decoration: none;
+    }
+
+    /* Utilidad para truncar resúmenes de noticias sin romper la altura. */
+    .huv-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+@keyframes huvFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.huv-fade {
+    animation: huvFade 0.14s ease-out;
+}
+
+/* Alpine: evita el parpadeo de contenido antes de inicializar. */
+[x-cloak] {
+    display: none !important;
 }
