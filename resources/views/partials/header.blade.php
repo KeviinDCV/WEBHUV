@@ -1,7 +1,7 @@
 @php $institution = config('huv.institution'); @endphp
 
 <header class="border-b border-line-soft bg-card">
-    <x-container class="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-[14px]">
+    <x-container class="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-4">
 
         {{-- El destino del botón «Volver arriba»: al subir, el foco aterriza aquí. --}}
         <a href="{{ url('/') }}" id="huv-inicio-pagina" class="block shrink-0"
@@ -13,7 +13,7 @@
                  alt="{{ $institution['name'] }}"
                  width="620" height="175"
                  fetchpriority="high"
-                 class="block h-11 w-auto sm:h-[58px]">
+                 class="block h-[52px] w-auto sm:h-[66px] lg:h-[76px]">
         </a>
 
         <div class="flex w-full max-w-[520px] flex-1 flex-col items-stretch gap-[10px] sm:items-end">
@@ -27,7 +27,11 @@
                           class="cursor-not-allowed bg-card px-[10px] py-1 text-12 font-bold tracking-[0.04em] text-disabled">EN</span>
                 </div>
                 <span class="text-divider" aria-hidden="true">·</span>
-                <a href="#" class="text-heading">Inicia sesión</a>
+                @auth
+                    <span class="text-muted">{{ auth()->user()->name }}</span>
+                @else
+                    <a href="{{ route('login') }}" class="text-heading">Inicia sesión</a>
+                @endauth
             </div>
 
             {{-- TODO: apuntar a la ruta del buscador cuando exista el backend de búsqueda. --}}

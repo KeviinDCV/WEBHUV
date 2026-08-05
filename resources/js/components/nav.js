@@ -12,12 +12,16 @@
 
 const CLOSE_DELAY_MS = 180;
 
-export default function huvNav() {
+export default function huvNav(megaTabs = []) {
     return {
         menu: null,
         mobileOpen: false,
         mobileSection: null,
         closeTimer: null,
+
+        /** Categoría abierta dentro del menú completo (botón ☰). */
+        megaTabs,
+        megaTab: megaTabs[0] ?? null,
 
         init() {
             this.$watch('mobileOpen', (open) => {
@@ -105,6 +109,48 @@ export default function huvNav() {
             if (!event.currentTarget.contains(event.relatedTarget)) {
                 this.close();
             }
+        },
+
+        /* ------------------------------------------------------------------
+         | Menú completo: lista de categorías a la izquierda, enlaces al lado.
+         | Patrón de pestañas verticales de WAI-ARIA, con foco móvil: solo la
+         | categoría activa entra en el orden de tabulación y las flechas
+         | recorren el resto.
+         ------------------------------------------------------------------ */
+
+        isTab(key) {
+            return this.megaTab === key;
+        },
+
+        selectTab(key) {
+            this.megaTab = key;
+        },
+
+        onTabKeydown(event, key) {
+            const keys = this.megaTabs;
+            const current = keys.indexOf(key);
+            let next = null;
+
+            if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                next = (current + 1) % keys.length;
+            } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+                next = (current - 1 + keys.length) % keys.length;
+            } else if (event.key === 'Home') {
+                next = 0;
+            } else if (event.key === 'End') {
+                next = keys.length - 1;
+            }
+
+            if (next === null) return;
+
+            event.preventDefault();
+            this.megaTab = keys[next];
+            this.$nextTick(() => {
+                event.currentTarget
+                    ?.closest('[data-huv-tablist]')
+                    ?.querySelector(`[data-huv-tab="${this.megaTab}"]`)
+                    ?.focus();
+            });
         },
 
         toggleMobile() {

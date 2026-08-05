@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class HomePageTest extends TestCase
 {
+    // La portada lee los banners de la base de datos.
+    use RefreshDatabase;
+
     public function test_la_pagina_de_inicio_responde_correctamente(): void
     {
         $this->get('/')->assertOk();
@@ -95,40 +99,124 @@ class HomePageTest extends TestCase
         }
     }
 
-    public function test_renderiza_todas_las_secciones_de_la_home(): void
+    public function test_renderiza_las_secciones_de_la_home_en_orden(): void
     {
-        $response = $this->get('/');
+        $html = $this->get('/')->getContent();
 
-        foreach ([
-            'id="inicio"',
-            'id="noticias"',
-            'id="transparencia"',
-            'Atención y Servicios a la ciudadanía',
-            'Servicios y especialidades',
-            'Líneas de atención',
-        ] as $needle) {
-            $response->assertSee($needle, false);
-        }
+        // El orden importa: reproduce el del portal institucional.
+        $sections = ['id="inicio"', 'id="noticias"', 'id="huv-accesos"', 'id="huv-contenidos"',
+            'id="eventos"', 'id="huv-boletines"', 'id="huv-entidades"'];
+
+        $positions = array_map(function (string $needle) use ($html): int {
+            $at = strpos($html, $needle);
+            $this->assertNotFalse($at, "No se encontró la sección {$needle}.");
+
+            return $at;
+        }, $sections);
+
+        $sorted = $positions;
+        sort($sorted);
+        $this->assertSame($sorted, $positions, 'Las secciones no aparecen en el orden esperado.');
     }
 
     public function test_renderiza_todo_el_contenido_configurado(): void
     {
         $response = $this->get('/');
 
-        foreach (config('huv.quick_access.items') as $item) {
-            $response->assertSee($item['title'], false);
-        }
-
-        foreach (config('huv.transparency.items') as $item) {
-            $response->assertSee($item, false);
-        }
-
-        foreach (config('huv.services.items') as $service) {
-            $response->assertSee($service, false);
-        }
+        $response->assertSee(config('huv.news.featured.title'), false);
 
         foreach (config('huv.news.items') as $item) {
             $response->assertSee($item['title'], false);
+        }
+
+        foreach (config('huv.quick_links') as $link) {
+            $response->assertSee($link['label'], false);
+        }
+
+        foreach (config('huv.content_feed.items') as $item) {
+            $response->assertSee($item['title'], false);
+        }
+
+        foreach (config('huv.bulletins.items') as $item) {
+            $response->assertSee($item['title'], false);
+        }
+
+        foreach (config('huv.partners.items') as $entity) {
+            $response->assertSee($entity['name'], false);
+        }
+    }
+
+    public function test_el_listado_de_contenidos_se_publica_entero_en_el_html(): void
+    {
+        $response = $this->get('/');
+        $html = $response->getContent();
+
+        // Se renderizan todas las tarjetas aunque solo se muestren seis: el
+        // filtrado es cosa del cliente, pero los buscadores y quien navega sin
+        // JavaScript deben ver el listado completo.
+        foreach (config('huv.content_feed.items') as $item) {
+            $response->assertSee($item['title'], false);
+        }
+
+        $this->assertStringContainsString('huvContentFeed(', $html);
+        $this->assertStringContainsString('Cargar más contenidos', $html);
+    }
+
+    public function test_la_agenda_navega_entre_periodos_por_la_url(): void
+    {
+        // Semana actual: debe contener el evento programado para hoy.
+        $this->get('/')->assertOk()->assertSee('Eventos', false);
+
+        // La navegación viaja en la URL, así que funciona sin JavaScript.
+        $this->get('/?vista=mes&periodo=0')->assertOk();
+        $this->get('/?vista=semana&periodo=-1')->assertOk();
+        $this->get('/?vista=semana&periodo=1')->assertOk();
+
+        // Valores fuera de rango o inventados no deben romper la página.
+        $this->get('/?vista=trimestre&periodo=99999')->assertOk();
+        $this->get('/?vista[]=x&periodo=abc')->assertOk();
+    }
+
+    public function test_el_menu_completo_publica_sus_cuatro_categorias(): void
+    {
+        $response = $this->get('/');
+        $html = $response->getContent();
+
+        foreach (config('huv.mega_menu') as $column) {
+            $response->assertSee($column['title'], false);
+
+            foreach ($column['links'] as $link) {
+                $response->assertSee($link['label'], false);
+
+                // Los enlaces internos aún no migrados apuntan al portal actual;
+                // los externos, a su propio dominio.
+                $expected = $link['url']
+                    ?? rtrim((string) config('huv.legacy_base'), '/').$link['path'];
+
+                $this->assertStringContainsString(e($expected), $html);
+            }
+        }
+
+        // Patrón de pestañas verticales de WAI-ARIA.
+        $this->assertStringContainsString('role="tablist"', $html);
+        $this->assertSame(
+            count(config('huv.mega_menu')),
+            substr_count($html, 'role="tabpanel"'),
+            'Debe haber un panel por categoría.'
+        );
+    }
+
+    public function test_los_enlaces_externos_del_menu_se_abren_de_forma_segura(): void
+    {
+        $html = $this->get('/')->getContent();
+
+        // Todo target="_blank" necesita rel="noopener" para no exponer
+        // window.opener al sitio de destino.
+        preg_match_all('/<a\b[^>]*target="_blank"[^>]*>/', $html, $tags);
+        $this->assertNotEmpty($tags[0]);
+
+        foreach ($tags[0] as $tag) {
+            $this->assertStringContainsString('rel="noopener noreferrer"', $tag);
         }
     }
 
@@ -204,6 +292,13 @@ class HomePageTest extends TestCase
 
     public function test_incluye_ayudas_de_accesibilidad(): void
     {
+        // El carrusel solo se anuncia cuando hay banners que rotar.
+        \App\Models\Banner::create([
+            'position' => 1,
+            'image_path' => 'banners/ejemplo.jpg',
+            'alt_text' => 'Banner de ejemplo',
+        ]);
+
         $response = $this->get('/');
 
         $response->assertSee('Saltar al contenido principal', false);

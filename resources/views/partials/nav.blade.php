@@ -1,10 +1,11 @@
 @php
     $items = config('huv.nav');
     $mega = config('huv.mega_menu');
+    $megaKeys = array_column($mega, 'key');
 @endphp
 
 <nav aria-label="Menú principal"
-     x-data="huvNav"
+     x-data="huvNav(@js($megaKeys))"
      @keydown.escape="onEscape($event)"
      @focusout="onFocusOut($event)"
      @click.outside="close()"
@@ -129,24 +130,71 @@
         </div>
     </x-container>
 
-    {{-- ---------------- Megamenú (escritorio) ---------------- --}}
+    {{-- ---------------- Menú completo (escritorio) ----------------
+         Dos niveles: las categorías a la izquierda y sus enlaces al lado.
+         Sigue el patrón de pestañas verticales de WAI-ARIA. --}}
     <div x-show="isOpen('mega')" x-cloak
          id="huv-megamenu"
          @mouseleave="hoverClose()"
          data-huv-panel
          class="huv-fade absolute inset-x-0 top-full z-40 hidden border-t border-line bg-card
                 shadow-[0_16px_30px_rgba(23,32,64,0.12)] lg:block">
-        <x-container class="grid grid-cols-4 gap-[30px] pt-[30px] pb-[34px]">
-            @foreach ($mega as $column)
-                <div class="flex flex-col gap-[9px]">
-                    <h3 class="mb-1 font-display text-13 font-bold tracking-[0.06em] text-heading uppercase">
+        <x-container class="grid grid-cols-[260px_minmax(0,1fr)] py-6">
+
+            <div data-huv-tablist role="tablist" aria-orientation="vertical"
+                 aria-label="Categorías del menú completo"
+                 class="flex flex-col border-r border-line pr-4">
+                @foreach ($mega as $column)
+                    <button type="button"
+                            role="tab"
+                            data-huv-tab="{{ $column['key'] }}"
+                            id="huv-tab-{{ $column['key'] }}"
+                            aria-controls="huv-tabpanel-{{ $column['key'] }}"
+                            :aria-selected="isTab('{{ $column['key'] }}') ? 'true' : 'false'"
+                            :tabindex="isTab('{{ $column['key'] }}') ? 0 : -1"
+                            @click="selectTab('{{ $column['key'] }}')"
+                            @mouseenter="selectTab('{{ $column['key'] }}')"
+                            @keydown="onTabKeydown($event, '{{ $column['key'] }}')"
+                            :class="isTab('{{ $column['key'] }}')
+                                ? 'bg-tint text-heading border-l-rule-accent'
+                                : 'border-l-transparent text-body hover:bg-tint hover:text-heading'"
+                            class="flex items-center justify-between gap-3 border-0 border-l-[3px] bg-transparent
+                                   px-4 py-[13px] text-left font-display text-14 font-semibold transition-colors">
                         {{ $column['title'] }}
+                        <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 5 7 7-7 7" />
+                        </svg>
+                    </button>
+                @endforeach
+            </div>
+
+            @foreach ($mega as $column)
+                <div role="tabpanel"
+                     id="huv-tabpanel-{{ $column['key'] }}"
+                     aria-labelledby="huv-tab-{{ $column['key'] }}"
+                     x-show="isTab('{{ $column['key'] }}')" x-cloak
+                     tabindex="0"
+                     class="col-start-2 row-start-1 max-h-[min(62vh,540px)] overflow-y-auto overscroll-contain pl-8">
+
+                    <h3 class="m-0 mb-3 font-display text-13 font-bold tracking-[0.06em] text-heading uppercase">
+                        {{ $column['title'] }}
+                        <span class="ml-1 font-normal text-faint normal-case">
+                            ({{ count($column['links']) }})
+                        </span>
                     </h3>
-                    @foreach ($column['links'] as $link)
-                        <a href="{{ $link['url'] }}" class="text-13-5 text-body hover:text-heading">
-                            {{ $link['label'] }}
-                        </a>
-                    @endforeach
+
+                    {{-- Columnas fijas: las etiquetas largas rompen línea en
+                         lugar de estirar el panel. --}}
+                    <ul class="grid gap-x-8 gap-y-[7px]"
+                        style="grid-template-columns: repeat({{ $column['columns'] ?? 2 }}, minmax(0, 1fr))">
+                        @foreach ($column['links'] as $link)
+                            <li>
+                                <x-menu-link :link="$link"
+                                             class="block text-13-5 leading-[1.4] text-body hover:text-heading" />
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
             @endforeach
         </x-container>
@@ -216,22 +264,45 @@
                 @endforeach
             </ul>
 
-            @foreach ($mega as $column)
-                <div class="border-b border-line-soft px-5 py-4">
-                    <h3 class="mb-2 font-display text-12-5 font-bold tracking-[0.06em] text-heading uppercase">
-                        {{ $column['title'] }}
-                    </h3>
-                    <ul class="flex flex-col gap-2">
-                        @foreach ($column['links'] as $link)
-                            <li>
-                                <a href="{{ $link['url'] }}" class="text-13-5 text-body hover:text-heading">
-                                    {{ $link['label'] }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endforeach
+            {{-- Menú completo: en el cajón, las mismas categorías se despliegan
+                 como acordeón en lugar de pestañas. --}}
+            <ul class="flex flex-col">
+                @foreach ($mega as $column)
+                    <li class="border-b border-line-soft">
+                        <button type="button"
+                                @click="toggleMobileSection('{{ $column['key'] }}')"
+                                :aria-expanded="mobileSection === '{{ $column['key'] }}' ? 'true' : 'false'"
+                                aria-controls="huv-movil-{{ $column['key'] }}"
+                                class="flex w-full items-center justify-between gap-3 border-0 bg-transparent px-5 py-[14px]
+                                       text-left font-display text-14 font-medium text-heading hover:bg-tint">
+                            <span>
+                                {{ $column['title'] }}
+                                <span class="font-normal text-faint">({{ count($column['links']) }})</span>
+                            </span>
+                            <svg class="size-3 shrink-0 transition-transform duration-150"
+                                 :class="mobileSection === '{{ $column['key'] }}' && 'rotate-180'"
+                                 viewBox="0 0 10 6" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true">
+                                <path d="m1 1 4 4 4-4" />
+                            </svg>
+                        </button>
+
+                        <ul id="huv-movil-{{ $column['key'] }}"
+                            x-show="mobileSection === '{{ $column['key'] }}'" x-cloak
+                            x-collapse
+                            class="bg-surface pb-2">
+                            @foreach ($column['links'] as $link)
+                                <li>
+                                    <x-menu-link :link="$link"
+                                                 class="block px-5 py-[10px] pl-8 text-13-5 leading-[1.4] text-ink
+                                                        no-underline hover:text-heading" />
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @endforeach
+            </ul>
 
         </div>
     </div>

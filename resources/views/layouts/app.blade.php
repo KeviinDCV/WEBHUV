@@ -61,6 +61,7 @@
 
     <a href="#contenido" class="huv-skip">Saltar al contenido principal</a>
 
+    @include('partials.admin-bar')
     @include('partials.header')
     @include('partials.nav')
 

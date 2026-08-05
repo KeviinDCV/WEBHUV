@@ -112,49 +112,150 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Megamenú (botón ☰)
+    | Portal heredado
     |--------------------------------------------------------------------------
+    | Mientras no existan las páginas equivalentes en este aplicativo, las
+    | secciones que solo declaran 'path' se sirven desde el portal actual, de
+    | modo que ningún enlace del menú queda roto.
+    |
+    | Al migrar cada sección basta con crear su ruta aquí y, cuando estén todas,
+    | poner 'legacy_base' => null: los mismos 'path' pasan a resolverse contra
+    | este dominio sin tocar una sola vista.
+    */
+    'legacy_base' => 'https://hospital-universitario-del-valle-evaristo-garcia-ese.micolombiadigital.gov.co',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Menú completo (botón ☰)
+    |--------------------------------------------------------------------------
+    | Dos niveles: las categorías a la izquierda y sus enlaces al lado.
+    | Cada enlace declara 'path' (interno, resuelto contra legacy_base) o
+    | 'url' (externo, se abre en una pestaña nueva).
     */
     'mega_menu' => [
+
         [
-            'title' => 'La entidad',
+            'key' => 'documentos',
+            'title' => 'Documentos',
             'links' => [
-                ['label' => 'Misión y visión', 'url' => '#'],
-                ['label' => 'Quiénes somos', 'url' => '#'],
-                ['label' => 'Reseña histórica', 'url' => '#'],
-                ['label' => 'Organigrama', 'url' => '#'],
-                ['label' => 'Directorio institucional', 'url' => '#'],
-                ['label' => 'Junta Directiva', 'url' => '#'],
+                ['label' => 'Presupuesto', 'path' => '/tema/presupuesto'],
+                ['label' => 'Programas', 'path' => '/tema/programas'],
+                ['label' => 'Planes', 'path' => '/tema/planes'],
+                ['label' => 'Políticas y lineamientos', 'path' => '/tema/politicas-y-lineamientos'],
+                ['label' => 'Proyectos en ejecución', 'path' => '/tema/proyectos-en-ejecucion'],
+                ['label' => 'Informes de PQRDS', 'path' => '/tema/informe-de-pqr'],
+                ['label' => 'Control Interno', 'path' => '/tema/control-interno'],
+                ['label' => 'Otros', 'path' => '/tema/otros'],
             ],
         ],
+
         [
-            'title' => 'Servicios',
+            'key' => 'informate',
+            'title' => 'Infórmate',
             'links' => [
-                ['label' => 'Portafolio de servicios', 'url' => '#'],
-                ['label' => 'Urgencias', 'url' => '#'],
-                ['label' => 'Consulta externa', 'url' => '#'],
-                ['label' => 'Banco de sangre', 'url' => '#'],
-                ['label' => 'Banco de leche humana', 'url' => '#'],
-                ['label' => 'HUV Internacional', 'url' => '#'],
+                ['label' => 'Contrataciones', 'path' => '/tema/contrataciones'],
+                ['label' => 'Población vulnerable', 'path' => '/tema/poblacion-vulnerable'],
+                ['label' => 'Rendición de cuentas', 'path' => '/tema/control'],
+                ['label' => 'Ofertas de empleo', 'path' => '/tema/ofertas-de-empleo'],
+                ['label' => 'Metas, objetivos e indicadores', 'path' => '/tema/metas-objetivos-e-indicadores'],
+                ['label' => 'Preguntas y respuestas', 'path' => '/tema/preguntas-y-respuestas'],
+                ['label' => 'Convocatorias', 'path' => '/tema/convocatorias'],
+                ['label' => 'Datos abiertos', 'path' => '/tema/datos-abiertos'],
+                ['label' => 'Sucursales', 'path' => '/sucursales'],
+                ['label' => 'Notificaciones Judiciales', 'path' => '/tema/notificaciones-judiciales'],
+                ['label' => 'Restructuración', 'path' => '/tema/restructuracion'],
+                ['label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
+                ['label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
+                ['label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
             ],
         ],
+
         [
-            'title' => 'Transparencia',
+            'key' => 'nosotros',
+            'title' => 'Nosotros',
             'links' => [
-                ['label' => 'Normativa', 'url' => '#'],
-                ['label' => 'Contratación', 'url' => '#'],
-                ['label' => 'Planeación, presupuesto e informes', 'url' => '#'],
-                ['label' => 'Datos abiertos', 'url' => '#'],
-                ['label' => 'Talento humano', 'url' => '#'],
+                ['label' => 'Correo interno', 'url' => 'https://mail.huv.gov.co/'],
+                ['label' => 'Procesos y procedimientos', 'path' => '/tema/procesos-y-procedimientos'],
+                ['label' => 'Directorio de funcionarios', 'path' => '/tema/directorio-de-funcionarios'],
+                ['label' => 'Directorio institucional', 'path' => '/tema/directorio-institucional'],
+                ['label' => 'Entidad', 'path' => '/tema/entidad'],
+                ['label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
+                // El portal actual corta este rótulo en «…y otros grupos de».
+                ['label' => 'Directorio de agremiaciones, asociaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
+                ['label' => 'Servicio al público, normas, formularios', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
             ],
         ],
+
         [
-            'title' => 'Docencia e investigación',
+            'key' => 'entidades',
+            'title' => 'Entidades relacionadas',
+            'columns' => 3,
             'links' => [
-                ['label' => 'Convenios docencia–servicio', 'url' => '#'],
-                ['label' => 'Comité de ética en investigación', 'url' => '#'],
-                ['label' => 'Rotaciones y prácticas', 'url' => '#'],
-                ['label' => 'Biblioteca', 'url' => '#'],
+                ['label' => 'ABSALON TORRES CAMACHO', 'url' => 'https://www.absalontorrescamacho.ie.edu.co/'],
+                ['label' => 'Autoridad Regional de Transporte - ART Movamos Región', 'url' => 'https://www.movamosregion.gov.co/'],
+                ['label' => 'Benemérito Cuerpo de Bomberos de El Cairo en Valle Del Cauca', 'url' => 'https://www.bomberos-cairo.gov.co/'],
+                ['label' => 'Comisión Especial de Carrera Administrativa de las Contralorías Territoriales en Cali - Valle del Cauca', 'url' => 'https://www.cecact.gov.co/'],
+                ['label' => 'CONCEJO MUNICIPAL LA VICTORIA VALLE DEL CAUCA', 'url' => 'http://www.concejo-lavictoria-valle.gov.co/'],
+                ['label' => 'E.S.E Hospital San Agustín Puerto Merizalde de Buenaventura en Valle del Cauca', 'url' => 'https://www.hospitalsanagustinpm.gov.co/'],
+                ['label' => 'ESCUELA NORMAL SUPERIOR MARIA INMACULADA', 'url' => 'https://www.normalsuperiorcaicedonia.edu.co/'],
+                ['label' => 'Escuela Normal Superior Nuestra Señora de Las Mercedes', 'url' => 'https://www.normalzarzal.ie.edu.co/'],
+                ['label' => 'I E Simón Bolívar', 'url' => 'https://www.sibo-lacumbre.ie.edu.co/'],
+                ['label' => 'I.E Borrero Ayerbe', 'url' => 'https://www.ieborreroayerbe.ie.edu.co/'],
+                ['label' => 'I.E General Santander', 'url' => 'https://www.ie-generalsantander-sed-vac.ie.edu.co/'],
+                ['label' => 'I.E Primitivo Crespo', 'url' => 'https://www.primitivocrespo.ie.edu.co/'],
+                ['label' => 'I.E Santa Rita de Cassia', 'url' => 'https://www.santaritadecassia.ie.edu.co/'],
+                ['label' => 'I.E Simón Bolívar', 'url' => 'https://www.iesimonbolivarzarzal.ie.edu.co/'],
+                ['label' => 'I.E. Del Dagua', 'url' => 'https://www.iedagua.ie.edu.co/'],
+                ['label' => 'I.E. El Placer', 'url' => 'https://www.institucioneducativaelplacer-ansermanuevo.ie.edu.co/'],
+                ['label' => 'I.E. Fray José Joaquín Escobar', 'url' => 'https://www.frayjosejoaquinescobar.edu.co/'],
+                ['label' => 'I.E. Gilberto Álzate Avendaño', 'url' => 'https://www.iegilbertoalzateavendanoargeliavalle.edu.co/'],
+                ['label' => 'I.E. Hernando Llorente Arroyo', 'url' => 'https://www.iehernandollorente-riofrio-valle.edu.co/'],
+                ['label' => 'I.E. Jorge Eliécer Gaitán', 'url' => 'https://www.jorgeeliecergaitan.ie.edu.co/'],
+                ['label' => 'I.E. Jorge Robledo', 'url' => 'https://www.jorgerobledovijes.ie.edu.co/'],
+                ['label' => 'I.E. José Antonio Aguilera', 'url' => 'https://www.iejoseantonioaguilera-sanpedro-valle.edu.co/'],
+                ['label' => 'I.E. José Celestino Mutis', 'url' => 'https://www.josecelestinomutisguabas.ie.edu.co/'],
+                ['label' => 'I.E. Manuel Antonio Sanclemente', 'url' => 'https://www.iemasbuga-valle.edu.co/'],
+                ['label' => 'I.E. Normal Superior Jorge Isaacs', 'url' => 'https://www.nsji.edu.co/'],
+                ['label' => 'I.E. San Isidro en Valle del Cauca', 'url' => 'https://www.institucioneducativasanisidro.ie.edu.co/'],
+                ['label' => 'IE MAGDALENA ORTEGA', 'url' => 'https://www.magdalenaortega.ie.edu.co/'],
+                ['label' => 'IE MIGUEL ANTONIO CARO', 'url' => 'https://www.iemac-sanpedro-valle.ie.edu.co/'],
+                ['label' => 'Institución Educativa Antonio José de Sucre', 'url' => 'https://www.ieantoniojosedesucre-trujillovalle.edu.co/'],
+                ['label' => 'Institución Educativa Argemiro Escobar Cardona', 'url' => 'https://www.ieargemiroescobarlaunionvalle.edu.co/'],
+                ['label' => 'Institución Educativa Ateneo', 'url' => 'https://www.ateneo.ie.edu.co/'],
+                ['label' => 'Institución Educativa Belisario Peña Piñeiro', 'url' => 'https://www.belisariopproldanillo.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA BENJAMÍN HERRERA', 'url' => 'https://www.benjaminherrera.ie.edu.co/'],
+                ['label' => 'Institución Educativa Camilo Torres', 'url' => 'https://www.camilotorresriofrio.ie.edu.co/'],
+                ['label' => 'Institución Educativa Ciudad Florida', 'url' => 'https://www.ieciudadflorida.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA DE LA NACIÓN EMBERA DEL VALLE DEL CAUCA IENEV', 'url' => 'https://www.ienev.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA EL PALMAR', 'url' => 'https://www.elpalmardagua.ie.edu.co/'],
+                ['label' => 'Institución Educativa El Queremal', 'url' => 'https://www.queremal.edu.co/'],
+                ['label' => 'Institución Educativa Francisco Antonio Zea', 'url' => 'https://www.franciscoantoniozea.ie.edu.co/'],
+                ['label' => 'Institución Educativa Jorge Isaacs', 'url' => 'https://www.jorgeisaacs.ie.edu.co/'],
+                ['label' => 'Institución Educativa José Acevedo y Gómez', 'url' => 'https://www.joseacevedoygomez-restrepo.ie.edu.co/'],
+                ['label' => 'Institución Educativa José Ignacio Ospina', 'url' => 'https://www.joseignacioospina.ie.edu.co/'],
+                ['label' => 'Institución Educativa José María Córdoba', 'url' => 'https://www.iejosemariacordobaflorida.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA KWE´SX NASA KSXA´WNXI IDEBIC', 'url' => 'https://www.idebic.ie.edu.co/'],
+                ['label' => 'Institución Educativa La Inmaculada', 'url' => 'https://www.lainmaculada.ie.edu.co/'],
+                ['label' => 'Institución Educativa La Tulia', 'url' => 'http://www.ielatulia.edu.co/'],
+                ['label' => 'Institución Educativa Las Américas', 'url' => 'https://www.lasamericas.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA MANUEL ANTONIO BONILLA', 'url' => 'https://www.iemanuelantoniobonilla.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA MARÍA AUXILIADORA', 'url' => 'https://www.mariaauxiliadorasevilla.ie.edu.co/'],
+                ['label' => 'INSTITUCIÓN EDUCATIVA MARINO RENJIFO SALCEDO', 'url' => 'https://www.marinorenjifosalcedo.ie.edu.co/'],
+                ['label' => 'Institución Educativa Regional Simón Bolívar', 'url' => 'https://www.regionalsimonbolivar.ie.edu.co/'],
+                ['label' => 'Institución Educativa Rosendo Mondragón Feijoo', 'url' => 'https://www.rosendomondragonfeijoo.ie.edu.co/'],
+                ['label' => 'Institución Educativa San José', 'url' => 'https://www.sanjoselavictoria.edu.co/'],
+                ['label' => 'Instituto Colombiano de Ballet Clásico', 'url' => 'https://www.incolballet.gov.co/'],
+                ['label' => 'JULIO CAICEDO TÉLLEZ', 'url' => 'https://www.iejctellezsanpedro.edu.co/'],
+                ['label' => 'Panebianco Americano', 'url' => 'https://www.panebiancoamericano.ie.edu.co/'],
+                ['label' => 'Personería Municipal de Alcalá Valle del Cauca', 'url' => 'https://www.personeria-alcalavalle.gov.co/'],
+                ['label' => 'Personería Municipal de Candelaria en Valle del Cauca', 'url' => 'https://www.personeriacandelaria.gov.co/'],
+                ['label' => 'Personería Municipal de Dagua en Valle del Cauca', 'url' => 'http://www.personeriadagua.gov.co/'],
+                ['label' => 'Personería Municipal de Restrepo en Valle del Cauca', 'url' => 'https://www.personeria-restrepovalle.gov.co/'],
+                ['label' => 'Personería Municipal de Tuluá en Valle del Cauca', 'url' => 'https://www.personeriatulua.gov.co/'],
+                ['label' => 'Personería Municipal San Pedro en Valle del Cauca', 'url' => 'https://www.personeria-sanpedrovalle.gov.co/'],
+                ['label' => 'Región de Planeación y Gestión del Centro del Valle', 'url' => 'https://www.cenvallerpg.gov.co/'],
+                ['label' => 'Santa Ana de los Caballeros', 'url' => 'https://www.iesantaanadeloscaballeros-ansermanuevo-valledelcauca.edu.co/'],
+                ['label' => 'Sistema Integrado de Transporte', 'url' => 'https://www.sitren.gov.co/'],
             ],
         ],
     ],
@@ -172,7 +273,7 @@ return [
             [
                 'type' => 'award',
                 'image' => null,
-                'image_hint' => 'Banner 1 — 500 empresas más exitosas del Valle (1900×470)',
+                'image_hint' => 'Banner 1 (3750×968)',
                 'overline' => 'Orgullosos de estar entre:',
                 'headline' => 'LAS 34 EMPRESAS MÁS EXITOSAS',
                 'subline' => 'del Valle del Cauca',
@@ -197,7 +298,7 @@ return [
                 'type' => 'standard',
                 'theme' => 'dark',
                 'image' => null,
-                'image_hint' => 'Banner 2 — 70 años HUV (1900×470)',
+                'image_hint' => 'Banner 2 (3750×968)',
                 'eyebrow' => '70 años',
                 'title' => '70 años de liderazgo en salud pública',
                 'text' => 'Integrando servicios de alta complejidad, tecnología de vanguardia y el rigor '
@@ -207,7 +308,7 @@ return [
                 'type' => 'standard',
                 'theme' => 'light',
                 'image' => null,
-                'image_hint' => 'Banner 3 — banner institucional (1900×470)',
+                'image_hint' => 'Banner 3 (3750×968)',
                 'eyebrow' => 'Alta complejidad',
                 'title' => 'La institución de salud pública más grande del suroccidente colombiano',
                 'text' => 'Entidad pública descentralizada del orden departamental, adscrita a la '
@@ -352,45 +453,268 @@ return [
     | Noticias destacadas
     |--------------------------------------------------------------------------
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Noticias — franja destacada bajo el banner
+    |--------------------------------------------------------------------------
+    | Una nota principal a la izquierda y cuatro titulares compactos a la
+    | derecha. Los textos son de relleno: se sustituyen por los reales cuando
+    | exista el gestor de contenidos.
+    */
     'news' => [
         'title' => 'Noticias',
-        'subtitle' => 'Comunicados y actualidad institucional.',
         'all_url' => '#',
+        'featured' => [
+            'category' => 'Noticias',
+            'published_at' => '-6 hours',
+            'title' => 'Suspensión temporal de servicios ambulatorios para afiliados de las EPS Emssanar, '
+                .'Asmet Salud y Coosalud por incumplimiento en los pagos',
+            'excerpt' => 'Santiago de Cali, 5 de agosto de 2026. El Hospital Universitario del Valle '
+                .'«Evaristo García» E.S.E. informa a la comunidad, a los usuarios, a las autoridades de '
+                .'salud y a la opinión pública que…',
+            'url' => '#',
+            'image' => null,
+            'image_hint' => 'Foto de la noticia principal (960×540)',
+        ],
         'items' => [
             [
-                'category' => 'Institucional',
-                'date' => 'Noviembre de 2015',
-                'datetime' => '2015-11-01',
-                'title' => 'El Hospital Universitario del Valle «Evaristo García» E.S.E. contará con una '
-                    .'nueva sede principal en el municipio de Cartago, Valle del Cauca',
-                'excerpt' => 'De acuerdo al Programa de Gobierno de la Gobernación del Valle del Cauca, que '
-                    .'consiste en descentralizar los servicios de salud en el Departamento.',
+                'published_at' => '-7 hours',
+                'title' => 'El Hospital Universitario del Valle responde a Emssanar EPS: la verdad '
+                    .'financiera y la defensa de la salud pública',
                 'url' => '#',
                 'image' => null,
-                'image_hint' => 'Foto noticia 1 (720×405)',
+                'image_hint' => 'Miniatura (320×180)',
             ],
             [
-                'category' => 'Reconocimientos',
-                'date' => '2025',
-                'datetime' => '2025-01-01',
-                'title' => 'El HUV entre las 34 empresas más exitosas del Valle del Cauca y en el puesto 8 '
-                    .'entre las empresas con más ganancias en el 2025',
-                'excerpt' => 'Ranking «500 Empresas + Exitosas del Valle y las 200 siguientes». Fuente: El País.',
+                'published_at' => '-7 days',
+                'title' => 'HUV presentó resultados históricos durante su Rendición de Cuentas 2025',
                 'url' => '#',
                 'image' => null,
-                'image_hint' => 'Foto noticia 2 (720×405)',
+                'image_hint' => 'Miniatura (320×180)',
             ],
             [
-                'category' => 'Banco de Sangre',
-                'date' => 'Permanente',
-                'datetime' => null,
-                'title' => 'Donar sangre en el HUV: requisitos, horarios y puntos de atención',
-                'excerpt' => 'El Banco de Sangre del Hospital Universitario del Valle atiende la demanda de '
-                    .'componentes sanguíneos del suroccidente del país.',
+                'published_at' => '2026-07-28 13:00',
+                'title' => 'Garante del HUV denuncia presunta corrupción en pagos de EPS intervenidas y '
+                    .'anuncia suspensión temporal de servicios',
                 'url' => '#',
                 'image' => null,
-                'image_hint' => 'Foto noticia 3 (720×405)',
+                'image_hint' => 'Miniatura (320×180)',
             ],
+            [
+                'published_at' => '2026-07-28 10:38',
+                'title' => 'El HUV suspende temporalmente la atención a afiliados de Emssanar EPS por '
+                    .'incumplimiento en los pagos',
+                'url' => '#',
+                'image' => null,
+                'image_hint' => 'Miniatura (320×180)',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accesos directos con icono
+    |--------------------------------------------------------------------------
+    | Diez trámites y canales de uso frecuente, en dos filas de cinco.
+    | 'icon' referencia una clave de resources/views/components/quick-icon.blade.php.
+    */
+    'quick_links' => [
+        ['icon' => 'calendar-check', 'label' => 'Citas', 'url' => '#'],
+        ['icon' => 'graduation', 'label' => 'Of. Coord. Académica', 'url' => '#'],
+        ['icon' => 'map-pin', 'label' => 'Oficina Internacional', 'url' => '#'],
+        ['icon' => 'lab', 'label' => 'Ver Resultados Lab', 'url' => '#'],
+        ['icon' => 'payment', 'label' => 'Pagos PSE', 'url' => '#'],
+        ['icon' => 'inbox', 'label' => 'PQRSF', 'url' => '#'],
+        ['icon' => 'chart', 'label' => 'Rendición de cuentas', 'url' => '#'],
+        ['icon' => 'info', 'label' => 'CIAU', 'url' => '#'],
+        ['icon' => 'gavel', 'label' => 'Notif. Judiciales', 'url' => '#'],
+        ['icon' => 'megaphone', 'label' => 'Plan Anticorrupción', 'url' => '#'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Listado general de contenidos
+    |--------------------------------------------------------------------------
+    | Se publica entero en el HTML —bien para buscadores y para quien navega sin
+    | JavaScript— y los controles de orden, filtro y «cargar más» actúan sobre
+    | lo ya renderizado.
+    */
+    'content_feed' => [
+        'per_page' => 6,
+        'categories' => ['Noticias', 'Notificaciones Judiciales', 'Comunicados'],
+        'items' => [
+            [
+                'category' => 'Noticias',
+                'published_at' => '-6 hours',
+                'title' => 'Suspensión temporal de servicios ambulatorios para afiliados de las EPS '
+                    .'Emssanar, Asmet Salud y Coosalud por incumplimiento en los pagos',
+                'excerpt' => 'Santiago de Cali, 5 de agosto de 2026. El Hospital Universitario del Valle '
+                    .'«Evaristo García» E.S.E. informa a la comunidad, a los usuarios, a las autoridades '
+                    .'de salud y a la opinión pública que…',
+                'url' => '#',
+                'image' => null,
+                'image_hint' => 'Imagen del contenido (720×300)',
+            ],
+            [
+                'category' => 'Noticias',
+                'published_at' => '-7 hours',
+                'title' => 'El Hospital Universitario del Valle responde a Emssanar EPS: la verdad '
+                    .'financiera y la defensa de la salud pública no son columnas',
+                'excerpt' => 'Santiago de Cali, 4 de agosto de 2026. Ante el comunicado emitido por '
+                    .'Emssanar EPS S.A.S., en respuesta a las declaraciones públicas de nuestra '
+                    .'dirección…',
+                'url' => '#',
+                'image' => null,
+                'image_hint' => 'Imagen del contenido (720×300)',
+            ],
+            [
+                'category' => 'Notificaciones Judiciales',
+                'published_at' => '-17 hours',
+                'title' => 'Respuesta del caso 1208262026',
+                'excerpt' => 'Nos permitimos informar que la respuesta a la solicitud radicada se '
+                    .'encuentra disponible en la Oficina de Atención al Usuario.',
+                'url' => '#',
+                'image' => null,
+            ],
+            [
+                'category' => 'Notificaciones Judiciales',
+                'published_at' => '-17 hours',
+                'title' => 'Respuesta del caso 1210632026 - Vía Buzón de Sugerencias',
+                'excerpt' => 'Nos permitimos informar que la respuesta a la comunicación recibida en el '
+                    .'buzón de sugerencias se encuentra disponible.',
+                'url' => '#',
+                'image' => null,
+            ],
+            [
+                'category' => 'Notificaciones Judiciales',
+                'published_at' => '-18 hours',
+                'title' => 'Respuesta del caso 1210382026 - Vía Página Web',
+                'excerpt' => 'En atención a la comunicación radicada por la página web, nos permitimos '
+                    .'informar que la respuesta se encuentra disponible en la Oficina de Atención al '
+                    .'Usuario.',
+                'url' => '#',
+                'image' => null,
+            ],
+            [
+                'category' => 'Notificaciones Judiciales',
+                'published_at' => '-1 days',
+                'title' => 'Comunicado Cancelación en el Registro Público de carrera Administrativa ante la CNSC',
+                'excerpt' => 'La Oficina Coordinadora de Talento Humano del HUV, en aplicación del '
+                    .'principio de publicidad establecido en el numeral 5 del artículo 3 de la Ley 1437 '
+                    .'de 2011…',
+                'url' => '#',
+                'image' => null,
+            ],
+            [
+                'category' => 'Noticias',
+                'published_at' => '-7 days',
+                'title' => 'HUV presentó resultados históricos durante su Rendición de Cuentas 2025',
+                'excerpt' => 'La institución creció en servicios y fortaleció su operación durante la '
+                    .'vigencia, según el informe presentado a la ciudadanía.',
+                'url' => '#',
+                'image' => null,
+                'image_hint' => 'Imagen del contenido (720×300)',
+            ],
+            [
+                'category' => 'Noticias',
+                'published_at' => '2026-07-28 13:00',
+                'title' => 'Garante del HUV denuncia presunta corrupción en pagos de EPS intervenidas y '
+                    .'anuncia suspensión temporal de servicios',
+                'excerpt' => 'El garante designado expone ante la ciudadanía la situación de los pagos de '
+                    .'las entidades responsables intervenidas.',
+                'url' => '#',
+                'image' => null,
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agenda de eventos
+    |--------------------------------------------------------------------------
+    | 'starts_at' y 'ends_at' en formato Y-m-d H:i (zona horaria de la app).
+    */
+    'events' => [
+        'title' => 'Eventos',
+        'items' => [
+            [
+                'title' => 'II Congreso Internacional de Neurociencias',
+                'starts_at' => '2026-08-05 07:00',
+                'ends_at' => '2026-08-05 18:00',
+                'place' => 'Arena USC, Universidad Santiago de Cali',
+                'url' => '#',
+            ],
+            [
+                'title' => 'Jornada de donación de sangre',
+                'starts_at' => '2026-08-07 08:00',
+                'ends_at' => '2026-08-07 16:00',
+                'place' => 'Banco de Sangre — sede principal',
+                'url' => '#',
+            ],
+            [
+                'title' => 'Comité de ética en investigación',
+                'starts_at' => '2026-08-12 14:00',
+                'ends_at' => '2026-08-12 17:00',
+                'place' => 'Sala de juntas, tercer piso',
+                'url' => '#',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Boletines y comunicados
+    |--------------------------------------------------------------------------
+    */
+    'bulletins' => [
+        'title' => 'Boletines y comunicados',
+        'all_url' => '#',
+        'featured' => [
+            'title' => 'Comunicado de prensa',
+            'excerpt' => 'Garantizamos el funcionamiento estable de los canales de atención electrónicos.',
+            'published_at' => '-4 days',
+            'url' => '#',
+            'document' => null,
+            'document_hint' => 'Vista previa del comunicado en PDF (600×780)',
+        ],
+        'items' => [
+            [
+                'title' => 'Boletín informativo institucional',
+                'excerpt' => 'Resumen mensual de la gestión asistencial, docente e investigativa del hospital.',
+                'published_at' => '2026-07-01 09:00',
+                'url' => '#',
+                'document' => null,
+                'document_hint' => 'Miniatura del boletín (240×160)',
+            ],
+            [
+                'title' => 'Contenidos de la sede electrónica',
+                'excerpt' => 'Guía de los trámites y servicios disponibles en línea y sus tiempos de respuesta.',
+                'published_at' => '2026-06-16 11:30',
+                'url' => '#',
+                'document' => null,
+                'document_hint' => 'Miniatura del documento (240×160)',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Entidades y enlaces de interés
+    |--------------------------------------------------------------------------
+    | Logotipos oficiales: colocar cada archivo en public/img/entidades/ y
+    | apuntar 'logo' a su ruta.
+    */
+    'partners' => [
+        'title' => 'Entidades y enlaces de interés',
+        'items' => [
+            ['name' => 'Instituto Nacional de Metrología de Colombia', 'url' => 'https://www.inm.gov.co/', 'logo' => null],
+            ['name' => 'Departamento Nacional de Planeación', 'url' => 'https://www.dnp.gov.co/', 'logo' => null],
+            ['name' => 'Presidencia de la República', 'url' => 'https://www.presidencia.gov.co/', 'logo' => null],
+            ['name' => 'Ministerio TIC', 'url' => 'https://www.mintic.gov.co/', 'logo' => null],
+            ['name' => 'Ministerio de Salud y Protección Social', 'url' => 'https://www.minsalud.gov.co/', 'logo' => null],
+            ['name' => 'Gobernación del Valle del Cauca', 'url' => 'https://www.valledelcauca.gov.co/', 'logo' => null],
+            ['name' => 'Secretaría de Salud del Valle del Cauca', 'url' => '#', 'logo' => null],
+            ['name' => 'Portal del Estado Colombiano GOV.CO', 'url' => 'https://www.gov.co/', 'logo' => null],
         ],
     ],
 
@@ -526,7 +850,7 @@ return [
                 'network' => 'youtube',
                 'name' => 'YouTube',
                 'handle' => '@hospitaluniversitariodelva8588',
-                'url' => 'https://www.youtube.com/@hospitaluniversitariodelva8588',
+                'url' => 'https://www.youtube.com/channel/UCE_g-XfOMAhSdoEZ5m1zqCA',
             ],
             [
                 'network' => 'instagram',

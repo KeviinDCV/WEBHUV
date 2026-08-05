@@ -15,9 +15,45 @@ de aplicativos del hospital.
 
 ## Puesta en marcha
 
+Requiere MySQL (XAMPP). Crear la base de datos y migrar:
+
 ```bash
-composer install && npm install && npm run build
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS webhuv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 ```
+
+```bash
+composer install && npm install && npm run build && php artisan migrate
+```
+
+## Acceso del personal
+
+El portal **no tiene registro público**. Las cuentas se crean desde la consola, que pide la
+contraseña de forma oculta para que no quede en el historial:
+
+```bash
+php artisan huv:usuario
+```
+
+Con la sesión iniciada aparece una barra de administración con el interruptor «Controles de
+edición». Al activarlo, cada sección de la portada muestra su botón de edición. Esos botones son
+todavía puntos de anclaje: llevan `aria-disabled` y `data-huv-edit="<sección>"`, listos para
+enlazar con el administrador de contenidos cuando exista.
+
+Los controles **no existen en el HTML** si no hay sesión: no es que se oculten con CSS, es que el
+servidor no los emite.
+
+### Banners
+
+Primera sección administrable, en `/administracion/banners`:
+
+- Máximo 5 banners, reordenables, con duración de rotación configurable.
+- Imagen de fondo de **3750 × 968 px** (máx. 2 MB), velo de color con opacidad ajustable, título y
+  subtítulo opcionales con color, fondo, tipografía, negrita y cursiva, y justificación.
+- Vista previa en vivo: reproduce exactamente lo que renderiza la portada.
+- **Texto descriptivo obligatorio** (WCAG 1.1.1): sin él no se puede guardar.
+- Al reemplazar o eliminar un banner se borra su archivo del disco.
+
+Requiere la extensión **GD** de PHP (`extension=gd` en `php.ini`) para generar imágenes en los tests.
 
 Desarrollo (servidor, colas, logs y Vite en paralelo):
 
@@ -39,15 +75,28 @@ npm run dev
 
 ```
 app/Http/Controllers/HomeController.php   Página de inicio
+app/Support/EventCalendar.php             Periodo visible de la agenda
 config/huv.php                            Todo el contenido institucional
 resources/views/
   layouts/app.blade.php                   Layout: SEO, OG, JSON-LD, a11y
-  partials/                               header, nav, footer, rail a11y, JSON-LD
-  sections/                               hero, accesos rápidos, entidad, noticias…
-  components/                             container, image-slot
-resources/js/components/                  Alpine: carousel, nav, a11y
-tests/Feature/HomePageTest.php            Test de humo de la home
+  partials/                               header, nav, footer, rail a11y,
+                                          volver-arriba, hora legal, JSON-LD
+  sections/                               hero, news, quick-links, content-feed,
+                                          events, bulletins, partners
+  components/                             container, image-slot, quick-icon,
+                                          social-icon
+resources/js/components/                  Alpine: carousel, nav, a11y, clock,
+                                          back-to-top, content-feed, logo-strip
+tests/Feature/HomePageTest.php            Tests de la home
 ```
+
+### Orden de la home
+
+Banner → Noticias → Accesos directos → Listado de contenidos → Agenda de eventos →
+Boletines y comunicados → Entidades de interés → Pie.
+
+Los bloques `quick_access`, `contact_strip`, `entity`, `services` y `transparency` siguen en
+`config/huv.php` sin usarse en la home: quedan listos para las páginas interiores.
 
 ### Contenido
 
@@ -58,6 +107,19 @@ tocar el Blade.
 
 Los enlaces de páginas aún no construidas apuntan a `'#'`. Al crear cada página basta con
 reemplazar ese valor por `route('...')`.
+
+### Migración desde el portal actual
+
+El menú completo (botón ☰) enlaza secciones que todavía viven en micolombiadigital. Cada enlace
+declara `path` (interno) o `url` (externo), y los `path` se resuelven contra `huv.legacy_base`:
+
+```php
+'legacy_base' => 'https://hospital-universitario-del-valle-evaristo-garcia-ese.micolombiadigital.gov.co',
+```
+
+Así ningún enlace queda roto durante la transición. Conforme se construya cada sección se le crea su
+ruta aquí; cuando estén todas, `'legacy_base' => null` hace que los mismos `path` apunten a este
+aplicativo sin tocar una sola vista.
 
 ### Imágenes
 
