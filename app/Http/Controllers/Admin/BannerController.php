@@ -55,8 +55,11 @@ class BannerController extends Controller
         $banner->image_path = $request->file('image')->store('banners', 'public');
         $banner->save();
 
+        // Al guardar se vuelve a la portada, que es donde se comprueba el
+        // resultado. Para seguir administrando está el botón «Editar» sobre
+        // el propio banner.
         return redirect()
-            ->route('admin.banners.index')
+            ->route('home')
             ->with('status', 'Banner agregado correctamente.');
     }
 
@@ -78,7 +81,7 @@ class BannerController extends Controller
         $banner->save();
 
         return redirect()
-            ->route('admin.banners.index')
+            ->route('home')
             ->with('status', 'Banner actualizado correctamente.');
     }
 
@@ -111,7 +114,7 @@ class BannerController extends Controller
         Setting::put(self::ROTATION_KEY, $validated['rotation']);
 
         return redirect()
-            ->route('admin.banners.index')
+            ->route('home')
             ->with('status', 'Cambios guardados.');
     }
 

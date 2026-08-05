@@ -139,7 +139,7 @@ class BannerTest extends TestCase
     {
         $this->actingAs($this->editor())
             ->post('/administracion/banners', $this->datos())
-            ->assertRedirect(route('admin.banners.index'));
+            ->assertRedirect(route('home'));
 
         $banner = Banner::sole();
 
@@ -225,7 +225,7 @@ class BannerTest extends TestCase
 
         $this->actingAs($this->editor())
             ->put("/administracion/banners/{$banner->id}", $datos)
-            ->assertRedirect(route('admin.banners.index'));
+            ->assertRedirect(route('home'));
 
         $banner->refresh();
 
@@ -273,7 +273,7 @@ class BannerTest extends TestCase
                 'order' => [$segundo->id, $primero->id],
                 'rotation' => 15,
             ])
-            ->assertRedirect(route('admin.banners.index'));
+            ->assertRedirect(route('home'));
 
         $this->assertSame(1, $segundo->refresh()->position);
         $this->assertSame(2, $primero->refresh()->position);
@@ -290,6 +290,19 @@ class BannerTest extends TestCase
     /* ------------------------------------------------------------------ */
     /* Portada                                                             */
     /* ------------------------------------------------------------------ */
+
+    public function test_la_imagen_se_sirve_desde_el_origen_de_la_peticion(): void
+    {
+        // Storage::url() arma la dirección con APP_URL: si la aplicación se
+        // sirve en otro host o puerto, la imagen se pide a un origen
+        // equivocado y no carga. Debe seguir el host real de la petición.
+        config(['app.url' => 'http://otro-dominio.test']);
+
+        $banner = $this->crearBanner(['image_path' => 'banners/foto.jpg']);
+
+        $this->assertStringNotContainsString('otro-dominio.test', $banner->imageUrl());
+        $this->assertStringEndsWith('/storage/banners/foto.jpg', $banner->imageUrl());
+    }
 
     public function test_la_portada_publica_los_banners_guardados(): void
     {

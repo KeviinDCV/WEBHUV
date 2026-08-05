@@ -22,7 +22,14 @@
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                 </svg>
-                Editar {{ $label }}
+                {{-- Sobre la propia sección basta con «Editar»: el contexto ya
+                     lo da el sitio donde está. Para lectores de pantalla, que no
+                     tienen ese contexto, se nombra la sección. --}}
+                @if ($floating)
+                    Editar<span class="sr-only"> {{ $label }}</span>
+                @else
+                    Editar {{ $label }}
+                @endif
             </a>
         @else
             {{-- Todavía no hay administrador para esta sección: el control se

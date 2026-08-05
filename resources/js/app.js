@@ -23,20 +23,28 @@ Alpine.plugin(collapse);
  * diálogo `aria-modal`, y un control flotante por encima lo taparía y seguiría
  * siendo tabulable pese a estar excluido del árbol de accesibilidad.
  *
- * `editMode` muestra los controles de edición de cada sección. Se recuerda
- * entre páginas para no tener que reactivarlo en cada navegación. Es solo una
- * preferencia visual: quien decide si esos controles existen es el servidor,
- * según haya sesión iniciada o no.
+ * `editMode` muestra los controles de edición de cada sección. Viene activado:
+ * si hay sesión iniciada es porque se entró a administrar, y obligar a pulsar
+ * un interruptor para ver los botones solo esconde la función. El interruptor
+ * queda para lo contrario —ver la portada como la ve un visitante— y su estado
+ * se recuerda entre páginas.
+ *
+ * Es solo una preferencia visual: quien decide si esos controles existen es el
+ * servidor, según haya sesión iniciada o no.
  */
 Alpine.store('huvUi', {
     navOpen: false,
-    editMode: false,
+    editMode: true,
 
     init() {
         try {
-            this.editMode = window.localStorage.getItem('huv:editMode') === '1';
+            const stored = window.localStorage.getItem('huv:editMode');
+
+            // Sin preferencia guardada se muestran; solo se ocultan si alguien
+            // lo pidió expresamente.
+            this.editMode = stored === null ? true : stored === '1';
         } catch {
-            /* Modo privado: se queda desactivado, sin más. */
+            /* Modo privado: se quedan visibles, que es el valor por defecto. */
         }
     },
 

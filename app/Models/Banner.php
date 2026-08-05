@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
+
 class Banner extends Model
 {
     /** Tope de banners publicables, igual que en el portal actual. */
@@ -56,9 +57,17 @@ class Banner extends Model
         $query->where('is_active', true);
     }
 
+    /**
+     * Dirección pública de la imagen.
+     *
+     * Se usa asset() y no Storage::url(): este último arma la dirección con
+     * APP_URL, así que si la aplicación se sirve en otro host o puerto —el
+     * :8001 del servidor de desarrollo, por ejemplo— la imagen se pide a un
+     * origen equivocado y no carga. asset() sigue el host real de la petición.
+     */
     public function imageUrl(): ?string
     {
-        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
+        return $this->image_path ? asset('storage/'.$this->image_path) : null;
     }
 
     public function deleteImage(): void
