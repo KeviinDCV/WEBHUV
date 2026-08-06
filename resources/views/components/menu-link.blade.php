@@ -2,15 +2,12 @@
 
 @php
     /*
-     | Un enlace del menú declara 'url' (destino externo) o 'path' (sección del
-     | portal). Mientras la sección no exista aquí, 'path' se resuelve contra
-     | huv.legacy_base; el día que se migre basta con vaciar esa opción para
-     | que el mismo enlace apunte a este aplicativo.
+     | Un enlace del menú declara 'url' (destino ajeno al portal) o 'path' (una
+     | sección). Dónde acaba resolviéndose un 'path' lo decide
+     | App\Support\LegacyLink: en este aplicativo si la sección ya se migró, y
+     | en el portal actual mientras no lo esté.
     */
-    $external = isset($link['url']);
-    $href = $external
-        ? $link['url']
-        : rtrim((string) config('huv.legacy_base'), '/').$link['path'];
+    ['href' => $href, 'external' => $external] = App\Support\LegacyLink::resolve($link);
 @endphp
 
 <a href="{{ $href }}"

@@ -40,7 +40,8 @@ class ContentController extends Controller
 
         $this->settleFeatured($content);
 
-        return redirect()->route('home')->with('status', 'Contenido publicado correctamente.');
+        // Se vuelve al muro, que es donde se comprueba el resultado.
+        return $this->backToFeed('Contenido publicado correctamente.');
     }
 
     public function edit(Content $content): View
@@ -57,14 +58,20 @@ class ContentController extends Controller
 
         $this->settleFeatured($content);
 
-        return redirect()->route('home')->with('status', 'Contenido actualizado correctamente.');
+        return $this->backToFeed('Contenido actualizado correctamente.');
     }
 
     public function destroy(Content $content): RedirectResponse
     {
         $content->delete();
 
-        return redirect()->route('home')->with('status', 'Contenido eliminado.');
+        return $this->backToFeed('Contenido eliminado.');
+    }
+
+    /** Vuelve al muro de contenidos de la portada, no al principio. */
+    private function backToFeed(string $status): RedirectResponse
+    {
+        return redirect()->to(route('home').'#huv-contenidos')->with('status', $status);
     }
 
     /* ------------------------------------------------------------------ */
@@ -118,6 +125,9 @@ class ContentController extends Controller
         // sigue ordenando por su fecha de creación. Una fecha futura lo deja
         // programado: no se muestra al público hasta que llega.
         $content->published_at = $request->boolean('no_date') ? null : $request->date('published_at');
+
+        // Fecha final de visualización: pasada esa fecha deja de mostrarse.
+        $content->expires_at = $request->boolean('no_end_date') ? null : $request->date('expires_at');
     }
 
     /**

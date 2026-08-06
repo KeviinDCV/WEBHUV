@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Admin\BannerController;
 use App\Models\Banner;
 use App\Models\Content;
+use App\Models\ContentBlock;
+use App\Models\ContentBlockSection;
+use App\Models\Event;
 use App\Models\Setting;
+use App\Models\ShortcutBlock;
 use App\Support\EventCalendar;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,18 +26,23 @@ class HomeController extends Controller
      */
     public function index(Request $request): View
     {
-        $news = $this->news();
-
         return view('home', [
             'banners' => Banner::active()->ordered()->get(),
             'rotation' => (int) Setting::get(BannerController::ROTATION_KEY, 10),
 
-            'featured' => $news['featured'],
-            'items' => $news['items'],
+            'newsBlock' => $this->news(),
             'feed' => $this->feed(),
+            'shortcutBlocks' => $this->shortcutBlocks(),
 
+            // ?editar=N abre el editor incrustado con ese contenido cargado,
+            // sin salir de la portada.
+            'editing' => Auth::check() && $request->filled('editar')
+                ? Content::with('media')->find($request->query('editar'))
+                : null,
+
+            'eventsBlock' => ContentBlock::events(),
             'calendar' => EventCalendar::make(
-                config('huv.events.items'),
+                $this->events(),
                 $request->query('vista'),
                 $request->query('periodo', 0),
             ),
@@ -41,13 +50,36 @@ class HomeController extends Controller
     }
 
     /**
-     * Bloque de Noticias: la nota destacada y los titulares que la acompañan.
+     * Bloque de Noticias, tal como esté configurado: sus secciones, el rótulo
+     * de cada una y el orden elegido.
      *
-     * @return array{featured: ?Content, items: \Illuminate\Support\Collection<int, Content>}
+     * @return array{block: ContentBlock, groups: \Illuminate\Support\Collection<int, array<string, mixed>>}
      */
     private function news(): array
     {
-        $query = Content::query()->with('media')->news()->tap($this->visibility(...))->recent();
+        $block = ContentBlock::news();
+
+        $groups = $block->sections->map(function ($section) use ($block): array {
+            $group = $this->groupFor($section->category, $block->isDescending());
+
+            return $group + ['title' => $section->title];
+        });
+
+        return ['block' => $block, 'groups' => $groups];
+    }
+
+    /**
+     * Nota destacada y titulares de una categoría.
+     *
+     * @return array{featured: ?Content, items: \Illuminate\Support\Collection<int, Content>}
+     */
+    private function groupFor(string $category, bool $descending): array
+    {
+        $query = Content::query()
+            ->with('media')
+            ->where('category', $category)
+            ->tap($this->visibility(...))
+            ->recent($descending);
 
         $featured = (clone $query)->where('is_featured', true)->first();
 
@@ -64,15 +96,62 @@ class HomeController extends Controller
         return ['featured' => $featured, 'items' => $items];
     }
 
+    /**
+     * Agenda, filtrada por las categorías que tenga elegidas el bloque.
+     *
+     * @return \Illuminate\Support\Collection<int, Event>
+     */
+    private function events(): \Illuminate\Support\Collection
+    {
+        $block = ContentBlock::events();
+
+        return Event::query()
+            ->when(! Auth::check(), fn (Builder $q) => $q->active())
+            ->inCategories($block->option('categories', []))
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    /**
+     * Barras de accesos directos.
+     *
+     * Una barra con menos de tres accesos no se publica: la rejilla queda
+     * descompensada y no comunica que es una barra de atajos. Quien administra
+     * sí las ve, marcadas, para poder completarlas.
+     *
+     * @return \Illuminate\Support\Collection<int, ShortcutBlock>
+     */
+    private function shortcutBlocks(): \Illuminate\Support\Collection
+    {
+        return ShortcutBlock::with('shortcuts')
+            ->ordered()
+            ->get()
+            ->filter(fn (ShortcutBlock $block): bool => Auth::check() || $block->isPublishable())
+            ->values();
+    }
+
     /** Muro de contenidos: todo lo publicado, sea de la categoría que sea. */
     private function feed(): \Illuminate\Support\Collection
     {
         return Content::query()
             ->with('media')
             ->where('show_in_feed', true)
+            // Una sección puede estar marcada como «oculta en muro de
+            // contenidos» desde la configuración de su bloque.
+            ->whereNotIn('category', $this->categoriesHiddenFromFeed())
             ->tap($this->visibility(...))
             ->recent()
             ->get();
+    }
+
+    /**
+     * Categorías que la configuración de bloques deja fuera del muro.
+     *
+     * @return list<string>
+     */
+    private function categoriesHiddenFromFeed(): array
+    {
+        return ContentBlockSection::where('hide_in_feed', true)->pluck('category')->unique()->all();
     }
 
     /**

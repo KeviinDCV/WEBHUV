@@ -1,18 +1,28 @@
-@php
-    $events = config('huv.events');
-    $days = $calendar->days();
-@endphp
+@php $days = $calendar->days(); @endphp
 
-<section id="eventos" aria-labelledby="huv-eventos" class="bg-page">
+<section id="eventos" aria-labelledby="huv-eventos" class="relative bg-page">
+    <x-edit-chip section="eventos" label="el bloque de eventos"
+                 :url="route('admin.events.block.edit')" floating />
+
     <x-container class="py-12 lg:py-14">
-
-        <x-edit-chip section="eventos" label="eventos" />
 
         <div class="mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
             <h2 id="huv-eventos"
                 class="m-0 font-display text-22 font-bold text-heading underline decoration-2 underline-offset-8 lg:text-26">
-                {{ $events['title'] }}
+                {{ $eventsBlock->name }}
             </h2>
+
+            <div class="flex flex-wrap items-center gap-4">
+                @auth
+                    <a href="{{ route('admin.events.create') }}"
+                       x-show="$store.huvUi.editMode" x-cloak
+                       class="inline-flex items-center rounded-full border-0 bg-azure px-5 py-[8px]
+                              font-display text-12-5 font-bold tracking-[0.06em] text-on-accent uppercase
+                              no-underline transition-colors hover:bg-azure-dark hover:text-on-accent
+                              hover:no-underline">
+                        Nuevo evento
+                    </a>
+                @endauth
 
             {{-- Cambio de vista sin JavaScript: es un formulario que recarga
                  con el nuevo parámetro y vuelve a esta misma sección. --}}
@@ -31,6 +41,7 @@
                     </button>
                 </noscript>
             </form>
+            </div>
         </div>
 
         <div class="overflow-hidden rounded-[4px] border border-line">
@@ -95,13 +106,25 @@
                         </p>
 
                         @foreach ($day['events'] as $event)
-                            <a href="{{ $event['url'] }}"
-                               class="block rounded-[3px] bg-azure px-2 py-[6px] text-11 leading-[1.3]
+                            @php
+                                // Con sesión iniciada el evento lleva a su
+                                // edición; para el visitante, a su enlace.
+                                $target = auth()->check()
+                                    ? route('admin.events.edit', $event)
+                                    : $event->link();
+                                $tag = $target ? 'a' : 'div';
+                            @endphp
+                            <{{ $tag }} @if ($target) href="{{ $target }}" @endif
+                               class="block rounded-[3px] px-2 py-[6px] text-11 leading-[1.3]
                                       font-semibold text-on-accent no-underline
-                                      hover:bg-azure-dark hover:text-on-accent hover:no-underline">
-                                <span class="block">{{ $event['starts']->format('H:i') }}</span>
-                                <span class="block">{{ $event['title'] }}</span>
-                            </a>
+                                      hover:text-on-accent hover:no-underline
+                                      {{ $event->is_active ? 'bg-azure hover:bg-azure-dark' : 'bg-faint' }}">
+                                <span class="block">{{ $event->starts_at->format('H:i') }}</span>
+                                <span class="block">{{ $event->title }}</span>
+                                @unless ($event->is_active)
+                                    <span class="block text-10-5 uppercase">Inactivo</span>
+                                @endunless
+                            </{{ $tag }}>
                         @endforeach
                     </div>
                 @endforeach
@@ -113,5 +136,13 @@
                 No hay eventos programados en este periodo.
             </p>
         @endif
+
+        @auth
+            @if (filled($eventsBlock->option('categories')))
+                <p x-show="$store.huvUi.editMode" x-cloak class="m-0 mt-4 text-12-5 text-muted">
+                    El bloque solo muestra los eventos de las categorías elegidas en su configuración.
+                </p>
+            @endif
+        @endauth
     </x-container>
 </section>

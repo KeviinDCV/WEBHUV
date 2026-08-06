@@ -178,7 +178,7 @@
 
                 <hr class="my-10 border-0 border-t border-line">
 
-                @include('partials.content-feedback')
+                @include('partials.content-feedback', ['key' => $content->id])
 
                 {{-- Contenidos relacionados --}}
                 @if ($related->isNotEmpty())

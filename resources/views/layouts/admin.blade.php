@@ -29,7 +29,8 @@
 
     @stack('head')
 </head>
-<body class="bg-surface font-sans text-ink">
+{{-- Ver la nota sobre `x-data` en layouts/app.blade.php. --}}
+<body x-data class="bg-surface font-sans text-ink">
 
     <a href="#contenido" class="huv-skip">Saltar al contenido principal</a>
 

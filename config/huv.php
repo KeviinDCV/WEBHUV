@@ -462,26 +462,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Accesos directos con icono
-    |--------------------------------------------------------------------------
-    | Diez trámites y canales de uso frecuente, en dos filas de cinco.
-    | 'icon' referencia una clave de resources/views/components/quick-icon.blade.php.
-    */
-    'quick_links' => [
-        ['icon' => 'calendar-check', 'label' => 'Citas', 'url' => '#'],
-        ['icon' => 'graduation', 'label' => 'Of. Coord. Académica', 'url' => '#'],
-        ['icon' => 'map-pin', 'label' => 'Oficina Internacional', 'url' => '#'],
-        ['icon' => 'lab', 'label' => 'Ver Resultados Lab', 'url' => '#'],
-        ['icon' => 'payment', 'label' => 'Pagos PSE', 'url' => '#'],
-        ['icon' => 'inbox', 'label' => 'PQRSF', 'url' => '#'],
-        ['icon' => 'chart', 'label' => 'Rendición de cuentas', 'url' => '#'],
-        ['icon' => 'info', 'label' => 'CIAU', 'url' => '#'],
-        ['icon' => 'gavel', 'label' => 'Notif. Judiciales', 'url' => '#'],
-        ['icon' => 'megaphone', 'label' => 'Plan Anticorrupción', 'url' => '#'],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Listado general de contenidos
     |--------------------------------------------------------------------------
     | Se publica entero en el HTML —bien para buscadores y para quien navega sin

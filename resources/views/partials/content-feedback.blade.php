@@ -4,18 +4,22 @@
     Es puramente de cliente: guarda la respuesta en el navegador y agradece.
     No se envía nada al servidor todavía —haría falta decidir dónde se
     consultan esos datos— pero el bloque ya ocupa su sitio en la página.
+
+    `$key` identifica la página dentro del navegador; ha de ser único entre
+    tipos de contenido para que responder en una noticia no dé por respondida
+    la encuesta de un documento con el mismo número.
 --}}
 <div x-data="{
         answered: false,
         init() {
             try {
-                this.answered = localStorage.getItem('huv:util:{{ $content->id }}') !== null;
+                this.answered = localStorage.getItem('huv:util:{{ $key }}') !== null;
             } catch {}
         },
         answer(useful) {
             this.answered = true;
             try {
-                localStorage.setItem('huv:util:{{ $content->id }}', useful ? '1' : '0');
+                localStorage.setItem('huv:util:{{ $key }}', useful ? '1' : '0');
             } catch {}
         },
      }"

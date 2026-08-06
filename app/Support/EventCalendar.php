@@ -19,12 +19,12 @@ class EventCalendar
     private const MAX_OFFSET = 52;
 
     /**
-     * @param  list<array<string, mixed>>  $events
+     * @param  iterable<\App\Models\Event>  $events
      */
     private function __construct(
         public readonly string $view,
         public readonly int $offset,
-        private readonly array $events,
+        private readonly iterable $events,
     ) {}
 
     /**
@@ -32,9 +32,9 @@ class EventCalendar
      * array si alguien escribe ?vista[]=x. Se normalizan a un valor seguro en
      * lugar de confiar en el tipado.
      *
-     * @param  list<array<string, mixed>>  $events
+     * @param  iterable<\App\Models\Event>  $events
      */
-    public static function make(array $events, mixed $view = null, mixed $offset = 0): self
+    public static function make(iterable $events, mixed $view = null, mixed $offset = 0): self
     {
         $view = is_string($view) && in_array($view, ['semana', 'mes'], true) ? $view : 'semana';
         $offset = is_numeric($offset) ? (int) $offset : 0;
@@ -116,24 +116,20 @@ class EventCalendar
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * Eventos que ocupan ese día.
+     *
+     * Un evento de varios días aparece en todos ellos, no solo en el primero.
+     *
+     * @return list<\App\Models\Event>
      */
     private function eventsOn(Carbon $date): array
     {
         return collect($this->events)
-            ->map(function (array $event): array {
-                $starts = Carbon::parse($event['starts_at']);
-
-                return $event + [
-                    'starts' => $starts,
-                    'ends' => Carbon::parse($event['ends_at'] ?? $event['starts_at']),
-                ];
-            })
-            ->filter(fn (array $event): bool => $date->betweenIncluded(
-                $event['starts']->copy()->startOfDay(),
-                $event['ends']->copy()->endOfDay(),
+            ->filter(fn ($event): bool => $date->betweenIncluded(
+                $event->starts_at->copy()->startOfDay(),
+                $event->endsAt()->copy()->endOfDay(),
             ))
-            ->sortBy(fn (array $event) => $event['starts'])
+            ->sortBy(fn ($event) => $event->starts_at)
             ->values()
             ->all();
     }

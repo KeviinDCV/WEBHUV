@@ -123,10 +123,6 @@ class HomePageTest extends TestCase
     {
         $response = $this->get('/');
 
-        foreach (config('huv.quick_links') as $link) {
-            $response->assertSee($link['label'], false);
-        }
-
         foreach (config('huv.bulletins.items') as $item) {
             $response->assertSee($item['title'], false);
         }

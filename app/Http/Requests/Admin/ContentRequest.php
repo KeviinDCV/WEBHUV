@@ -29,6 +29,18 @@ class ContentRequest extends FormRequest
                 'nullable', 'date',
             ],
 
+            'no_end_date' => ['boolean'],
+            'expires_at' => [
+                Rule::excludeIf($this->boolean('no_end_date')),
+                'nullable', 'date',
+                // Caducar antes de publicarse dejaría el contenido invisible
+                // desde el primer momento.
+                Rule::when(
+                    ! $this->boolean('no_date') && $this->filled('published_at'),
+                    ['after:published_at']
+                ),
+            ],
+
             'excerpt' => ['nullable', 'string', 'max:400'],
             'body' => ['nullable', 'string', 'max:120000'],
             'link' => ['nullable', 'url:http,https', 'max:2048'],
@@ -105,6 +117,7 @@ class ContentRequest extends FormRequest
             'files.*.max' => 'Cada archivo puede pesar como máximo 30 MB.',
             'files.*.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
             'link.url' => 'El enlace debe empezar por http:// o https://',
+            'expires_at.after' => 'La fecha final debe ser posterior a la de publicación.',
         ];
     }
 
@@ -137,6 +150,7 @@ class ContentRequest extends FormRequest
     {
         $this->merge([
             'no_date' => $this->boolean('no_date'),
+            'no_end_date' => $this->boolean('no_end_date'),
             'is_featured' => $this->boolean('is_featured'),
             'show_in_feed' => $this->boolean('show_in_feed'),
         ]);

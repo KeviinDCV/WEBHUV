@@ -83,7 +83,7 @@ class ContentTest extends TestCase
     {
         $this->actingAs($this->editor())
             ->post('/administracion/contenidos', $this->datos())
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('home').'#huv-contenidos');
 
         $content = Content::sole();
 
@@ -462,7 +462,7 @@ class ContentTest extends TestCase
 
         $this->actingAs($this->editor())
             ->delete("/administracion/contenidos/{$content->id}")
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('home').'#huv-contenidos');
 
         $this->assertDatabaseCount('contents', 0);
     }
@@ -514,7 +514,7 @@ class ContentTest extends TestCase
             ->assertSee(route('admin.contents.feature', $content), false)
             ->assertSee(route('admin.contents.active', $content), false)
             ->assertSee(route('admin.contents.hidden', $content), false)
-            ->assertSee(route('admin.contents.edit', $content), false)
+            ->assertSee('editar='.$content->id, false)
             ->assertSee('Acciones del contenido', false);
     }
 

@@ -140,8 +140,46 @@ class AuthenticationTest extends TestCase
             ->assertSee('Cerrar sesión', false);
 
         // Un control por cada sección editable de la portada.
-        foreach (['banner', 'noticias', 'accesos', 'contenidos', 'eventos', 'boletines', 'entidades'] as $section) {
+        foreach (['banner', 'noticias', 'contenidos', 'eventos', 'boletines', 'entidades'] as $section) {
             $response->assertSee('data-huv-edit="'.$section.'"', false);
         }
+    }
+
+    public function test_todo_control_de_edicion_queda_dentro_del_alcance_de_alpine(): void
+    {
+        \App\Models\Content::create([
+            'title' => 'Noticia de ejemplo',
+            'category' => \App\Models\Content::NEWS_CATEGORY,
+            'published_at' => now()->subHour(),
+        ]);
+
+        $html = $this->actingAs($this->usuario())->get('/')->getContent();
+
+        // Alpine solo inicializa los árboles que cuelgan de un x-data. Sin uno
+        // en el <body>, los `x-show` que viven fuera de un componente —los
+        // botones de edición de cada sección— se quedan ocultos por su x-cloak
+        // y no hay forma de mostrarlos.
+        $this->assertMatchesRegularExpression('/<body[^>]*\sx-data(\s|=|>)/', $html);
+
+        // Y ninguno debe quedar antes de la apertura del <body>.
+        $bodyAt = strpos($html, '<body');
+        preg_match_all('/x-show="\$store\.huvUi/', substr($html, 0, $bodyAt), $orphans);
+        $this->assertEmpty($orphans[0]);
+    }
+
+    public function test_cada_barra_de_accesos_tiene_su_propio_control(): void
+    {
+        $block = \App\Models\ShortcutBlock::create(['name' => 'Barra de prueba', 'position' => 1]);
+
+        // Una barra vacía no se pinta, así que necesita al menos un acceso.
+        $block->shortcuts()->create([
+            'label' => 'Citas', 'icon' => 'calendar-check',
+            'url' => 'https://citas.huv.gov.co/login', 'position' => 1,
+        ]);
+
+        $this->get('/')->assertDontSee('data-huv-edit="accesos-', false);
+
+        $this->actingAs($this->usuario())->get('/')
+            ->assertSee('data-huv-edit="accesos-'.$block->id.'"', false);
     }
 }

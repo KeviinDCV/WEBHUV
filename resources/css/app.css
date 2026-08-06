@@ -329,9 +329,8 @@ html[data-huv-contrast='on'] {
            contenido salta unos píxeles a la derecha. */
         scrollbar-gutter: stable;
 
-        /* Propiedad estándar: Firefox y navegadores modernos. Se deja el ancho
-           en `auto` a propósito; `thin` deja un objetivo de arrastre demasiado
-           estrecho para quien tiene poca precisión de puntero. */
+        /* Propiedad estándar: Firefox y navegadores modernos. */
+        scrollbar-width: thin;
         scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
     }
 
@@ -339,17 +338,19 @@ html[data-huv-contrast='on'] {
        contenedores con desplazamiento propio —menú completo, cajón móvil— para
        que la interfaz sea coherente. */
     ::-webkit-scrollbar {
-        width: 12px;
-        height: 12px;
+        width: 6px;
+        height: 6px;
     }
 
     ::-webkit-scrollbar-track {
         background: var(--color-scrollbar-track);
     }
 
+    /* Borde de 1px: a 6px de ancho, los 2px anteriores dejaban un pulgar de
+       apenas 2px, casi imposible de agarrar con el ratón. */
     ::-webkit-scrollbar-thumb {
         background: var(--color-scrollbar-thumb);
-        border: 3px solid var(--color-scrollbar-track);
+        border: 1px solid var(--color-scrollbar-track);
         border-radius: 999px;
     }
 

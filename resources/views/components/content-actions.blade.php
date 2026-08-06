@@ -56,7 +56,8 @@
             <ul>
                 {{-- Editar va primero por ser la acción habitual. --}}
                 <li>
-                    <a href="{{ route('admin.contents.edit', $content) }}"
+                    {{-- Editar abre el editor en la propia portada. --}}
+                    <a href="{{ route('home') }}?editar={{ $content->id }}#huv-editor-contenido"
                        class="flex items-center gap-[10px] px-4 py-[9px] text-13-5 text-ink no-underline
                               hover:bg-tint hover:text-heading hover:no-underline">
                         <svg class="size-4 shrink-0 text-link" viewBox="0 0 24 24" fill="none" stroke="currentColor"

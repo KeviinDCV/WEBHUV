@@ -57,7 +57,14 @@
 
     @include('partials.structured-data')
 </head>
-<body class="bg-page font-sans text-ink">
+{{--
+    `x-data` en el <body>: Alpine solo inicializa los árboles que cuelgan de un
+    elemento con x-data. Sin esto, cualquier `x-show="$store…"` que no esté
+    dentro de un componente —los botones de edición de las secciones, el
+    interruptor de la barra de administración— nunca se procesa y el `x-cloak`
+    lo deja oculto de forma permanente.
+--}}
+<body x-data class="bg-page font-sans text-ink">
 
     <a href="#contenido" class="huv-skip">Saltar al contenido principal</a>
 

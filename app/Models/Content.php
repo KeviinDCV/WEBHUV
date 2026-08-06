@@ -47,6 +47,7 @@ class Content extends Model
     {
         return [
             'published_at' => 'datetime',
+            'expires_at' => 'datetime',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
             'is_hidden' => 'boolean',
@@ -93,12 +94,24 @@ class Content extends Model
         $query->where('is_active', true);
     }
 
-    /** Ya publicada: sin fecha, o con una fecha que ya llegó. */
+    /**
+     * Dentro de su ventana de publicación: ya empezó y todavía no ha caducado.
+     */
     public function scopePublished(Builder $query): void
     {
-        $query->where(function (Builder $q): void {
-            $q->whereNull('published_at')->orWhere('published_at', '<=', now());
-        });
+        $query
+            ->where(function (Builder $q): void {
+                $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+            })
+            ->where(function (Builder $q): void {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            });
+    }
+
+    /** Caducado: tenía fecha final y ya pasó. */
+    public function hasExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
     /** Visible para el público: activa, publicada y no ocultada. */

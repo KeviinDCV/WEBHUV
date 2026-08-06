@@ -4,8 +4,14 @@
     {{-- Los contenidos inactivos u ocultos siguen apareciendo en la portada
          para quien administra —marcados como tales— porque si no, ocultar uno
          lo volvería inalcanzable: no habría desde dónde volver a mostrarlo. --}}
-    @if (! $content->is_active || $content->is_hidden || $content->isScheduled())
+    @if (! $content->is_active || $content->is_hidden || $content->isScheduled() || $content->hasExpired())
         <p x-show="$store.huvUi.editMode" x-cloak class="m-0 flex flex-wrap gap-2">
+            @if ($content->hasExpired())
+                <span class="rounded-[2px] bg-[#8c1d18] px-2 py-[2px] text-10-5 font-bold tracking-[0.06em] text-white uppercase">
+                    Caducado · {{ $content->expires_at->translatedFormat('j M Y') }}
+                </span>
+            @endif
+
             @if ($content->isScheduled())
                 <span class="rounded-[2px] bg-azure px-2 py-[2px] text-10-5 font-bold tracking-[0.06em] text-on-accent uppercase">
                     Programado · {{ $content->published_at->translatedFormat('j M Y, H:i') }}
