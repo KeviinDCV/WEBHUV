@@ -206,7 +206,10 @@
              class="fixed inset-0 z-40 bg-overlay"
              aria-hidden="true"></div>
 
+        {{-- `x-trap.noscroll`: siendo un diálogo modal, el foco no debe poder
+             escaparse al contenido de detrás mientras está abierto. --}}
         <div id="huv-menu-movil" role="dialog" aria-modal="true" aria-label="Menú principal"
+             x-trap.noscroll="mobileOpen"
              data-huv-panel
              class="fixed inset-y-0 right-0 z-50 flex w-[min(88vw,380px)] flex-col overflow-y-auto border-l border-line bg-card
                     shadow-[-8px_0_30px_rgba(23,32,64,0.22)]">

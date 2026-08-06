@@ -123,18 +123,8 @@ class HomePageTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertSee(config('huv.news.featured.title'), false);
-
-        foreach (config('huv.news.items') as $item) {
-            $response->assertSee($item['title'], false);
-        }
-
         foreach (config('huv.quick_links') as $link) {
             $response->assertSee($link['label'], false);
-        }
-
-        foreach (config('huv.content_feed.items') as $item) {
-            $response->assertSee($item['title'], false);
         }
 
         foreach (config('huv.bulletins.items') as $item) {
@@ -148,14 +138,26 @@ class HomePageTest extends TestCase
 
     public function test_el_listado_de_contenidos_se_publica_entero_en_el_html(): void
     {
-        $response = $this->get('/');
-        $html = $response->getContent();
-
         // Se renderizan todas las tarjetas aunque solo se muestren seis: el
         // filtrado es cosa del cliente, pero los buscadores y quien navega sin
         // JavaScript deben ver el listado completo.
-        foreach (config('huv.content_feed.items') as $item) {
-            $response->assertSee($item['title'], false);
+        $titulos = collect(range(1, 8))->map(function (int $i): string {
+            $titulo = "Contenido de prueba {$i}";
+
+            \App\Models\Content::create([
+                'title' => $titulo,
+                'category' => \App\Models\Content::NEWS_CATEGORY,
+                'published_at' => now()->subDays($i),
+            ]);
+
+            return $titulo;
+        });
+
+        $response = $this->get('/');
+        $html = $response->getContent();
+
+        foreach ($titulos as $titulo) {
+            $response->assertSee($titulo, false);
         }
 
         $this->assertStringContainsString('huvContentFeed(', $html);

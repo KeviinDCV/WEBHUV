@@ -340,6 +340,28 @@ class BannerTest extends TestCase
             ->assertSee('Agregar el primer banner', false);
     }
 
+    public function test_el_banner_con_enlace_avisa_antes_de_salir_del_portal(): void
+    {
+        $this->crearBanner(['link' => 'https://meet.google.com/zwp-yahy-tpb']);
+
+        $this->get('/')
+            ->assertSee('data-huv-confirm-exit', false)
+            ->assertSee('Está a punto de ser redirigido a', false)
+            ->assertSee('role="alertdialog"', false);
+    }
+
+    public function test_un_banner_sin_enlace_no_es_un_ancla(): void
+    {
+        $this->crearBanner(['link' => null]);
+
+        // Un enlace que no lleva a ninguna parte estorba al navegar con teclado.
+        $html = $this->get('/')->getContent();
+
+        preg_match('/<div id="huv-hero-track".*?<\/div>\s*<\/div>/s', $html, $track);
+        $this->assertNotEmpty($track);
+        $this->assertStringNotContainsString('data-huv-confirm-exit', $track[0]);
+    }
+
     public function test_el_boton_editar_del_banner_lleva_a_su_administracion(): void
     {
         $this->crearBanner();

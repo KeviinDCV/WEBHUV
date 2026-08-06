@@ -25,16 +25,16 @@ export default function huvNav(megaTabs = []) {
 
         init() {
             this.$watch('mobileOpen', (open) => {
-                document.body.style.overflow = open ? 'hidden' : '';
                 // El rail de accesibilidad se oculta mientras el cajón —un
                 // diálogo aria-modal— está abierto, para no taparlo ni quedar
-                // tabulable fuera de él.
+                // tabulable fuera de él. El bloqueo del desplazamiento y la
+                // retención del foco los aporta `x-trap.noscroll` en la
+                // plantilla.
                 this.$store.huvUi.navOpen = open;
             });
         },
 
         destroy() {
-            document.body.style.overflow = '';
             this.$store.huvUi.navOpen = false;
             this.cancelClose();
         },

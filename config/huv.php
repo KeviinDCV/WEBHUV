@@ -450,65 +450,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Noticias destacadas
-    |--------------------------------------------------------------------------
-    */
-    /*
-    |--------------------------------------------------------------------------
     | Noticias — franja destacada bajo el banner
     |--------------------------------------------------------------------------
-    | Una nota principal a la izquierda y cuatro titulares compactos a la
-    | derecha. Los textos son de relleno: se sustituyen por los reales cuando
-    | exista el gestor de contenidos.
+    | Las noticias viven en la tabla `contents` y se administran desde el propio
+    | portal. Aquí solo queda el rótulo de la sección.
     */
     'news' => [
         'title' => 'Noticias',
         'all_url' => '#',
-        'featured' => [
-            'category' => 'Noticias',
-            'published_at' => '-6 hours',
-            'title' => 'Suspensión temporal de servicios ambulatorios para afiliados de las EPS Emssanar, '
-                .'Asmet Salud y Coosalud por incumplimiento en los pagos',
-            'excerpt' => 'Santiago de Cali, 5 de agosto de 2026. El Hospital Universitario del Valle '
-                .'«Evaristo García» E.S.E. informa a la comunidad, a los usuarios, a las autoridades de '
-                .'salud y a la opinión pública que…',
-            'url' => '#',
-            'image' => null,
-            'image_hint' => 'Foto de la noticia principal (960×540)',
-        ],
-        'items' => [
-            [
-                'published_at' => '-7 hours',
-                'title' => 'El Hospital Universitario del Valle responde a Emssanar EPS: la verdad '
-                    .'financiera y la defensa de la salud pública',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Miniatura (320×180)',
-            ],
-            [
-                'published_at' => '-7 days',
-                'title' => 'HUV presentó resultados históricos durante su Rendición de Cuentas 2025',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Miniatura (320×180)',
-            ],
-            [
-                'published_at' => '2026-07-28 13:00',
-                'title' => 'Garante del HUV denuncia presunta corrupción en pagos de EPS intervenidas y '
-                    .'anuncia suspensión temporal de servicios',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Miniatura (320×180)',
-            ],
-            [
-                'published_at' => '2026-07-28 10:38',
-                'title' => 'El HUV suspende temporalmente la atención a afiliados de Emssanar EPS por '
-                    .'incumplimiento en los pagos',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Miniatura (320×180)',
-            ],
-        ],
     ],
 
     /*
@@ -541,91 +490,6 @@ return [
     */
     'content_feed' => [
         'per_page' => 6,
-        'categories' => ['Noticias', 'Notificaciones Judiciales', 'Comunicados'],
-        'items' => [
-            [
-                'category' => 'Noticias',
-                'published_at' => '-6 hours',
-                'title' => 'Suspensión temporal de servicios ambulatorios para afiliados de las EPS '
-                    .'Emssanar, Asmet Salud y Coosalud por incumplimiento en los pagos',
-                'excerpt' => 'Santiago de Cali, 5 de agosto de 2026. El Hospital Universitario del Valle '
-                    .'«Evaristo García» E.S.E. informa a la comunidad, a los usuarios, a las autoridades '
-                    .'de salud y a la opinión pública que…',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Imagen del contenido (720×300)',
-            ],
-            [
-                'category' => 'Noticias',
-                'published_at' => '-7 hours',
-                'title' => 'El Hospital Universitario del Valle responde a Emssanar EPS: la verdad '
-                    .'financiera y la defensa de la salud pública no son columnas',
-                'excerpt' => 'Santiago de Cali, 4 de agosto de 2026. Ante el comunicado emitido por '
-                    .'Emssanar EPS S.A.S., en respuesta a las declaraciones públicas de nuestra '
-                    .'dirección…',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Imagen del contenido (720×300)',
-            ],
-            [
-                'category' => 'Notificaciones Judiciales',
-                'published_at' => '-17 hours',
-                'title' => 'Respuesta del caso 1208262026',
-                'excerpt' => 'Nos permitimos informar que la respuesta a la solicitud radicada se '
-                    .'encuentra disponible en la Oficina de Atención al Usuario.',
-                'url' => '#',
-                'image' => null,
-            ],
-            [
-                'category' => 'Notificaciones Judiciales',
-                'published_at' => '-17 hours',
-                'title' => 'Respuesta del caso 1210632026 - Vía Buzón de Sugerencias',
-                'excerpt' => 'Nos permitimos informar que la respuesta a la comunicación recibida en el '
-                    .'buzón de sugerencias se encuentra disponible.',
-                'url' => '#',
-                'image' => null,
-            ],
-            [
-                'category' => 'Notificaciones Judiciales',
-                'published_at' => '-18 hours',
-                'title' => 'Respuesta del caso 1210382026 - Vía Página Web',
-                'excerpt' => 'En atención a la comunicación radicada por la página web, nos permitimos '
-                    .'informar que la respuesta se encuentra disponible en la Oficina de Atención al '
-                    .'Usuario.',
-                'url' => '#',
-                'image' => null,
-            ],
-            [
-                'category' => 'Notificaciones Judiciales',
-                'published_at' => '-1 days',
-                'title' => 'Comunicado Cancelación en el Registro Público de carrera Administrativa ante la CNSC',
-                'excerpt' => 'La Oficina Coordinadora de Talento Humano del HUV, en aplicación del '
-                    .'principio de publicidad establecido en el numeral 5 del artículo 3 de la Ley 1437 '
-                    .'de 2011…',
-                'url' => '#',
-                'image' => null,
-            ],
-            [
-                'category' => 'Noticias',
-                'published_at' => '-7 days',
-                'title' => 'HUV presentó resultados históricos durante su Rendición de Cuentas 2025',
-                'excerpt' => 'La institución creció en servicios y fortaleció su operación durante la '
-                    .'vigencia, según el informe presentado a la ciudadanía.',
-                'url' => '#',
-                'image' => null,
-                'image_hint' => 'Imagen del contenido (720×300)',
-            ],
-            [
-                'category' => 'Noticias',
-                'published_at' => '2026-07-28 13:00',
-                'title' => 'Garante del HUV denuncia presunta corrupción en pagos de EPS intervenidas y '
-                    .'anuncia suspensión temporal de servicios',
-                'excerpt' => 'El garante designado expone ante la ciudadanía la situación de los pagos de '
-                    .'las entidades responsables intervenidas.',
-                'url' => '#',
-                'image' => null,
-            ],
-        ],
     ],
 
     /*

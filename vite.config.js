@@ -5,7 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            // admin.js va aparte: el editor de texto enriquecido no debe
+            // descargarlo quien solo visita el portal.
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin.js'],
             refresh: true,
         }),
         tailwindcss(),

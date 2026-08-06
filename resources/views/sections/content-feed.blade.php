@@ -1,30 +1,20 @@
 @php
-    use Illuminate\Support\Carbon;
+    use App\Models\Content;
 
-    $feed = config('huv.content_feed');
+    $perPage = config('huv.content_feed.per_page', 6);
 
-    // Se resuelven las fechas y se ordena de más reciente a más antiguo, que es
-    // el estado inicial y también lo que ve quien navega sin JavaScript.
-    $items = collect($feed['items'])
-        ->map(fn (array $item, int $i): array => $item + [
-            'id' => $i,
-            'date' => Carbon::parse($item['published_at']),
-        ])
-        ->sortByDesc(fn (array $item) => $item['date'])
-        ->values();
-
-    $meta = $items->map(fn (array $item): array => [
-        'id' => $item['id'],
-        'category' => $item['category'],
-        'timestamp' => $item['date']->getTimestampMs(),
+    $meta = $feed->map(fn (Content $item): array => [
+        'id' => $item->id,
+        'category' => $item->category,
+        'timestamp' => ($item->displayDate() ?? $item->created_at)->getTimestampMs(),
     ]);
 @endphp
 
 <section aria-labelledby="huv-contenidos" class="border-y border-line-pale bg-surface"
-         x-data='huvContentFeed(@json(["meta" => $meta, "perPage" => $feed["per_page"]]))'>
+         x-data='huvContentFeed(@json(["meta" => $meta, "perPage" => $perPage]))'>
     <x-container class="py-12 lg:py-14">
 
-        <x-edit-chip section="contenidos" label="contenidos" />
+        <x-edit-chip section="contenidos" label="contenidos" :url="route('admin.contents.create')" />
 
         <h2 id="huv-contenidos" class="sr-only">Todos los contenidos publicados</h2>
 
@@ -59,7 +49,7 @@
                             class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                    font-semibold text-heading">
                         <option value="todos">Todos los contenidos</option>
-                        @foreach ($feed['categories'] as $category)
+                        @foreach (Content::CATEGORIES as $category)
                             <option value="{{ $category }}">{{ $category }}</option>
                         @endforeach
                     </select>
@@ -68,41 +58,57 @@
         </div>
 
         {{-- Listado --}}
-        <ul class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            @foreach ($items as $item)
-                <li x-show="isVisible({{ $item['id'] }})"
-                    :style="{ order: positionOf({{ $item['id'] }}) }"
-                    class="flex">
-                    <article class="flex w-full flex-col overflow-hidden rounded-[4px] border border-line bg-card
-                                    transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]">
-                        @if (array_key_exists('image_hint', $item))
-                            <a href="{{ $item['url'] }}" tabindex="-1" aria-hidden="true" class="block h-[150px]">
-                                <x-image-slot :src="$item['image']" :alt="''" :hint="$item['image_hint']" />
-                            </a>
-                        @endif
-
-                        <div class="flex flex-1 flex-col gap-2 p-5">
-                            <p class="m-0 flex flex-wrap items-center gap-x-2 text-12 text-faint">
-                                <x-published-at :value="$item['date']" />
-                                <span aria-hidden="true">·</span>
-                                <span>{{ $item['category'] }}</span>
-                            </p>
-
-                            <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
-                                <a href="{{ $item['url'] }}"
-                                   class="text-heading underline decoration-1 underline-offset-4 hover:text-heading-hover">
-                                    {{ $item['title'] }}
+        @if ($feed->isEmpty())
+            <p class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-10
+                      text-center text-14 text-muted">
+                Todavía no hay contenidos publicados.
+            </p>
+        @else
+            <ul class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                @foreach ($feed as $item)
+                    <li x-show="isVisible({{ $item->id }})"
+                        :style="{ order: positionOf({{ $item->id }}) }"
+                        class="flex">
+                        <article class="flex w-full flex-col overflow-hidden rounded-[4px] border border-line bg-card
+                                        transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]">
+                            @if ($item->imageUrl())
+                                <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true" class="block h-[150px]">
+                                    <img src="{{ $item->imageUrl() }}" alt=""
+                                         loading="lazy" decoding="async"
+                                         class="size-full object-cover">
                                 </a>
-                            </h3>
+                            @endif
 
-                            <p class="m-0 text-13-5 leading-[1.6] text-pretty text-muted">{{ $item['excerpt'] }}</p>
-                        </div>
-                    </article>
-                </li>
-            @endforeach
-        </ul>
+                            <div class="flex flex-1 flex-col gap-2 p-5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="m-0 flex flex-wrap items-center gap-x-2 text-12 text-faint">
+                                        @if ($item->displayDate())
+                                            <x-published-at :value="$item->displayDate()" />
+                                            <span aria-hidden="true">·</span>
+                                        @endif
+                                        <span>{{ $item->category }}</span>
+                                    </p>
+                                    <x-content-actions :content="$item" />
+                                </div>
 
-        {{-- Sin resultados --}}
+                                <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
+                                    <a href="{{ $item->url() }}"
+                                       class="text-heading underline decoration-1 underline-offset-4 hover:text-heading-hover">
+                                        {{ $item->title }}
+                                    </a>
+                                </h3>
+
+                                <p class="m-0 text-13-5 leading-[1.6] text-pretty text-muted">{{ $item->summary() }}</p>
+
+                                <x-content-badges :content="$item" />
+                            </div>
+                        </article>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+
+        {{-- Sin resultados tras filtrar --}}
         <p x-show="isEmpty" x-cloak
            class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-8 text-center text-14 text-muted">
             No hay contenidos que coincidan con los filtros seleccionados.
@@ -113,17 +119,19 @@
         </p>
 
         {{-- Paginación --}}
-        <div class="mt-9 flex flex-col items-center gap-3">
-            <button type="button" @click="loadMore()" x-show="hasMore" x-cloak
-                    class="rounded-full border-0 bg-azure px-7 py-3 font-display text-12-5 font-bold
-                           tracking-[0.08em] text-on-accent uppercase transition-colors hover:bg-azure-dark">
-                Cargar más contenidos
-            </button>
+        @if ($feed->isNotEmpty())
+            <div class="mt-9 flex flex-col items-center gap-3">
+                <button type="button" @click="loadMore()" x-show="hasMore" x-cloak
+                        class="rounded-full border-0 bg-azure px-7 py-3 font-display text-12-5 font-bold
+                               tracking-[0.08em] text-on-accent uppercase transition-colors hover:bg-azure-dark">
+                    Cargar más contenidos
+                </button>
 
-            {{-- aria-live: al pulsar «cargar más» el recuento se anuncia. --}}
-            <p class="m-0 text-12-5 text-muted" aria-live="polite" x-cloak x-show="! isEmpty">
-                Mostrando <span x-text="showing"></span> de <span x-text="total"></span> contenidos
-            </p>
-        </div>
+                {{-- aria-live: al pulsar «cargar más» el recuento se anuncia. --}}
+                <p class="m-0 text-12-5 text-muted" aria-live="polite" x-cloak x-show="! isEmpty">
+                    Mostrando <span x-text="showing"></span> de <span x-text="total"></span> contenidos
+                </p>
+            </div>
+        @endif
     </x-container>
 </section>

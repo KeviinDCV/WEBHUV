@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
+import focus from '@alpinejs/focus';
 
 import huvA11y from './components/a11y';
 import huvBackToTop from './components/back-to-top';
@@ -8,12 +9,16 @@ import huvBannerOrder from './components/banner-order';
 import huvCarousel from './components/carousel';
 import huvClock from './components/clock';
 import huvContentFeed from './components/content-feed';
+import huvLeaveSite from './components/leave-site';
 import huvLogoStrip from './components/logo-strip';
 import huvNav from './components/nav';
 
 window.Alpine = Alpine;
 
 Alpine.plugin(collapse);
+// Aporta x-trap: el foco no puede escaparse del aviso de salida mientras
+// está abierto, como exige un diálogo modal.
+Alpine.plugin(focus);
 
 /**
  * Estado de interfaz compartido entre componentes.
@@ -66,6 +71,7 @@ Alpine.data('huvBannerOrder', huvBannerOrder);
 Alpine.data('huvCarousel', huvCarousel);
 Alpine.data('huvClock', huvClock);
 Alpine.data('huvContentFeed', huvContentFeed);
+Alpine.data('huvLeaveSite', huvLeaveSite);
 Alpine.data('huvLogoStrip', huvLogoStrip);
 Alpine.data('huvNav', huvNav);
 

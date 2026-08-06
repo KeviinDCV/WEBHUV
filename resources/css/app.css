@@ -85,6 +85,19 @@
     --color-on-control: #ffffff;
     --color-dot-active: #ffffff;
 
+    /* --- Barra de desplazamiento ------------------------------------------ */
+    --color-scrollbar-track: #eceff4;
+    --color-scrollbar-thumb: #2b3b80;
+    --color-scrollbar-thumb-hover: #1d2a5e;
+
+    /* --- Aviso ------------------------------------------------------------ */
+    /* El naranja del diseño da 2.03:1 sobre blanco, insuficiente incluso para
+       texto grande. Se reserva para el icono —decorativo— y el rótulo usa un
+       ámbar oscurecido que sí alcanza 5.19:1. */
+    --color-warning: #f5a623;
+    --color-warning-ink: #a15c00;
+    --color-on-warning: #ffffff;
+
     /* --- Varios ----------------------------------------------------------- */
     --color-hero-shell: #dfe3ea;
     --color-slide-shell: #e9ecf1;
@@ -219,6 +232,14 @@ html[data-huv-contrast='on'] {
     --color-on-control: #ffffff;
     --color-dot-active: #ffff00;
 
+    --color-scrollbar-track: #000000;
+    --color-scrollbar-thumb: #ffffff;
+    --color-scrollbar-thumb-hover: #ffff00;
+
+    --color-warning: #ffff00;
+    --color-warning-ink: #ffff00;
+    --color-on-warning: #000000;
+
     --color-hero-shell: #000000;
     --color-slide-shell: #000000;
     --color-overlay: rgba(0, 0, 0, 0.88);
@@ -302,6 +323,42 @@ html[data-huv-contrast='on'] {
 @layer base {
     html {
         scroll-behavior: smooth;
+
+        /* Reserva el hueco de la barra siempre. Sin esto, al abrir un diálogo
+           modal —que bloquea el desplazamiento— la barra desaparece y todo el
+           contenido salta unos píxeles a la derecha. */
+        scrollbar-gutter: stable;
+
+        /* Propiedad estándar: Firefox y navegadores modernos. Se deja el ancho
+           en `auto` a propósito; `thin` deja un objetivo de arrastre demasiado
+           estrecho para quien tiene poca precisión de puntero. */
+        scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    }
+
+    /* Barra personalizada en WebKit y Blink. Se aplica también a los
+       contenedores con desplazamiento propio —menú completo, cajón móvil— para
+       que la interfaz sea coherente. */
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--color-scrollbar-track);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-scrollbar-thumb);
+        border: 3px solid var(--color-scrollbar-track);
+        border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-scrollbar-thumb-hover);
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: var(--color-scrollbar-track);
     }
 
     body {
@@ -394,6 +451,83 @@ html[data-huv-contrast='on'] {
         top: 0;
         color: var(--color-on-brand);
         text-decoration: none;
+    }
+
+    /* Cuerpo de un contenido escrito con el editor de texto enriquecido.
+       Las etiquetas vienen sin clases, así que se les da estilo aquí. */
+    .huv-prose {
+        color: var(--color-body);
+        font-size: var(--text-15);
+        line-height: 1.75;
+    }
+
+    .huv-prose > * + * {
+        margin-top: 1.1em;
+    }
+
+    .huv-prose h2,
+    .huv-prose h3,
+    .huv-prose h4 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--color-heading);
+        line-height: 1.3;
+        margin-top: 1.8em;
+    }
+
+    .huv-prose h2 {
+        font-size: var(--text-20);
+    }
+    .huv-prose h3 {
+        font-size: var(--text-17);
+    }
+    .huv-prose h4 {
+        font-size: var(--text-15);
+    }
+
+    .huv-prose strong {
+        font-weight: 700;
+        color: var(--color-ink);
+    }
+
+    .huv-prose a {
+        color: var(--color-link);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .huv-prose ul,
+    .huv-prose ol {
+        padding-left: 1.4em;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4em;
+    }
+
+    .huv-prose ul {
+        list-style: disc;
+    }
+    .huv-prose ol {
+        list-style: decimal;
+    }
+
+    .huv-prose blockquote {
+        border-left: 3px solid var(--color-rule-accent);
+        padding-left: 1em;
+        color: var(--color-muted);
+    }
+
+    .huv-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-13-5);
+    }
+
+    .huv-prose th,
+    .huv-prose td {
+        border: 1px solid var(--color-line);
+        padding: 0.5em 0.7em;
+        text-align: left;
     }
 
     /* Utilidad para truncar resúmenes de noticias sin romper la altura. */

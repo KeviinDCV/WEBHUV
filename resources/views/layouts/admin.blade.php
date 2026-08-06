@@ -26,6 +26,8 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @stack('head')
 </head>
 <body class="bg-surface font-sans text-ink">
 

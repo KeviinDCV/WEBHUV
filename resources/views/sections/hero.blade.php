@@ -67,6 +67,8 @@
                         <{{ $tag }}
                             @if ($banner->link)
                                 href="{{ $banner->link }}"
+                                {{-- Si lleva fuera del portal, se pide confirmación antes de salir. --}}
+                                data-huv-confirm-exit
                                 :tabindex="isActive({{ $index }}) ? 0 : -1"
                             @endif
                             class="relative block min-h-[440px] lg:min-h-[max(320px,25.81vw)]"

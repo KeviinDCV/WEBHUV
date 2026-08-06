@@ -55,6 +55,32 @@ Primera sección administrable, en `/administracion/banners`:
 
 Requiere la extensión **GD** de PHP (`extension=gd` en `php.ini`) para generar imágenes en los tests.
 
+### Contenidos
+
+Noticias, comunicados y notificaciones judiciales viven en la tabla `contents`. **Una sola tabla**
+alimenta el bloque de Noticias y el muro de contenidos: tenerlos separados obligaría a mantener el
+mismo texto en dos sitios.
+
+Cada contenido de la portada lleva un menú (✎) con:
+
+| Acción | Efecto |
+|---|---|
+| Editar | Abre «Actualizar contenido» |
+| Destacar | Ocupa el espacio grande del bloque. Uno por categoría: al marcar otro, se desmarca el anterior |
+| Inactivar | Fuera de **todo** el sitio |
+| Ocultar | Sigue activo, pero fuera de la portada |
+| Eliminar | Borra el registro y su imagen |
+
+Lo inactivo y lo oculto **sigue viéndose para quien administra**, marcado con una etiqueta. Si
+desapareciera también para el editor, ocultar un contenido lo volvería inalcanzable.
+
+El cuerpo se escribe con editor de texto enriquecido (Quill) y **se depura en el servidor antes de
+guardarse** (`App\Support\RichText`). Nunca se confía en el HTML que llega del navegador: una cuenta
+comprometida —o un simple pegado desde otra web— dejaría un XSS almacenado en el portal.
+
+Quill se carga desde `resources/js/admin.js`, un paquete aparte: 61 KB comprimidos que solo
+descargan las pantallas de administración, no quien viene a leer una noticia.
+
 Desarrollo (servidor, colas, logs y Vite en paralelo):
 
 ```bash

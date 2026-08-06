@@ -72,6 +72,7 @@
     @include('partials.footer')
     @include('partials.accessibility-rail')
     @include('partials.back-to-top')
+    @include('partials.leave-site-modal')
 
     @stack('scripts')
 </body>

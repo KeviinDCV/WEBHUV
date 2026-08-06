@@ -2,22 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * No se crean usuarios aquí a propósito: las cuentas del portal se dan de
+     * alta con `php artisan huv:usuario`, que pide la contraseña de forma
+     * oculta. Un usuario sembrado con contraseña conocida en el repositorio
+     * sería una puerta abierta si alguna vez se ejecuta en producción.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $this->call(ContentSeeder::class);
     }
 }
