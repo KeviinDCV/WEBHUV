@@ -49,6 +49,14 @@ class TopicItem extends Model
     /** Enlace: una ficha breve cuyo detalle completo vive fuera del portal. */
     public const KIND_LINK = 'enlace';
 
+    /**
+     * Convocatoria: un proceso con fecha de apertura y de cierre.
+     *
+     * Cerrada se sigue leyendo —el portal publica las de 2023 junto a las de
+     * 2026—, así que su cierre vive en `closes_at` y no en `expires_at`.
+     */
+    public const KIND_CONVOCATION = 'convocatoria';
+
     protected $guarded = [];
 
     /**
@@ -63,6 +71,8 @@ class TopicItem extends Model
     {
         return [
             'issued_at' => 'datetime',
+            'opens_at' => 'datetime',
+            'closes_at' => 'datetime',
             'published_at' => 'datetime',
             'modified_at' => 'datetime',
             'expires_at' => 'datetime',
@@ -162,6 +172,11 @@ class TopicItem extends Model
     public function isQuestion(): bool
     {
         return $this->kind === self::KIND_QUESTION;
+    }
+
+    public function isConvocation(): bool
+    {
+        return $this->kind === self::KIND_CONVOCATION;
     }
 
     /* ------------------------------------------------------------------ */

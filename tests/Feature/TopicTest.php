@@ -241,7 +241,7 @@ class TopicTest extends TestCase
      */
     public function test_todo_tipo_que_un_tema_admite_lo_reconoce_la_importacion(): void
     {
-        $tipos = ['Document', 'Article', 'Ad', 'Link', 'Faq'];
+        $tipos = ['Document', 'Article', 'Ad', 'Link', 'Faq', 'Convocation'];
 
         foreach ($tipos as $tipo) {
             $topic = new Topic(['legacy_content_types' => [$tipo]]);

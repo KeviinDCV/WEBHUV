@@ -30,6 +30,22 @@
             <x-topic-item-meta :item="$item" />
         </div>
     </article>
+@elseif ($item->isConvocation())
+    {{--
+        Convocatoria: tarjeta llena de color, como en el portal.
+
+        Allí es un azul liso que la separa del resto de listados de un vistazo.
+        Se usa el azul del tema y no el suyo a pelo, para que el modo de alto
+        contraste lo siga cambiando: un hexadecimal escrito aquí se quedaría
+        igual y dejaría la tarjeta ilegible con ese modo puesto.
+    --}}
+    <article class="flex w-full flex-col overflow-hidden rounded-[4px] bg-azure text-on-accent
+                    transition hover:bg-azure-dark
+                    hover:shadow-[0_10px_26px_rgba(23,32,64,0.18)]">
+        <div class="flex flex-1 flex-col gap-[6px] p-5">
+            <x-topic-item-meta :item="$item" tone="accent" />
+        </div>
+    </article>
 @else
     {{-- Artículo: la imagen manda, arriba y a todo el ancho de la tarjeta. --}}
     <article class="flex w-full flex-col overflow-hidden rounded-[4px] border border-line bg-card

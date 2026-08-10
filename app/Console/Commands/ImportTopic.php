@@ -227,10 +227,6 @@ class ImportTopic extends Command
 
                         $files += $f;
                         $failed += $x;
-
-                        if ($missing = $this->missingFiles($item, $detail)) {
-                            $incomplete[$entry['friendlyName']] = $missing;
-                        }
                     } else {
                         ['images' => $i, 'files' => $f, 'failed' => $x] = $this->downloadMedia($item, $detail);
                         $images += $i;
@@ -240,6 +236,14 @@ class ImportTopic extends Command
                         if ($item->images()->isNotEmpty()) {
                             $withoutAlt[] = $entry['friendlyName'];
                         }
+                    }
+
+                    // El recuento vale para todos, no solo para los documentos:
+                    // «Convocatorias» trae noventa y siete archivos repartidos
+                    // entre quince convocatorias, y perderlos sería igual de
+                    // silencioso que lo fue con los documentos.
+                    if ($missing = $this->missingFiles($item, $detail)) {
+                        $incomplete[$entry['friendlyName']] = $missing;
                     }
                 }
             } catch (\Throwable $e) {
@@ -514,6 +518,15 @@ class ImportTopic extends Command
         // si el origen publicó otro archivo.
         $item->previousFileUrl = $item->getOriginal('source_url');
 
+        // Una convocatoria abre y cierra, pero cerrada se sigue leyendo: el
+        // portal publica las de 2023 al lado de las de 2026. Por eso su cierre
+        // va a una columna propia y NO a `expires_at`, que aquí significa «deja
+        // de verse»: habría escondido cuarenta y siete de las cincuenta y dos.
+        $convocation = $kind === TopicItem::KIND_CONVOCATION;
+
+        $item->opens_at = $convocation ? $this->date($detail['startingDate'] ?? null) : null;
+        $item->closes_at = $convocation ? $this->date($detail['closingDate'] ?? null) : null;
+
         // Los dos bloques se escriben SIEMPRE, aunque uno quede en nulo. Un
         // contenido puede cambiar de tipo en el origen, y dejar la caducidad de
         // cuando era artículo lo volvería invisible en el listado sin que nada
@@ -540,7 +553,9 @@ class ImportTopic extends Command
             $item->expires_at = null;
             $item->comment_wall = CommentWall::NINGUNA;
         } else {
-            $item->expires_at = $this->closingDate($detail['closingDate'] ?? null);
+            $item->expires_at = $convocation
+                ? null
+                : $this->closingDate($detail['closingDate'] ?? null);
             $item->comment_wall = (int) ($detail['commentWallType'] ?? CommentWall::NINGUNA);
 
             // Dejó de ser documento: su archivo se va con él.

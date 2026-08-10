@@ -94,8 +94,12 @@
 
                 <x-share :title="$item->title" class="mt-5" />
 
-                @if ($item->isDocument())
-                    {{-- Descripción del documento --}}
+                {{--
+                    La convocatoria se lee como un documento: texto y archivos,
+                    sin imagen ni galería. En el portal comparten la misma
+                    rejilla de descargas, así que aquí comparten rama.
+                --}}
+                @if ($item->isDocument() || $item->isConvocation())
                     @if (filled($item->body))
                         <div class="huv-prose mt-8">{!! $item->body !!}</div>
                     @endif

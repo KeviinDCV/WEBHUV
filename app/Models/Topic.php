@@ -21,6 +21,7 @@ class Topic extends Model
         'Ad' => TopicItem::KIND_NOTICE,
         'Link' => TopicItem::KIND_LINK,
         'Faq' => TopicItem::KIND_QUESTION,
+        'Convocation' => TopicItem::KIND_CONVOCATION,
     ];
 
     /**
@@ -150,6 +151,7 @@ class Topic extends Model
             TopicItem::KIND_NOTICE => 'Aviso',
             TopicItem::KIND_LINK => 'Link',
             TopicItem::KIND_QUESTION => 'Pregunta',
+            TopicItem::KIND_CONVOCATION => 'Convocatoria',
             default => 'Noticia',
         };
     }
