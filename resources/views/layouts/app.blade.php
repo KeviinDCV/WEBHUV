@@ -3,6 +3,12 @@
     $seo = config('huv.seo');
     $pageTitle = trim($__env->yieldContent('title')) ?: $seo['title'];
     $pageDescription = trim($__env->yieldContent('description')) ?: $seo['description'];
+
+    // Una ficha con imagen propia la declara aquí, y no apilando un segundo
+    // juego de etiquetas: al compartir el enlace gana la primera que aparece, y
+    // sería siempre la genérica.
+    $pageType = trim($__env->yieldContent('og_type')) ?: 'website';
+    $pageImage = trim($__env->yieldContent('og_image')) ?: asset('img/og-huv.png');
 @endphp
 <!DOCTYPE html>
 <html lang="es-CO" dir="ltr">
@@ -19,19 +25,17 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Open Graph / Twitter --}}
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $pageType }}">
     <meta property="og:locale" content="es_CO">
     <meta property="og:site_name" content="{{ $institution['name'] }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $pageDescription }}">
-    <meta property="og:image" content="{{ asset('img/og-huv.png') }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="627">
+    <meta property="og:image" content="{{ $pageImage }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDescription }}">
-    <meta name="twitter:image" content="{{ asset('img/og-huv.png') }}">
+    <meta name="twitter:image" content="{{ $pageImage }}">
 
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">

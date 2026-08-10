@@ -1,10 +1,10 @@
 /**
- * Listado de documentos de un tema: categorías, búsqueda, orden y vista.
+ * Listado de un tema: categorías, búsqueda, orden y vista.
  *
  * Mismo planteamiento que el muro de contenidos: las fichas se imprimen enteras
  * en el servidor y aquí solo se decide cuáles se ven y en qué posición, con
  * `x-show` y la propiedad CSS `order`. Sin JavaScript el tema sigue siendo
- * navegable: aparecen todos los documentos, de más reciente a más antiguo.
+ * navegable: aparecen todos los contenidos, de más reciente a más antiguo.
  */
 
 const VIEW_KEY = 'huv:topicView';
@@ -12,16 +12,18 @@ const VIEW_KEY = 'huv:topicView';
 /** Categorías visibles antes de pulsar «Ver más». */
 const CATEGORIES_SHOWN = 5;
 
-export default function huvTopicDocuments({
+export default function huvTopicList({
     meta = [],
     categories = [],
-    perPage = 20,
+    publicTabs = [],
+    perPage = 6,
     canModerate = false,
     openEditor = false,
 } = {}) {
     return {
         meta,
         categories,
+        publicTabs,
         perPage,
         canModerate,
 
@@ -29,14 +31,19 @@ export default function huvTopicDocuments({
         editor: openEditor,
 
         category: 'todas',
+        kind: 'todos',
         search: '',
-        tab: 'recientes',
+        // Sin pestañas públicas el tema tiene orden manual: se respeta el que
+        // llega del servidor en lugar de reordenar por fecha.
+        tab: publicTabs.length ? publicTabs[0].key : 'manual',
         period: 'todos',
         view: 'grid',
         shown: perPage,
         allCategories: false,
 
         init() {
+            this.categoryFromUrl();
+
             try {
                 const stored = window.localStorage.getItem(VIEW_KEY);
                 if (stored === 'grid' || stored === 'list') this.view = stored;
@@ -44,9 +51,30 @@ export default function huvTopicDocuments({
                 /* Modo privado: se queda en rejilla. */
             }
 
-            ['tab', 'period', 'category', 'search'].forEach((prop) =>
+            ['tab', 'period', 'category', 'kind', 'search'].forEach((prop) =>
                 this.$watch(prop, () => (this.shown = this.perPage))
             );
+        },
+
+        /**
+         * Categoría que llega en la dirección.
+         *
+         * El portal abre un tema ya filtrado con «/tema/{tema}/{categoría}», y
+         * de ahí salen los atajos de «Población vulnerable». Aquí eso viaja como
+         * `?categoria={id}`, así que hay que recogerlo al arrancar: si no, el
+         * enlace llevaría al tema entero y el filtro se perdería por el camino.
+         *
+         * Una categoría que no existe se ignora, como hace el portal: enseña el
+         * tema completo en vez de un listado vacío.
+         */
+        categoryFromUrl() {
+            const raw = new URLSearchParams(window.location.search).get('categoria');
+
+            if (raw === null) return;
+
+            const id = Number(raw);
+
+            if (this.categories.some((item) => item.id === id)) this.category = id;
         },
 
         setView(view) {
@@ -71,12 +99,13 @@ export default function huvTopicDocuments({
 
         /* ---------------- Orden y filtros ---------------- */
 
+        /**
+         * Las pestañas públicas las decide el servidor, no este componente:
+         * «Fecha de expedición» solo tiene sentido donde hay documentos, y eso
+         * depende del tema.
+         */
         get tabs() {
-            const tabs = [
-                { key: 'recientes', label: 'Recientes' },
-                { key: 'az', label: 'A-Z' },
-                { key: 'expedicion', label: 'Fecha de expedición' },
-            ];
+            const tabs = [...this.publicTabs];
 
             if (this.canModerate) {
                 tabs.push(
@@ -109,6 +138,11 @@ export default function huvTopicDocuments({
         },
 
         get comparator() {
+            // El orden manual ya viene dado: no se toca.
+            if (this.tab === 'manual') {
+                return () => 0;
+            }
+
             if (this.tab === 'az') {
                 return (a, b) => a.title.localeCompare(b.title, 'es');
             }
@@ -127,7 +161,10 @@ export default function huvTopicDocuments({
 
             return this.meta
                 .filter((item) => this.matchesTab(item))
-                .filter((item) => this.category === 'todas' || item.category === this.category)
+                // Un contenido puede llevar varias categorías del tema, así que
+                // se comprueba la pertenencia, no la igualdad.
+                .filter((item) => this.category === 'todas' || item.categories.includes(this.category))
+                .filter((item) => this.kind === 'todos' || item.kind === this.kind)
                 .filter((item) => days === null || now - item.timestamp <= days * 86400000)
                 .filter((item) => term === '' || this.normalize(item.title).includes(term))
                 .sort(this.comparator);
@@ -169,8 +206,9 @@ export default function huvTopicDocuments({
 
         reset() {
             this.category = 'todas';
+            this.kind = 'todos';
             this.search = '';
-            this.tab = 'recientes';
+            this.tab = this.publicTabs.length ? this.publicTabs[0].key : 'manual';
             this.period = 'todos';
             this.shown = this.perPage;
         },

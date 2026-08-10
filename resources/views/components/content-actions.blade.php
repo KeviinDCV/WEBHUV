@@ -94,7 +94,7 @@
                         @method('DELETE')
                         <button type="submit"
                                 class="flex w-full items-center gap-[10px] border-0 bg-transparent px-4 py-[9px]
-                                       text-left text-13-5 text-[#8c1d18] hover:bg-[#fdf3f2]">
+                                       text-left text-13-5 text-danger hover:bg-danger-surface">
                             <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />

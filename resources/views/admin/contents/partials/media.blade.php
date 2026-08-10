@@ -5,6 +5,10 @@
     $files = $content->exists ? $content->files() : collect();
     $video = $content->exists ? $content->video() : null;
     $mainId = $content->exists ? $content->mainImage()?->id : null;
+
+    // Puede haber dos editores en la misma página: sin sufijo, los `id`
+    // chocarían y las etiquetas apuntarían al campo equivocado.
+    $uid = $uid ?? '';
 @endphp
 
 <fieldset class="mb-8 border-0 p-0"
@@ -45,17 +49,17 @@
                             Principal
                         </label>
 
-                        <label class="sr-only" for="media_alt_{{ $image->id }}">
+                        <label class="sr-only" for="media_alt_{{ $image->id }}{{ $uid }}">
                             Descripción de la foto {{ $loop->iteration }}
                         </label>
-                        <input id="media_alt_{{ $image->id }}" name="media_alt[{{ $image->id }}]" type="text"
+                        <input id="media_alt_{{ $image->id }}{{ $uid }}" name="media_alt[{{ $image->id }}]" type="text"
                                maxlength="250" value="{{ $image->alt }}" placeholder="Descripción de la imagen"
                                :disabled="remove"
                                class="w-full rounded-[3px] border border-stroke bg-card px-2 py-[6px] text-13">
 
-                        <label class="flex items-center gap-2 text-12-5 text-[#8c1d18]">
+                        <label class="flex items-center gap-2 text-12-5 text-danger">
                             <input type="checkbox" name="media_delete[]" value="{{ $image->id }}" x-model="remove"
-                                   class="size-4 accent-[#8c1d18]">
+                                   class="size-4 accent-danger">
                             Quitar esta foto
                         </label>
                     </div>
@@ -68,7 +72,7 @@
 
         {{-- ---------------- Agregar foto ---------------- --}}
         <div class="rounded-[3px] border border-dashed border-stroke-strong p-4">
-            <label for="photos" class="flex cursor-pointer items-center gap-2 font-display text-14 font-semibold text-link">
+            <label for="photos{{ $uid }}" class="flex cursor-pointer items-center gap-2 font-display text-14 font-semibold text-link">
                 <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M4 7.5h3l1.5-2.5h7L17 7.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z" />
@@ -80,7 +84,7 @@
                 Dimensión recomendada {{ ContentMedia::IMAGE_WIDTH }} × {{ ContentMedia::IMAGE_HEIGHT }} px.<br>
                 Peso máximo 2 MB. Formatos gif, jpg, jpeg, png, bmp, webp.
             </p>
-            <input id="photos" name="photos[]" type="file" multiple @change="onPhotos($event)"
+            <input id="photos{{ $uid }}" name="photos[]" type="file" multiple @change="onPhotos($event)"
                    accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" class="sr-only">
 
             <ul class="mt-3 flex flex-col gap-3" x-show="newPhotos.length" x-cloak>
@@ -102,7 +106,7 @@
 
         {{-- ---------------- Agregar vídeo ---------------- --}}
         <div class="rounded-[3px] border border-dashed border-stroke-strong p-4">
-            <label for="video_url" class="flex items-center gap-2 font-display text-14 font-semibold text-link">
+            <label for="video_url{{ $uid }}" class="flex items-center gap-2 font-display text-14 font-semibold text-link">
                 <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M5 4.5 19 12 5 19.5Z" />
                 </svg>
@@ -111,7 +115,7 @@
             <p class="m-0 mt-2 mb-2 text-12-5 leading-[1.6] text-muted">
                 URL de YouTube, con https:// por delante.
             </p>
-            <input id="video_url" name="video_url" type="url" inputmode="url"
+            <input id="video_url{{ $uid }}" name="video_url" type="url" inputmode="url"
                    value="{{ old('video_url', $video?->url) }}"
                    placeholder="https://www.youtube.com/watch?v=…"
                    class="w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
@@ -120,7 +124,7 @@
 
         {{-- ---------------- Agregar archivo ---------------- --}}
         <div class="rounded-[3px] border border-dashed border-stroke-strong p-4">
-            <label for="files" class="flex cursor-pointer items-center gap-2 font-display text-14 font-semibold text-link">
+            <label for="files{{ $uid }}" class="flex cursor-pointer items-center gap-2 font-display text-14 font-semibold text-link">
                 <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M20 11.5 12.5 19a4.2 4.2 0 0 1-6-6l7.6-7.6a2.8 2.8 0 0 1 4 4l-7.6 7.6a1.4 1.4 0 0 1-2-2l7-7" />
@@ -131,7 +135,7 @@
                 Peso máximo 30 MB.<br>
                 pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, zip.
             </p>
-            <input id="files" name="files[]" type="file" multiple @change="onFiles($event)"
+            <input id="files{{ $uid }}" name="files[]" type="file" multiple @change="onFiles($event)"
                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip" class="sr-only">
 
             <ul class="mt-3 flex flex-col gap-2" x-show="newFiles.length" x-cloak>
@@ -159,16 +163,16 @@
                         {{ $file->extension() }}
                     </span>
 
-                    <label class="sr-only" for="file_alt_{{ $file->id }}">Título del documento</label>
-                    <input id="file_alt_{{ $file->id }}" name="media_alt[{{ $file->id }}]" type="text"
+                    <label class="sr-only" for="file_alt_{{ $file->id }}{{ $uid }}">Título del documento</label>
+                    <input id="file_alt_{{ $file->id }}{{ $uid }}" name="media_alt[{{ $file->id }}]" type="text"
                            maxlength="250" value="{{ $file->alt }}" :disabled="remove"
                            class="min-w-[200px] flex-1 rounded-[3px] border border-stroke bg-card px-2 py-[6px] text-13">
 
                     <span class="shrink-0 text-12 text-muted">{{ $file->humanSize() }}</span>
 
-                    <label class="flex shrink-0 items-center gap-2 text-12-5 text-[#8c1d18]">
+                    <label class="flex shrink-0 items-center gap-2 text-12-5 text-danger">
                         <input type="checkbox" name="media_delete[]" value="{{ $file->id }}" x-model="remove"
-                               class="size-4 accent-[#8c1d18]">
+                               class="size-4 accent-danger">
                         Quitar
                     </label>
                 </li>

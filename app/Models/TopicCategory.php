@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
 class TopicCategory extends Model
@@ -26,9 +26,9 @@ class TopicCategory extends Model
         return $this->belongsTo(Topic::class);
     }
 
-    /** @return HasMany<Document, self> */
-    public function documents(): HasMany
+    /** @return BelongsToMany<TopicItem, self> */
+    public function items(): BelongsToMany
     {
-        return $this->hasMany(Document::class);
+        return $this->belongsToMany(TopicItem::class, 'topic_category_topic_item');
     }
 }

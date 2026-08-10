@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Support\CommentWall;
+use App\Support\RichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -21,19 +24,6 @@ class Content extends Model
     /** Categoría que alimenta el bloque de Noticias de la portada. */
     public const NEWS_CATEGORY = 'Noticias';
 
-    /**
-     * Etapas de participación ciudadana (Ley 1757 de 2015), las mismas del
-     * menú «Participa». Vacío: contenido sin participación.
-     */
-    public const PARTICIPATION_STAGES = [
-        'Diagnóstico e identificación de problemas',
-        'Planeación y presupuesto participativo',
-        'Consulta ciudadana',
-        'Colaboración e innovación',
-        'Rendición de cuentas',
-        'Control ciudadano',
-    ];
-
     /** Titulares compactos junto a la nota destacada. */
     public const NEWS_SIDEBAR_LIMIT = 4;
 
@@ -47,12 +37,23 @@ class Content extends Model
     {
         return [
             'published_at' => 'datetime',
+            'modified_at' => 'datetime',
             'expires_at' => 'datetime',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
             'is_hidden' => 'boolean',
             'show_in_feed' => 'boolean',
+            'comment_wall' => 'integer',
         ];
+    }
+
+    /**
+     * El botón «Participa» del portal, que aparece en todo lo que tiene muro de
+     * comentarios, sea público o privado.
+     */
+    public function invitesParticipation(): bool
+    {
+        return CommentWall::invites($this->comment_wall);
     }
 
     protected static function booted(): void
@@ -178,6 +179,19 @@ class Content extends Model
         return $this->mainImage()?->fileUrl();
     }
 
+    /**
+     * Etiquetas del tema «Noticias».
+     *
+     * Son las mismas categorías que usan los temas documentales, porque en el
+     * portal de origen es la misma cosa: una etiqueta colgada de un tema.
+     *
+     * @return BelongsToMany<TopicCategory, self>
+     */
+    public function topicCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(TopicCategory::class, 'content_topic_category')->orderBy('name');
+    }
+
     /* ------------------------------------------------------------------ */
     /* Fechas y enlaces                                                    */
     /* ------------------------------------------------------------------ */
@@ -207,13 +221,19 @@ class Content extends Model
         return filled($this->link);
     }
 
-    /** Resumen para los listados: el propio o las primeras líneas del cuerpo. */
-    public function summary(int $limit = 180): string
+    /**
+     * Resumen para los listados: el propio o el cuerpo recortado.
+     *
+     * El recorte es el del portal —doscientos caracteres, por palabra y sin
+     * puntos suspensivos—, igual que en TopicItem::summary(), donde está
+     * explicado de dónde sale el número.
+     */
+    public function summary(int $limit = 200): string
     {
         if (filled($this->excerpt)) {
             return $this->excerpt;
         }
 
-        return Str::limit(trim(html_entity_decode(strip_tags((string) $this->body))), $limit);
+        return Str::limit(RichText::toPlainText($this->body), $limit, '', preserveWords: true);
     }
 }

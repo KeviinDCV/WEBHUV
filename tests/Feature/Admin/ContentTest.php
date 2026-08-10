@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Content;
 use App\Models\User;
+use App\Support\CommentWall;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -290,25 +291,63 @@ class ContentTest extends TestCase
     /* Participación ciudadana                                             */
     /* ------------------------------------------------------------------ */
 
-    public function test_se_puede_relacionar_el_contenido_con_una_etapa_de_participacion(): void
+    public function test_una_noticia_puede_abrirse_a_la_participacion(): void
     {
         $this->actingAs($this->editor())->post('/administracion/contenidos', $this->datos([
-            'participation' => 'Rendición de cuentas',
+            'comment_wall' => CommentWall::PUBLICA,
         ]));
 
         $content = Content::sole();
-        $this->assertSame('Rendición de cuentas', $content->participation);
 
+        $this->assertSame(CommentWall::PUBLICA, $content->comment_wall);
+        $this->assertTrue($content->invitesParticipation());
+
+        // El botón «Participa» del portal, en la ficha y en el muro.
         $this->get("/contenidos/{$content->slug}")
-            ->assertSee('Este contenido hace parte de', false)
-            ->assertSee('Rendición de cuentas', false);
+            ->assertSee('Este contenido está abierto a la participación ciudadana', false);
+
+        $this->get('/')->assertSee('Participa<span class="sr-only"> en «', false);
     }
 
-    public function test_la_etapa_de_participacion_debe_ser_una_de_las_previstas(): void
+    public function test_sin_participacion_no_sale_el_boton(): void
+    {
+        $this->actingAs($this->editor())->post('/administracion/contenidos', $this->datos([
+            'comment_wall' => CommentWall::NINGUNA,
+        ]));
+
+        $content = Content::sole();
+
+        $this->assertFalse($content->invitesParticipation());
+
+        $this->get("/contenidos/{$content->slug}")
+            ->assertDontSee('abierto a la participación ciudadana');
+
+        $this->get('/')->assertDontSee('Participa<span class="sr-only"> en «', false);
+    }
+
+    /** Solo se admiten los tres estados del portal. */
+    public function test_un_estado_de_participacion_desconocido_se_rechaza(): void
     {
         $this->actingAs($this->editor())
-            ->post('/administracion/contenidos', $this->datos(['participation' => 'Inventada']))
-            ->assertSessionHasErrors('participation');
+            ->post('/administracion/contenidos', $this->datos(['comment_wall' => 9]))
+            ->assertSessionHasErrors('comment_wall');
+    }
+
+    /**
+     * Un campo vacío llega como null porque el middleware lo convierte, y el
+     * valor por defecto de `input()` no interviene: la clave existe. Sin
+     * cuidado, ese null acabaría en cero, que significa participación pública.
+     */
+    public function test_un_estado_vacio_no_abre_la_participacion(): void
+    {
+        $this->actingAs($this->editor())
+            ->post('/administracion/contenidos', $this->datos(['comment_wall' => '']))
+            ->assertSessionHasNoErrors();
+
+        $content = Content::sole();
+
+        $this->assertSame(CommentWall::NINGUNA, $content->comment_wall);
+        $this->assertFalse($content->invitesParticipation());
     }
 
     /* ------------------------------------------------------------------ */

@@ -98,6 +98,14 @@
     --color-warning-ink: #a15c00;
     --color-on-warning: #ffffff;
 
+    /* Acciones destructivas: eliminar un contenido, un banner, un tema. Van
+       aparte de `warning` porque no avisan de un riesgo, señalan lo que no
+       tiene vuelta atrás, y porque en alto contraste no pueden quedarse en
+       rojo oscuro sobre negro. */
+    --color-danger: #8c1d18;
+    --color-danger-surface: #fdf3f2;
+    --color-on-danger: #ffffff;
+
     /* --- Varios ----------------------------------------------------------- */
     --color-hero-shell: #dfe3ea;
     --color-slide-shell: #e9ecf1;
@@ -239,6 +247,10 @@ html[data-huv-contrast='on'] {
     --color-warning: #ffff00;
     --color-warning-ink: #ffff00;
     --color-on-warning: #000000;
+
+    --color-danger: #ffff00;
+    --color-danger-surface: #000000;
+    --color-on-danger: #000000;
 
     --color-hero-shell: #000000;
     --color-slide-shell: #000000;

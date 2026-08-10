@@ -1,0 +1,149 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\ContentMedia;
+use App\Models\LibraryImage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+
+/**
+ * Sincroniza fotos, vídeo y archivos con lo que llega del formulario de medios.
+ *
+ * Vive aparte del controlador de contenidos porque el mismo bloque del editor
+ * —«Agrega Foto», «Agrega vídeo», «Agrega archivo» y la biblioteca— se usa tal
+ * cual en los artículos de un tema. Duplicar estas líneas es justo la
+ * divergencia que ya sufrieron dos componentes de este proyecto.
+ *
+ * El dueño solo tiene que ofrecer una relación media() de ContentMedia.
+ */
+final class MediaSync
+{
+    public function __construct(
+        private readonly Model $owner,
+        /** Carpeta del disco público donde se guardan las fotos nuevas. */
+        private readonly string $imageDirectory,
+    ) {}
+
+    public function apply(Request $request): void
+    {
+        $existing = $this->owner->media()->get()->keyBy('id');
+
+        // 1. Bajas.
+        foreach ($request->input('media_delete', []) as $id) {
+            $existing->get((int) $id)?->delete();
+            $existing->forget((int) $id);
+        }
+
+        // 2. Descripciones de lo que se conserva.
+        foreach ($request->input('media_alt', []) as $id => $alt) {
+            $existing->get((int) $id)?->update(['alt' => $alt]);
+        }
+
+        // 3. Fotos nuevas.
+        $alts = $request->input('photo_alts', []);
+
+        foreach ($request->file('photos', []) as $index => $photo) {
+            $this->owner->media()->create([
+                'type' => ContentMedia::TYPE_IMAGE,
+                'path' => $photo->store($this->imageDirectory, 'public'),
+                'alt' => $alts[$index] ?? null,
+                'original_name' => $photo->getClientOriginalName(),
+                'size' => $photo->getSize(),
+                'position' => $this->owner->media()->max('position') + 1,
+            ]);
+        }
+
+        // 4. Archivos nuevos.
+        $titles = $request->input('file_titles', []);
+
+        foreach ($request->file('files', []) as $index => $file) {
+            $this->owner->media()->create([
+                'type' => ContentMedia::TYPE_FILE,
+                'path' => $file->store('documentos', 'public'),
+                'alt' => $titles[$index] ?: $file->getClientOriginalName(),
+                'original_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'position' => $this->owner->media()->max('position') + 1,
+            ]);
+        }
+
+        // 5. Imágenes de la biblioteca: se sincroniza el conjunto elegido.
+        $this->syncLibraryImages($request->input('library_ids', []));
+
+        // 6. Vídeo: uno por contenido.
+        $this->syncVideo($request->input('video_url'));
+
+        $this->settleMainImage($request->input('media_main'));
+    }
+
+    /**
+     * Vincula y desvincula imágenes de la biblioteca.
+     *
+     * Al desvincular solo se borra la fila de enlace: el archivo pertenece a la
+     * biblioteca y puede estar en uso en otros contenidos.
+     *
+     * @param  list<int|string>  $chosen
+     */
+    private function syncLibraryImages(array $chosen): void
+    {
+        $chosen = array_map('intval', $chosen);
+
+        $linked = $this->owner->media()->whereNotNull('library_image_id')->get();
+
+        $linked->whereNotIn('library_image_id', $chosen)->each->delete();
+
+        $already = $linked->pluck('library_image_id')->all();
+
+        LibraryImage::whereIn('id', array_diff($chosen, $already))
+            ->get()
+            ->each(function (LibraryImage $image): void {
+                $this->owner->media()->create([
+                    'library_image_id' => $image->id,
+                    'type' => ContentMedia::TYPE_IMAGE,
+                    'path' => $image->path,
+                    'alt' => $image->alt,
+                    'original_name' => $image->original_name,
+                    'size' => $image->size,
+                    'position' => $this->owner->media()->max('position') + 1,
+                ]);
+            });
+    }
+
+    private function syncVideo(?string $url): void
+    {
+        $video = $this->owner->media()->where('type', ContentMedia::TYPE_VIDEO)->first();
+
+        if (blank($url)) {
+            $video?->delete();
+        } elseif ($video) {
+            $video->update(['url' => $url]);
+        } else {
+            $this->owner->media()->create(['type' => ContentMedia::TYPE_VIDEO, 'url' => $url]);
+        }
+    }
+
+    /**
+     * Marca la foto principal.
+     *
+     * Solo puede haber una: es la que representa al contenido en los listados.
+     * Si no se eligió ninguna, se toma la primera para que las tarjetas no
+     * queden sin imagen.
+     */
+    private function settleMainImage(mixed $chosen): void
+    {
+        $images = $this->owner->media()->where('type', ContentMedia::TYPE_IMAGE)->orderBy('position')->get();
+
+        if ($images->isEmpty()) {
+            return;
+        }
+
+        $main = $images->firstWhere('id', (int) $chosen) ?? $images->first();
+
+        $this->owner->media()
+            ->where('type', ContentMedia::TYPE_IMAGE)
+            ->update(['is_main' => false]);
+
+        $main->update(['is_main' => true]);
+    }
+}

@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ContentRequest;
 use App\Models\Content;
-use App\Models\ContentMedia;
-use App\Models\LibraryImage;
+use App\Support\CommentWall;
+use App\Support\MediaSync;
 use App\Support\RichText;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -115,8 +115,16 @@ class ContentController extends Controller
     private function fill(Content $content, ContentRequest $request): void
     {
         $content->fill($request->safe()->only([
-            'title', 'category', 'excerpt', 'link', 'is_featured', 'show_in_feed', 'participation',
+            'title', 'category', 'excerpt', 'link', 'is_featured', 'show_in_feed',
         ]));
+
+        // Sin `filled()` esto tendría una trampa: si el campo llega vacío, el
+        // middleware lo convierte en null, `input()` devuelve null en lugar del
+        // valor por defecto —la clave existe— y `(int) null` es cero, que
+        // justamente significa «participación pública».
+        $content->comment_wall = filled($request->input('comment_wall'))
+            ? (int) $request->input('comment_wall')
+            : CommentWall::NINGUNA;
 
         // El cuerpo llega del editor como HTML: se depura antes de guardarlo.
         $content->body = RichText::clean($request->input('body'));
@@ -132,123 +140,13 @@ class ContentController extends Controller
 
     /**
      * Sincroniza fotos, vídeo y archivos con lo que llega del formulario.
+     *
+     * El trabajo vive en App\Support\MediaSync porque el mismo bloque del
+     * editor se usa en los artículos de un tema.
      */
     private function syncMedia(Content $content, ContentRequest $request): void
     {
-        $existing = $content->media()->get()->keyBy('id');
-
-        // 1. Bajas.
-        foreach ($request->input('media_delete', []) as $id) {
-            $existing->get((int) $id)?->delete();
-            $existing->forget((int) $id);
-        }
-
-        // 2. Descripciones de lo que se conserva.
-        foreach ($request->input('media_alt', []) as $id => $alt) {
-            $existing->get((int) $id)?->update(['alt' => $alt]);
-        }
-
-        // 3. Fotos nuevas.
-        $alts = $request->input('photo_alts', []);
-
-        foreach ($request->file('photos', []) as $index => $photo) {
-            $content->media()->create([
-                'type' => ContentMedia::TYPE_IMAGE,
-                'path' => $photo->store('contenidos', 'public'),
-                'alt' => $alts[$index] ?? null,
-                'original_name' => $photo->getClientOriginalName(),
-                'size' => $photo->getSize(),
-                'position' => $content->media()->max('position') + 1,
-            ]);
-        }
-
-        // 4. Archivos nuevos.
-        $titles = $request->input('file_titles', []);
-
-        foreach ($request->file('files', []) as $index => $file) {
-            $content->media()->create([
-                'type' => ContentMedia::TYPE_FILE,
-                'path' => $file->store('documentos', 'public'),
-                'alt' => $titles[$index] ?: $file->getClientOriginalName(),
-                'original_name' => $file->getClientOriginalName(),
-                'size' => $file->getSize(),
-                'position' => $content->media()->max('position') + 1,
-            ]);
-        }
-
-        // 5. Imágenes de la biblioteca: se sincroniza el conjunto elegido.
-        $this->syncLibraryImages($content, $request->input('library_ids', []));
-
-        // 6. Vídeo: uno por contenido.
-        $videoUrl = $request->input('video_url');
-        $video = $content->media()->where('type', ContentMedia::TYPE_VIDEO)->first();
-
-        if (blank($videoUrl)) {
-            $video?->delete();
-        } elseif ($video) {
-            $video->update(['url' => $videoUrl]);
-        } else {
-            $content->media()->create(['type' => ContentMedia::TYPE_VIDEO, 'url' => $videoUrl]);
-        }
-
-        $this->settleMainImage($content, $request->input('media_main'));
-    }
-
-    /**
-     * Vincula y desvincula imágenes de la biblioteca.
-     *
-     * Al desvincular solo se borra la fila de enlace: el archivo pertenece a la
-     * biblioteca y puede estar en uso en otros contenidos.
-     *
-     * @param  list<int|string>  $chosen
-     */
-    private function syncLibraryImages(Content $content, array $chosen): void
-    {
-        $chosen = array_map('intval', $chosen);
-
-        $linked = $content->media()->whereNotNull('library_image_id')->get();
-
-        $linked->whereNotIn('library_image_id', $chosen)->each->delete();
-
-        $already = $linked->pluck('library_image_id')->all();
-
-        LibraryImage::whereIn('id', array_diff($chosen, $already))
-            ->get()
-            ->each(function (LibraryImage $image) use ($content): void {
-                $content->media()->create([
-                    'library_image_id' => $image->id,
-                    'type' => ContentMedia::TYPE_IMAGE,
-                    'path' => $image->path,
-                    'alt' => $image->alt,
-                    'original_name' => $image->original_name,
-                    'size' => $image->size,
-                    'position' => $content->media()->max('position') + 1,
-                ]);
-            });
-    }
-
-    /**
-     * Marca la foto principal.
-     *
-     * Solo puede haber una: es la que representa al contenido en los listados.
-     * Si no se eligió ninguna, se toma la primera para que las tarjetas no
-     * queden sin imagen.
-     */
-    private function settleMainImage(Content $content, mixed $chosen): void
-    {
-        $images = $content->media()->where('type', ContentMedia::TYPE_IMAGE)->orderBy('position')->get();
-
-        if ($images->isEmpty()) {
-            return;
-        }
-
-        $main = $images->firstWhere('id', (int) $chosen) ?? $images->first();
-
-        $content->media()
-            ->where('type', ContentMedia::TYPE_IMAGE)
-            ->update(['is_main' => false]);
-
-        $main->update(['is_main' => true]);
+        (new MediaSync($content, 'contenidos'))->apply($request);
     }
 
     /**

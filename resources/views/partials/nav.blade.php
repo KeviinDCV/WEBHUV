@@ -17,7 +17,7 @@
         <div class="hidden w-full items-stretch lg:flex">
             @foreach ($items as $item)
                 @if (empty($item['children']))
-                    <a href="{{ $item['url'] }}"
+                    <a href="{{ App\Support\LegacyLink::resolve($item)['href'] }}"
                        @if (! empty($item['active'])) aria-current="page" @endif
                        class="{{ ! empty($item['active'])
                            ? 'bg-azure px-[34px] font-semibold text-14-5 text-on-accent hover:bg-azure-dark hover:text-on-accent'
@@ -77,7 +77,7 @@
                                 @endif>
                                 @foreach ($item['children'] as $child)
                                     <li>
-                                        <a href="{{ $child['url'] }}"
+                                        <a href="{{ App\Support\LegacyLink::resolve($child)['href'] }}"
                                            class="block h-full px-[22px] py-[9px] text-13-5 text-ink no-underline
                                                   hover:bg-tint hover:text-heading hover:no-underline">
                                             {{ $child['label'] }}
@@ -229,7 +229,7 @@
                 @foreach ($items as $item)
                     <li class="border-b border-line-soft">
                         @if (empty($item['children']))
-                            <a href="{{ $item['url'] }}"
+                            <a href="{{ App\Support\LegacyLink::resolve($item)['href'] }}"
                                class="block px-5 py-[14px] font-display text-14 font-medium text-heading no-underline hover:bg-tint">
                                 {{ $item['label'] }}
                             </a>
@@ -255,7 +255,7 @@
                                 class="bg-surface pb-2">
                                 @foreach ($item['children'] as $child)
                                     <li>
-                                        <a href="{{ $child['url'] }}"
+                                        <a href="{{ App\Support\LegacyLink::resolve($child)['href'] }}"
                                            class="block px-5 py-[10px] pl-8 text-13-5 text-ink no-underline hover:text-heading">
                                             {{ $child['label'] }}
                                         </a>

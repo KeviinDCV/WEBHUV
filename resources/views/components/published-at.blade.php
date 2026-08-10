@@ -18,7 +18,10 @@
 
     // `skip => week`: Carbon convertiría «7 días» en «1 semana», y el portal
     // institucional cuenta en días hasta que pasa al formato absoluto.
-    $label = $elapsedDays <= $relativeDays
+    //
+    // El corte es estricto: a los siete días justos el portal ya escribe la
+    // fecha completa —«30 julio 2026, 1:33 pm»— y no «Hace 7 días».
+    $label = $elapsedDays < $relativeDays
         ? Str::ucfirst($date->diffForHumans(['skip' => ['week']]))
         : $date->translatedFormat('j F Y').', '.Str::lower($date->format('g:i a'));
 @endphp

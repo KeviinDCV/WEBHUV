@@ -1,4 +1,8 @@
-@php $entity = config('huv.entity'); @endphp
+@php
+    use App\Support\LegacyLink;
+
+    $entity = config('huv.entity');
+@endphp
 
 <section aria-labelledby="huv-entidad" class="bg-page">
     <x-container class="grid grid-cols-1 items-start gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:py-[62px]">
@@ -30,7 +34,9 @@
 
             <div class="mt-[10px] flex flex-wrap gap-3">
                 @foreach ($entity['actions'] as $action)
-                    <a href="{{ $action['url'] }}"
+                    @php($destino = LegacyLink::resolve($action))
+                    <a href="{{ $destino['href'] }}"
+                       @if ($destino['external']) target="_blank" rel="noopener noreferrer" @endif
                        class="inline-flex items-center rounded-[3px] px-6 py-[13px] font-display text-13-5
                               font-semibold no-underline transition-colors hover:no-underline
                               {{ $action['variant'] === 'primary'

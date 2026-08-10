@@ -29,9 +29,9 @@
 
     @if ($errors->any())
         <div role="alert"
-             class="mb-6 rounded-[3px] border border-line border-l-4 border-l-[#b3261e] bg-[#fdf3f2] px-4 py-3">
-            <p class="m-0 text-13-5 font-semibold text-[#8c1d18]">Revise los siguientes puntos</p>
-            <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-[#8c1d18]">
+             class="mb-6 rounded-[3px] border border-line border-l-4 border-l-danger bg-danger-surface px-4 py-3">
+            <p class="m-0 text-13-5 font-semibold text-danger">Revise los siguientes puntos</p>
+            <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-danger">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -138,16 +138,10 @@
 
     {{-- ---------------- Participación ---------------- --}}
     <div class="mb-6 max-w-[420px]">
-        <label for="participation{{ $uid }}" class="sr-only">Participación ciudadana</label>
-        <select id="participation{{ $uid }}" name="participation"
-                class="w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
-            <option value="">Contenido sin participación</option>
-            @foreach (Content::PARTICIPATION_STAGES as $stage)
-                <option value="{{ $stage }}" @selected(old('participation', $content->participation) === $stage)>
-                    {{ $stage }}
-                </option>
-            @endforeach
-        </select>
+        @include('admin.partials.participacion', [
+            'uid' => $uid,
+            'value' => $content->comment_wall,
+        ])
     </div>
 
     {{-- ---------------- Enlace ---------------- --}}
@@ -223,7 +217,7 @@
         @csrf
         @method('DELETE')
         <button type="submit"
-                class="border-0 bg-transparent p-0 text-13-5 font-semibold text-[#8c1d18] underline underline-offset-4">
+                class="border-0 bg-transparent p-0 text-13-5 font-semibold text-danger underline underline-offset-4">
             Eliminar contenido
         </button>
     </form>

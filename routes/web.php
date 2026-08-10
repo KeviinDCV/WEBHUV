@@ -3,10 +3,11 @@
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ContentBlockController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
-use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\MediaLibraryController;
 use App\Http\Controllers\Admin\ShortcutController;
+use App\Http\Controllers\Admin\TopicBulkController;
+use App\Http\Controllers\Admin\TopicItemController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\HomeController;
@@ -17,11 +18,18 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('contents.show');
 
-// Temas documentales: Presupuesto, Planes, Contratación… Los que todavía no se
-// han importado siguen resolviéndose contra el portal actual; ver
-// App\Support\LegacyLink.
-Route::get('/tema/{topic}', [TopicController::class, 'show'])->name('topics.show');
-Route::get('/tema/{topic}/{document}', [TopicController::class, 'showDocument'])->name('documents.show');
+/*
+| Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado
+| siguen resolviéndose contra el portal actual; ver App\Support\LegacyLink.
+|
+| scopeBindings() no es cosmético: el slug de un elemento es único dentro de su
+| tema, así que sin él «/tema/planes/presentacion» podría servir la presentación
+| de otro tema.
+*/
+Route::scopeBindings()->group(function (): void {
+    Route::get('/tema/{topic}', [TopicController::class, 'show'])->name('topics.show');
+    Route::get('/tema/{topic}/{item}', [TopicController::class, 'showItem'])->name('topics.items.show');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -94,15 +102,21 @@ Route::middleware('auth')
         Route::post('biblioteca/imagenes', [MediaLibraryController::class, 'storeImage'])->name('library.images.store');
         Route::delete('biblioteca/imagenes/{image}', [MediaLibraryController::class, 'destroyImage'])->name('library.images.destroy');
 
-        // Documentos de los temas: Presupuesto, Planes, Contratación…
-        Route::post('temas/{topic}/categorias', [DocumentController::class, 'storeCategory'])
-            ->name('documents.categories.store');
-        Route::post('temas/{topic}/documentos', [DocumentController::class, 'store'])->name('documents.store');
-        Route::put('temas/{topic}/documentos/{document}', [DocumentController::class, 'update'])->name('documents.update');
-        Route::delete('temas/{topic}/documentos/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
-        Route::post('temas/{topic}/documentos/{document}/destacar', [DocumentController::class, 'feature'])->name('documents.feature');
-        Route::post('temas/{topic}/documentos/{document}/activar', [DocumentController::class, 'toggleActive'])->name('documents.active');
-        Route::post('temas/{topic}/documentos/{document}/ocultar', [DocumentController::class, 'toggleHidden'])->name('documents.hidden');
+        // Elementos de los temas: documentos y artículos.
+        Route::scopeBindings()->group(function (): void {
+            Route::post('temas/{topic}/categorias', [TopicItemController::class, 'storeCategory'])
+                ->name('topics.categories.store');
+
+            // Carga masiva desde una hoja de cálculo, para los temas de enlaces.
+            Route::get('temas/{topic}/carga', [TopicBulkController::class, 'create'])->name('topics.bulk.create');
+            Route::post('temas/{topic}/carga', [TopicBulkController::class, 'store'])->name('topics.bulk.store');
+            Route::post('temas/{topic}/elementos', [TopicItemController::class, 'store'])->name('topics.items.store');
+            Route::put('temas/{topic}/elementos/{item}', [TopicItemController::class, 'update'])->name('topics.items.update');
+            Route::delete('temas/{topic}/elementos/{item}', [TopicItemController::class, 'destroy'])->name('topics.items.destroy');
+            Route::post('temas/{topic}/elementos/{item}/destacar', [TopicItemController::class, 'feature'])->name('topics.items.feature');
+            Route::post('temas/{topic}/elementos/{item}/activar', [TopicItemController::class, 'toggleActive'])->name('topics.items.active');
+            Route::post('temas/{topic}/elementos/{item}/ocultar', [TopicItemController::class, 'toggleHidden'])->name('topics.items.hidden');
+        });
 
         // Acciones rápidas del menú de cada contenido.
         Route::post('contenidos/{content}/destacar', [AdminContentController::class, 'feature'])->name('contents.feature');

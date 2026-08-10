@@ -297,7 +297,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit"
-                        class="border-0 bg-transparent p-0 text-13-5 font-semibold text-[#8c1d18] underline underline-offset-4">
+                        class="border-0 bg-transparent p-0 text-13-5 font-semibold text-danger underline underline-offset-4">
                     Eliminar banner
                 </button>
             </form>

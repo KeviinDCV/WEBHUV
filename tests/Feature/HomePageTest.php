@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Content;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -9,6 +10,30 @@ class HomePageTest extends TestCase
 {
     // La portada lee los banners de la base de datos.
     use RefreshDatabase;
+
+    /**
+     * La portada se encabeza con la más reciente y deja cuatro titulares al
+     * lado, como el portal. Sin pedir una noticia de más, la columna se
+     * quedaba en tres en cuanto no había ninguna destacada a mano.
+     */
+    public function test_el_bloque_de_noticias_lleva_una_destacada_y_cuatro_titulares(): void
+    {
+        foreach (range(1, 8) as $i) {
+            Content::create([
+                'title' => 'Noticia número '.$i,
+                'category' => Content::NEWS_CATEGORY,
+                'published_at' => now()->subDays($i),
+            ]);
+        }
+
+        $response = $this->get('/')->assertOk();
+
+        $grupo = $response->viewData('newsBlock')['groups']->first();
+
+        $this->assertSame('Noticia número 1', $grupo['featured']->title);
+        $this->assertCount(4, $grupo['items']);
+        $this->assertSame('Noticia número 2', $grupo['items']->first()->title);
+    }
 
     public function test_la_pagina_de_inicio_responde_correctamente(): void
     {

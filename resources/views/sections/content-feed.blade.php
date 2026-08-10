@@ -157,43 +157,7 @@
                     <li x-show="isVisible({{ $item->id }})"
                         :style="{ order: positionOf({{ $item->id }}) }"
                         class="flex">
-                        <article class="flex w-full overflow-hidden rounded-[4px] border border-line bg-card
-                                        transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]"
-                                 :class="view === 'grid' ? 'flex-col' : 'flex-col sm:flex-row'">
-
-                            @if ($item->imageUrl())
-                                <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true"
-                                   class="block shrink-0"
-                                   :class="view === 'grid' ? 'h-[150px]' : 'h-[150px] sm:h-auto sm:w-[220px]'">
-                                    <img src="{{ $item->imageUrl() }}" alt=""
-                                         loading="lazy" decoding="async"
-                                         class="size-full object-cover">
-                                </a>
-                            @endif
-
-                            <div class="flex flex-1 flex-col gap-2 p-5">
-                                <p class="m-0 flex flex-wrap items-center gap-x-2 text-12 text-faint">
-                                    @if ($item->displayDate())
-                                        <x-published-at :value="$item->displayDate()" />
-                                    @endif
-                                </p>
-
-                                <p class="m-0 text-12-5 text-link">{{ $item->category }}</p>
-
-                                <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
-                                    <a href="{{ $item->url() }}"
-                                       class="text-heading underline decoration-1 underline-offset-4 hover:text-heading-hover">
-                                        {{ $item->title }}
-                                    </a>
-                                    {{-- El lápiz va pegado al título, como en el portal actual. --}}
-                                    <x-content-actions :content="$item" class="ml-1 inline-flex align-[-5px]" />
-                                </h3>
-
-                                <p class="m-0 text-13-5 leading-[1.6] text-pretty text-muted">{{ $item->summary() }}</p>
-
-                                <x-content-badges :content="$item" />
-                            </div>
-                        </article>
+                        <x-content-card :content="$item" />
                     </li>
                 @endforeach
             </ul>

@@ -69,44 +69,50 @@ return [
             'key' => 'atencion',
             'narrow' => true,
             'children' => [
-                ['label' => 'Política y protección de datos', 'url' => '#'],
-                ['label' => 'PQRDS Recepción de Solicitudes', 'url' => '#'],
-                ['label' => 'Mecanismos de contacto', 'url' => '#'],
-                ['label' => 'Trámites y servicios', 'url' => '#'],
-                ['label' => 'Consulta resultados laboratorio', 'url' => '#'],
-                ['label' => 'Citas', 'url' => '#'],
-                ['label' => 'Servicios', 'url' => '#'],
-                ['label' => 'Programas', 'url' => '#'],
-                ['label' => 'Pagos en línea', 'url' => '#'],
-                ['label' => 'Denuncias por posibles actos de corrupción', 'url' => '#'],
-                ['label' => 'Centro Integral de Atención al Usuario - CIAU', 'url' => '#'],
-                ['label' => 'Voluntariados', 'url' => '#'],
-                ['label' => 'Encuestas de satisfacción', 'url' => '#'],
-                ['label' => 'Herramienta Tic PCD', 'url' => '#'],
-                ['label' => 'Oficina Coordinadora Académica', 'url' => '#'],
-                ['label' => 'Comité de Ética en Investigaciones Hospitalarias', 'url' => '#'],
+                ['label' => 'Política y protección de datos', 'path' => '/politicas'],
+                ['label' => 'PQRDS Recepción de Solicitudes', 'path' => '/peticiones-quejas-reclamos'],
+                ['label' => 'Mecanismos de contacto', 'path' => '/contactenos'],
+                ['label' => 'Trámites y servicios', 'path' => '/tema/tramites-y-servicios'],
+                ['label' => 'Consulta resultados laboratorio', 'url' => 'https://laboratorio.huv.gov.co/ConsultaWeb/'],
+                ['label' => 'Citas', 'url' => 'https://citas.huv.gov.co/login'],
+                ['label' => 'Servicios', 'path' => '/tema/servicios'],
+                ['label' => 'Programas', 'path' => '/tema/programas-342077'],
+                ['label' => 'Pagos en línea', 'path' => '/tema/pagos-en-linea'],
+                ['label' => 'Denuncias por posibles actos de corrupción', 'path' => '/tema/denuncias-por-actos-de-corrupcion'],
+                ['label' => 'Centro Integral de Atención al Usuario - CIAU', 'path' => '/tema/ciau'],
+                ['label' => 'Voluntariados', 'path' => '/tema/voluntariados'],
+                ['label' => 'Encuestas de satisfacción', 'path' => '/tema/encuestas-de-satisfaccion'],
+                ['label' => 'Herramienta Tic PCD', 'path' => '/tema/herramienta-tic-discapacitados'],
+                ['label' => 'Oficina Coordinadora Académica', 'path' => '/tema/diplomados-y-cursos'],
+                ['label' => 'Comité de Ética en Investigaciones Hospitalarias', 'url' => 'https://sites.google.com/correohuv.gov.co/comiteeticahospitauniversitari/p%C3%A1gina-principal'],
             ],
         ],
         [
             'label' => 'Participa',
             'key' => 'participa',
             'children' => [
-                ['label' => 'Diagnóstico e Identificación de problemas', 'url' => '#'],
-                ['label' => 'Planeación y presupuesto participativo', 'url' => '#'],
-                ['label' => 'Consulta ciudadana', 'url' => '#'],
-                ['label' => 'Colaboración e innovación', 'url' => '#'],
-                ['label' => 'Rendición de cuentas', 'url' => '#'],
-                ['label' => 'Control ciudadano', 'url' => '#'],
-                ['label' => 'Descripción Participa', 'url' => '#'],
+                // Siete temas del portal, no siete enlaces muertos. Con 'path'
+                // se resuelven solos: al portal anterior mientras no estén
+                // migrados y a este aplicativo en cuanto lo estén.
+                //
+                // «Rendición de cuentas» de aquí NO es /tema/control, que se
+                // llama igual: son dos temas distintos del portal.
+                ['label' => 'Diagnóstico e Identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
+                ['label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo'],
+                ['label' => 'Consulta ciudadana', 'path' => '/tema/consulta-ciudadana'],
+                ['label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
+                ['label' => 'Rendición de cuentas', 'path' => '/tema/rendicion-de-cuentas'],
+                ['label' => 'Control ciudadano', 'path' => '/tema/control-ciudadano'],
+                ['label' => 'Descripción Participa', 'path' => '/tema/descripcion-participa'],
             ],
         ],
         [
             'label' => 'Noticias',
-            'url' => '#noticias',
+            'path' => '/tema/noticias',
         ],
         [
             'label' => 'Normatividad',
-            'url' => '#',
+            'path' => '/tema/normatividad',
         ],
     ],
 
@@ -330,49 +336,49 @@ return [
                 'title' => 'Asignación de citas',
                 'text' => 'Solicita, consulta o cancela tu cita de consulta externa.',
                 'cta' => 'Ir al trámite',
-                'url' => '#',
+                'url' => 'https://citas.huv.gov.co/login',
             ],
             [
                 'title' => 'PQRSD',
                 'text' => 'Peticiones, quejas, reclamos, sugerencias y denuncias.',
                 'cta' => 'Ir al trámite',
-                'url' => '#',
+                'path' => '/peticiones-quejas-reclamos',
             ],
             [
                 'title' => 'Copia de historia clínica',
                 'text' => 'Solicitud de copia para el paciente o su representante legal.',
                 'cta' => 'Ir al trámite',
-                'url' => '#',
+                'path' => '/tramites-y-servicios/historia-clinica',
             ],
             [
                 'title' => 'Portafolio de servicios',
                 'text' => 'Servicios habilitados de mediana y alta complejidad.',
                 'cta' => 'Consultar',
-                'url' => '#',
+                'path' => '/tema/servicios',
             ],
             [
                 'title' => 'Banco de Sangre',
                 'text' => 'Requisitos, horarios y puntos de donación.',
                 'cta' => 'Consultar',
-                'url' => '#',
+                'path' => '/servicios/banco-de-sangre',
             ],
             [
                 'title' => 'Notificaciones judiciales',
                 'text' => 'Buzón oficial para notificaciones y comunicaciones judiciales.',
                 'cta' => 'Ir al buzón',
-                'url' => '#',
+                'path' => '/tema/notificaciones-judiciales',
             ],
             [
                 'title' => 'Contratación',
                 'text' => 'Procesos, invitaciones públicas y estudios previos.',
                 'cta' => 'Consultar',
-                'url' => '#',
+                'path' => '/tema/contrataciones',
             ],
             [
                 'title' => 'Convocatorias de empleo',
                 'text' => 'Ofertas laborales y procesos de selección vigentes.',
                 'cta' => 'Consultar',
-                'url' => '#',
+                'path' => '/tema/ofertas-de-empleo',
             ],
         ],
     ],
@@ -436,8 +442,8 @@ return [
             ],
         ],
         'actions' => [
-            ['label' => 'Conoce la entidad', 'url' => '#', 'variant' => 'primary'],
-            ['label' => 'Reseña histórica', 'url' => '#', 'variant' => 'ghost'],
+            ['label' => 'Conoce la entidad', 'path' => '/tema/entidad', 'variant' => 'primary'],
+            ['label' => 'Reseña histórica', 'path' => '/entidad/historia', 'variant' => 'ghost'],
         ],
         'image' => null,
         'image_hint' => 'Fachada del HUV (800×600)',
@@ -457,7 +463,8 @@ return [
     */
     'news' => [
         'title' => 'Noticias',
-        'all_url' => '#',
+        // El listado completo: la misma tabla que este bloque, vista entera.
+        'all_url' => '/tema/noticias',
     ],
 
     /*
@@ -474,50 +481,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Agenda de eventos
-    |--------------------------------------------------------------------------
-    | 'starts_at' y 'ends_at' en formato Y-m-d H:i (zona horaria de la app).
-    */
-    'events' => [
-        'title' => 'Eventos',
-        'items' => [
-            [
-                'title' => 'II Congreso Internacional de Neurociencias',
-                'starts_at' => '2026-08-05 07:00',
-                'ends_at' => '2026-08-05 18:00',
-                'place' => 'Arena USC, Universidad Santiago de Cali',
-                'url' => '#',
-            ],
-            [
-                'title' => 'Jornada de donación de sangre',
-                'starts_at' => '2026-08-07 08:00',
-                'ends_at' => '2026-08-07 16:00',
-                'place' => 'Banco de Sangre — sede principal',
-                'url' => '#',
-            ],
-            [
-                'title' => 'Comité de ética en investigación',
-                'starts_at' => '2026-08-12 14:00',
-                'ends_at' => '2026-08-12 17:00',
-                'place' => 'Sala de juntas, tercer piso',
-                'url' => '#',
-            ],
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Boletines y comunicados
     |--------------------------------------------------------------------------
     */
     'bulletins' => [
         'title' => 'Boletines y comunicados',
-        'all_url' => '#',
+        'all_url' => null,
         'featured' => [
             'title' => 'Comunicado de prensa',
             'excerpt' => 'Garantizamos el funcionamiento estable de los canales de atención electrónicos.',
             'published_at' => '-4 days',
-            'url' => '#',
+            'url' => null,
             'document' => null,
             'document_hint' => 'Vista previa del comunicado en PDF (600×780)',
         ],
@@ -526,7 +500,7 @@ return [
                 'title' => 'Boletín informativo institucional',
                 'excerpt' => 'Resumen mensual de la gestión asistencial, docente e investigativa del hospital.',
                 'published_at' => '2026-07-01 09:00',
-                'url' => '#',
+                'url' => null,
                 'document' => null,
                 'document_hint' => 'Miniatura del boletín (240×160)',
             ],
@@ -534,7 +508,7 @@ return [
                 'title' => 'Contenidos de la sede electrónica',
                 'excerpt' => 'Guía de los trámites y servicios disponibles en línea y sus tiempos de respuesta.',
                 'published_at' => '2026-06-16 11:30',
-                'url' => '#',
+                'url' => null,
                 'document' => null,
                 'document_hint' => 'Miniatura del documento (240×160)',
             ],
@@ -557,7 +531,7 @@ return [
             ['name' => 'Ministerio TIC', 'url' => 'https://www.mintic.gov.co/', 'logo' => null],
             ['name' => 'Ministerio de Salud y Protección Social', 'url' => 'https://www.minsalud.gov.co/', 'logo' => null],
             ['name' => 'Gobernación del Valle del Cauca', 'url' => 'https://www.valledelcauca.gov.co/', 'logo' => null],
-            ['name' => 'Secretaría de Salud del Valle del Cauca', 'url' => '#', 'logo' => null],
+            ['name' => 'Secretaría de Salud del Valle del Cauca', 'url' => 'https://www.valledelcauca.gov.co/salud', 'logo' => null],
             ['name' => 'Portal del Estado Colombiano GOV.CO', 'url' => 'https://www.gov.co/', 'logo' => null],
         ],
     ],
@@ -705,10 +679,10 @@ return [
         ],
 
         'legal_links' => [
-            ['label' => 'Políticas', 'url' => '#'],
+            ['label' => 'Políticas', 'path' => '/politicas'],
             ['label' => 'Transparencia', 'url' => '#transparencia'],
-            ['label' => 'Mapa del sitio', 'url' => '#'],
-            ['label' => 'Estadísticas', 'url' => '#'],
+            ['label' => 'Mapa del sitio', 'path' => '/mapa-del-sitio'],
+            ['label' => 'Estadísticas', 'path' => '/estadisticas'],
         ],
     ],
 

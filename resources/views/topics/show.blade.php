@@ -1,12 +1,18 @@
 @php
-    use App\Models\Document;
+    use App\Models\TopicItem;
 
-    $perPage = 20;
+    // Seis por tanda, como el portal: comprobado en Preguntas y respuestas,
+    // Presupuesto, Planes y Noticias, todos empiezan en seis y el botón añade
+    // otros seis. Es el mismo número que el muro de la portada.
+    $perPage = config('huv.content_feed.per_page', 6);
 
-    $meta = $documents->map(fn (Document $item): array => [
+    $meta = $items->map(fn (TopicItem $item): array => [
         'id' => $item->id,
         'title' => $item->title,
-        'category' => $item->topic_category_id,
+        'kind' => $item->kind,
+        // Lista y no un valor suelto: un contenido puede estar en varias
+        // categorías del tema a la vez.
+        'categories' => $item->categories->pluck('id'),
         'timestamp' => ($item->date() ?? $item->created_at)->getTimestampMs(),
         // Sin fecha de expedición se ordena al final, no al principio.
         'issued' => $item->issued_at?->getTimestampMs() ?? 0,
@@ -21,6 +27,7 @@
     $topicConfig = [
         'meta' => $meta,
         'categories' => $categories,
+        'publicTabs' => $tabs,
         'perPage' => $perPage,
         'canModerate' => auth()->check(),
         'openEditor' => $editing !== null || $errors->any(),
@@ -30,7 +37,7 @@
 @extends('layouts.app')
 
 @section('title', $topic->name.' — '.config('huv.institution.short_name'))
-@section('description', $topic->description ?: 'Documentos de '.$topic->name.' del '.config('huv.institution.name_plain').'.')
+@section('description', $topic->description ?: 'Contenidos de '.$topic->name.' del '.config('huv.institution.name_plain').'.')
 
 @auth
     @push('head')
@@ -39,7 +46,7 @@
 @endauth
 
 @section('content')
-    <div class="bg-page" x-data='huvTopicDocuments(@json($topicConfig))'>
+    <div class="bg-page" x-data='huvTopicList(@json($topicConfig))'>
         <x-container class="py-8 lg:py-10">
 
             {{-- ---------------- Rastro de navegación ---------------- --}}
@@ -88,8 +95,8 @@
                                    underline underline-offset-4"
                             x-text="allCategories ? 'Ver menos' : 'Ver más'">Ver más</button>
 
-                    {{-- Sin JavaScript las categorías se listan como enlaces
-                         normales, para no dejar el filtro inservible. --}}
+                    {{-- Sin JavaScript las categorías se listan igualmente, para
+                         no dejar el filtro inservible. --}}
                     <noscript>
                         <ul class="flex flex-wrap items-center gap-2">
                             @foreach ($categories as $category)
@@ -122,8 +129,13 @@
             </div>
 
             {{-- ---------------- Orden y filtros ---------------- --}}
-            <div id="huv-documentos" class="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
-                <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <div id="huv-listado" class="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+                {{-- En un tema de orden manual no hay nada que ordenar. Se
+                     decide en el servidor y no con x-show: sin JavaScript
+                     quedaría un «Ordenar por:» suelto y sin opciones debajo.
+                     Con sesión iniciada siguen apareciendo las de moderación. --}}
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-2"
+                     @if ($tabs === [] && ! auth()->check()) hidden @endif>
                     <span id="huv-orden-tema" class="text-13-5 text-muted">Ordenar por:</span>
 
                     <div role="tablist" aria-labelledby="huv-orden-tema"
@@ -141,7 +153,23 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    {{-- Un tema puede mezclar documentos, noticias y avisos; el
+                         portal deja filtrar por tipo cuando eso ocurre. Se
+                         decide en el servidor: dentro de un <template> el
+                         desplegable estaría en el HTML de todos los temas. --}}
+                    @if (count($topic->supportedKinds()) > 1)
+                        <label for="huv-tipo-tema" class="sr-only">Filtrar por tipo de contenido</label>
+                        <select id="huv-tipo-tema" x-model="kind"
+                                class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
+                                       font-semibold text-heading">
+                            <option value="todos">Todos los contenidos</option>
+                            @foreach ($topic->supportedKinds() as $option)
+                                <option value="{{ $option }}">{{ $topic->itemNoun($option) }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+
                     <label for="huv-periodo-tema" class="sr-only">Filtrar por fecha</label>
                     <select id="huv-periodo-tema" x-model="period"
                             class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
@@ -161,8 +189,8 @@
                     <button type="button" @click="editor = ! editor"
                             x-show="$store.huvUi.editMode" x-cloak
                             :aria-expanded="editor ? 'true' : 'false'"
-                            aria-controls="huv-editor-documento"
-                            data-huv-edit="documentos"
+                            aria-controls="huv-editor-tema"
+                            data-huv-edit="tema"
                             class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-5 py-[8px]
                                    font-display text-13-5 font-semibold text-on-accent
                                    transition-colors hover:bg-azure-dark"
@@ -201,29 +229,35 @@
 
             @auth
                 {{-- ---------------- Editor incrustado ---------------- --}}
-                <div id="huv-editor-documento" x-show="editor" x-cloak
+                <div id="huv-editor-tema" x-show="editor" x-cloak
                      class="mb-10 rounded-[4px] border border-line bg-card p-5 lg:p-8">
-                    @include('admin.documents.partials.editor', [
+                    @include('admin.topics.partials.editor', [
                         'topic' => $topic,
-                        'document' => $editing ?? new Document(['topic_id' => $topic->id]),
+                        // Un contenido nuevo arranca con la plantilla del tema,
+                        // igual que en el portal actual.
+                        'item' => $editing ?? new TopicItem([
+                            'topic_id' => $topic->id,
+                            'kind' => $topic->defaultKind(),
+                            'body' => $topic->content_template,
+                        ]),
                         'uid' => '-inline',
                     ])
                 </div>
             @endauth
 
             {{-- ---------------- Listado ---------------- --}}
-            @if ($documents->isEmpty())
+            @if ($items->isEmpty())
                 <p class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-10
                           text-center text-14 text-muted">
-                    Todavía no hay documentos publicados en {{ $topic->name }}.
+                    Todavía no hay contenidos publicados en {{ $topic->name }}.
                 </p>
             @else
                 <ul class="grid grid-cols-1 gap-5" :class="view === 'grid' && 'md:grid-cols-2'">
-                    @foreach ($documents as $item)
+                    @foreach ($items as $item)
                         <li x-show="isVisible({{ $item->id }})"
                             :style="{ order: positionOf({{ $item->id }}) }"
                             class="flex">
-                            <x-document-card :document="$item" />
+                            <x-topic-item-card :item="$item" />
                         </li>
                     @endforeach
                 </ul>
@@ -233,7 +267,7 @@
             <p x-show="isEmpty" x-cloak
                class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-8
                       text-center text-14 text-muted">
-                No hay documentos que coincidan con la búsqueda.
+                No hay contenidos que coincidan con la búsqueda.
                 <button type="button" @click="reset()"
                         class="border-0 bg-transparent p-0 font-semibold text-link underline underline-offset-4">
                     Quitar los filtros
@@ -241,7 +275,7 @@
             </p>
 
             {{-- Paginación --}}
-            @if ($documents->isNotEmpty())
+            @if ($items->isNotEmpty())
                 <div class="mt-9 flex flex-col items-center gap-3">
                     <button type="button" @click="loadMore()" x-show="hasMore" x-cloak
                             class="rounded-full border-0 bg-azure px-7 py-3 font-display text-12-5 font-bold
@@ -251,7 +285,8 @@
 
                     {{-- aria-live: al pulsar «cargar más» el recuento se anuncia. --}}
                     <p class="m-0 text-12-5 text-muted" aria-live="polite" x-cloak x-show="! isEmpty">
-                        Mostrando <span x-text="showing"></span> de <span x-text="total"></span> documentos
+                        Mostrando <span x-text="showing"></span> de <span x-text="total"></span>
+                        {{ $topic->itemsNoun() }}
                     </p>
                 </div>
             @endif

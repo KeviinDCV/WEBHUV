@@ -35,12 +35,12 @@
                          del fallo sin tener que recorrer el formulario campo a campo. --}}
                     @if ($errors->any())
                         <div role="alert" tabindex="-1" x-init="$el.focus()"
-                             class="mb-6 rounded-[3px] border border-l-4 border-line border-l-[#b3261e]
-                                    bg-[#fdf3f2] px-4 py-3">
-                            <p class="m-0 text-13-5 font-semibold text-[#8c1d18]">
+                             class="mb-6 rounded-[3px] border border-l-4 border-line border-l-danger
+                                    bg-danger-surface px-4 py-3">
+                            <p class="m-0 text-13-5 font-semibold text-danger">
                                 No fue posible iniciar sesión
                             </p>
-                            <ul class="m-0 mt-1 flex flex-col gap-1 text-13-5 text-[#8c1d18]">
+                            <ul class="m-0 mt-1 flex flex-col gap-1 text-13-5 text-danger">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -62,7 +62,7 @@
                                    class="rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink
                                           placeholder:text-faint">
                             @error('email')
-                                <p id="email-error" class="m-0 text-12-5 text-[#8c1d18]">{{ $message }}</p>
+                                <p id="email-error" class="m-0 text-12-5 text-danger">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -75,7 +75,7 @@
                                    @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
                                    class="rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
                             @error('password')
-                                <p id="password-error" class="m-0 text-12-5 text-[#8c1d18]">{{ $message }}</p>
+                                <p id="password-error" class="m-0 text-12-5 text-danger">{{ $message }}</p>
                             @enderror
                         </div>
 

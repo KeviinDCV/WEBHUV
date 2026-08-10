@@ -9,6 +9,10 @@
     $attached = $content->exists
         ? $content->media->pluck('library_image_id')->filter()->values()->all()
         : [];
+
+    // Puede haber dos editores en la misma página: sin sufijo, los `id`
+    // chocarían y las etiquetas apuntarían al campo equivocado.
+    $uid = $uid ?? '';
 @endphp
 
 <div class="mb-8"
@@ -49,7 +53,7 @@
         {{-- Los formularios para crear categorías y subir imágenes están al pie
              de la página: no pueden anidarse dentro del formulario del
              contenido. --}}
-        <a href="#huv-biblioteca-gestion"
+        <a href="#huv-biblioteca-gestion{{ $uid }}"
            class="rounded-full border border-rule-accent bg-card px-3 py-[5px] text-12-5 font-semibold text-link no-underline">
             Agregar categoría +
         </a>
@@ -96,8 +100,8 @@
      un formulario no puede anidarse dentro de otro.
 --------------------------------------------------------------------- --}}
 @push('after-form')
-    <section id="huv-biblioteca-gestion" aria-labelledby="huv-biblioteca-titulo" class="mt-10">
-        <h2 id="huv-biblioteca-titulo" class="m-0 mb-3 font-display text-15 font-bold text-heading">
+    <section id="huv-biblioteca-gestion{{ $uid }}" aria-labelledby="huv-biblioteca-titulo{{ $uid }}" class="mt-10">
+        <h2 id="huv-biblioteca-titulo{{ $uid }}" class="m-0 mb-3 font-display text-15 font-bold text-heading">
             Gestionar la biblioteca de imágenes
         </h2>
 
@@ -112,19 +116,19 @@
                 @csrf
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
-                        <label for="library_image" class="text-12-5 text-body">Archivo</label>
-                        <input id="library_image" name="image" type="file" required
+                        <label for="library_image{{ $uid }}" class="text-12-5 text-body">Archivo</label>
+                        <input id="library_image{{ $uid }}" name="image" type="file" required
                                accept="image/jpeg,image/png,image/gif,image/bmp,image/webp"
                                class="mt-1 w-full text-12-5">
                     </div>
                     <div>
-                        <label for="library_alt" class="text-12-5 text-body">Descripción</label>
-                        <input id="library_alt" name="alt" type="text" maxlength="250" required
+                        <label for="library_alt{{ $uid }}" class="text-12-5 text-body">Descripción</label>
+                        <input id="library_alt{{ $uid }}" name="alt" type="text" maxlength="250" required
                                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
                     </div>
                     <div>
-                        <label for="library_category" class="text-12-5 text-body">Categoría</label>
-                        <select id="library_category" name="media_category_id"
+                        <label for="library_category{{ $uid }}" class="text-12-5 text-body">Categoría</label>
+                        <select id="library_category{{ $uid }}" name="media_category_id"
                                 class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
                             <option value="">Sin categoría</option>
                             @foreach ($categories as $categoryOption)
@@ -152,8 +156,8 @@
                   class="flex flex-wrap items-end gap-3 border-t border-line px-4 py-4">
                 @csrf
                 <div class="min-w-[220px] flex-1">
-                    <label for="category_name" class="text-12-5 text-body">Nombre</label>
-                    <input id="category_name" name="name" type="text" maxlength="60" required
+                    <label for="category_name{{ $uid }}" class="text-12-5 text-body">Nombre</label>
+                    <input id="category_name{{ $uid }}" name="name" type="text" maxlength="60" required
                            placeholder="Por ejemplo: Fachadas"
                            class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[8px] text-14">
                 </div>

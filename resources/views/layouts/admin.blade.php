@@ -84,9 +84,9 @@
 
             @if ($errors->any())
                 <div role="alert"
-                     class="mt-5 rounded-[3px] border border-line border-l-4 border-l-[#b3261e] bg-[#fdf3f2] px-4 py-3">
-                    <p class="m-0 text-13-5 font-semibold text-[#8c1d18]">Revise los siguientes puntos</p>
-                    <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-[#8c1d18]">
+                     class="mt-5 rounded-[3px] border border-line border-l-4 border-l-danger bg-danger-surface px-4 py-3">
+                    <p class="m-0 text-13-5 font-semibold text-danger">Revise los siguientes puntos</p>
+                    <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-danger">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach

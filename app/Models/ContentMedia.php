@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\FileSize;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +37,18 @@ class ContentMedia extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (self $media): void {
+            // Un medio pertenece a un contenido o a un elemento de tema, nunca a
+            // los dos ni a ninguno. Si tuviera dos dueños, borrar uno dejaría el
+            // archivo colgando del otro; sin dueño, nadie llegaría a borrarlo.
+            // La comprobación vive aquí y no en la base de datos porque SQLite
+            // acepta un CHECK sin aplicarlo y las pruebas pasarían donde
+            // producción falla.
+            if (($media->content_id === null) === ($media->topic_item_id === null)) {
+                throw new \LogicException('Un medio necesita exactamente un dueño.');
+            }
+        });
+
         static::deleted(function (self $media): void {
             $media->deleteFile();
         });
@@ -45,6 +58,12 @@ class ContentMedia extends Model
     public function content(): BelongsTo
     {
         return $this->belongsTo(Content::class);
+    }
+
+    /** @return BelongsTo<TopicItem, self> */
+    public function topicItem(): BelongsTo
+    {
+        return $this->belongsTo(TopicItem::class);
     }
 
     public function isImage(): bool
@@ -98,14 +117,7 @@ class ContentMedia extends Model
 
     public function humanSize(): ?string
     {
-        if (! $this->size) {
-            return null;
-        }
-
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $power = min((int) floor(log(max($this->size, 1), 1024)), count($units) - 1);
-
-        return round($this->size / (1024 ** $power), $power > 1 ? 1 : 0).' '.$units[$power];
+        return FileSize::human($this->size);
     }
 
     public function extension(): string

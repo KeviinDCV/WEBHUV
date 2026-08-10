@@ -83,12 +83,14 @@ class HomeController extends Controller
 
         $featured = (clone $query)->where('is_featured', true)->first();
 
+        // Sin nota destacada explícita la encabeza la más reciente, así que hay
+        // que pedir una de más: si no, la columna se quedaría con un titular
+        // menos que cuando sí hay destacada.
         $items = $query
             ->when($featured, fn (Builder $q) => $q->whereKeyNot($featured->getKey()))
-            ->limit(Content::NEWS_SIDEBAR_LIMIT)
+            ->limit(Content::NEWS_SIDEBAR_LIMIT + ($featured ? 0 : 1))
             ->get();
 
-        // Sin nota destacada explícita, la más reciente ocupa ese lugar.
         if (! $featured && $items->isNotEmpty()) {
             $featured = $items->shift();
         }

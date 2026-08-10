@@ -12,7 +12,7 @@ import huvContentFeed from './components/content-feed';
 import huvLeaveSite from './components/leave-site';
 import huvLogoStrip from './components/logo-strip';
 import huvNav from './components/nav';
-import huvTopicDocuments from './components/topic-documents';
+import huvTopicList from './components/topic-list';
 
 window.Alpine = Alpine;
 
@@ -75,6 +75,6 @@ Alpine.data('huvContentFeed', huvContentFeed);
 Alpine.data('huvLeaveSite', huvLeaveSite);
 Alpine.data('huvLogoStrip', huvLogoStrip);
 Alpine.data('huvNav', huvNav);
-Alpine.data('huvTopicDocuments', huvTopicDocuments);
+Alpine.data('huvTopicList', huvTopicList);
 
 Alpine.start();

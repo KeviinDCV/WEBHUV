@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\Document;
 use App\Models\Topic;
 use App\Models\TopicCategory;
+use App\Models\TopicItem;
 use App\Models\User;
 use App\Support\LegacyLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,11 +42,12 @@ class TopicTest extends TestCase
         ], $overrides));
     }
 
-    private function documento(Topic $topic, array $overrides = []): Document
+    private function documento(Topic $topic, array $overrides = []): TopicItem
     {
-        return $topic->documents()->create(array_merge([
+        return $topic->items()->create(array_merge([
+            'kind' => TopicItem::KIND_DOCUMENT,
             'title' => 'Ejecución presupuestal de enero',
-            'description' => '<p>Ejecución presupuestal del mes de enero.</p>',
+            'body' => '<p>Ejecución presupuestal del mes de enero.</p>',
             'issued_at' => now()->subMonths(2),
             'published_at' => now()->subDay(),
             'file_path' => 'documentos/1/enero.pdf',
@@ -83,8 +84,8 @@ class TopicTest extends TestCase
             'slug' => 'ejecucion-presupuestal-2026',
         ]);
 
-        $this->documento($topic, ['topic_category_id' => $category->id]);
-        $this->documento($topic, ['title' => 'Otro', 'topic_category_id' => $category->id]);
+        $this->documento($topic)->categories()->attach($category);
+        $this->documento($topic, ['title' => 'Otro'])->categories()->attach($category);
 
         $this->get(route('topics.show', $topic))
             ->assertOk()
@@ -148,7 +149,7 @@ class TopicTest extends TestCase
         $topic = $this->tema();
         $document = $this->documento($topic);
 
-        $this->get(route('documents.show', [$topic, $document]))
+        $this->get(route('topics.items.show', [$topic, $document]))
             ->assertOk()
             ->assertSee($document->title)
             ->assertSee('Fecha de expedición')
@@ -162,10 +163,10 @@ class TopicTest extends TestCase
         $topic = $this->tema();
         $document = $this->documento($topic, ['is_hidden' => true]);
 
-        $this->get(route('documents.show', [$topic, $document]))->assertNotFound();
+        $this->get(route('topics.items.show', [$topic, $document]))->assertNotFound();
 
         $this->actingAs($this->editor())
-            ->get(route('documents.show', [$topic, $document]))
+            ->get(route('topics.items.show', [$topic, $document]))
             ->assertOk()
             ->assertSee('noindex, nofollow', false);
     }
@@ -177,7 +178,7 @@ class TopicTest extends TestCase
 
         $document = $this->documento($other);
 
-        $this->get(route('documents.show', [$topic->slug, $document->slug]))->assertNotFound();
+        $this->get(route('topics.items.show', [$topic->slug, $document->slug]))->assertNotFound();
     }
 
     /**
@@ -192,7 +193,7 @@ class TopicTest extends TestCase
         $topic = $this->tema();
         $document = $this->documento($topic);
 
-        $this->get(route('documents.show', [$topic, $document]))
+        $this->get(route('topics.items.show', [$topic, $document]))
             ->assertOk()
             ->assertSee(url('storage/documentos/1/enero.pdf'))
             ->assertDontSee('otro-dominio.example');
@@ -230,5 +231,137 @@ class TopicTest extends TestCase
         $this->get(route('home'))
             ->assertOk()
             ->assertSee(route('topics.show', 'presupuesto'), false);
+    }
+
+    /**
+     * Regresión: la correspondencia entre los tipos del portal y los de aquí
+     * estaba escrita dos veces —en el modelo y en el importador—, y al añadir
+     * las preguntas frecuentes se actualizó una sola. El tema decía «Admite:
+     * pregunta» y la importación se saltaba las once por no conocer el tipo.
+     */
+    public function test_todo_tipo_que_un_tema_admite_lo_reconoce_la_importacion(): void
+    {
+        $tipos = ['Document', 'Article', 'Ad', 'Link', 'Faq'];
+
+        foreach ($tipos as $tipo) {
+            $topic = new Topic(['legacy_content_types' => [$tipo]]);
+            $kind = Topic::kindForLegacyType($tipo);
+
+            $this->assertNotNull($kind, "El importador no sabe qué es un «{$tipo}».");
+            $this->assertSame(
+                [$kind],
+                $topic->supportedKinds(),
+                "El tema y la importación no se ponen de acuerdo sobre «{$tipo}»."
+            );
+            $this->assertNotSame('', $topic->itemNoun($kind));
+        }
+
+        // Y lo que no publicamos se rechaza, en vez de guardarse como otra cosa.
+        $this->assertNull(Topic::kindForLegacyType('Poll'));
+        $this->assertNull(Topic::kindForLegacyType(null));
+    }
+
+    /**
+     * El resumen de las tarjetas se recorta como en el portal.
+     *
+     * Doscientos caracteres, por palabra y sin puntos suspensivos. Antes se
+     * cortaba en ciento sesenta y con puntos, así que las tarjetas decían menos
+     * que las del original y encima partían la última palabra.
+     */
+    public function test_el_resumen_se_recorta_como_en_el_portal(): void
+    {
+        $topic = $this->tema();
+
+        $largo = trim(str_repeat('palabra ', 40)); // 319 caracteres
+        $item = $topic->items()->create([
+            'kind' => TopicItem::KIND_ARTICLE,
+            'title' => 'Con cuerpo largo',
+            'body' => '<p>'.$largo.'</p>',
+            'published_at' => now(),
+        ]);
+
+        $resumen = $item->summary();
+
+        $this->assertLessThanOrEqual(200, mb_strlen($resumen));
+        $this->assertStringEndsWith('palabra', $resumen, 'Se cortó a mitad de palabra.');
+        $this->assertStringNotContainsString('...', $resumen);
+        $this->assertStringNotContainsString('…', $resumen);
+
+        // Y es un prefijo exacto del cuerpo, como la descripción del portal.
+        $this->assertStringStartsWith($resumen, $largo);
+
+        // Un cuerpo corto no se toca.
+        $corto = $topic->items()->create([
+            'kind' => TopicItem::KIND_ARTICLE,
+            'title' => 'Con cuerpo corto',
+            'body' => '<p>Dos frases. Nada más.</p>',
+            'published_at' => now(),
+        ]);
+
+        $this->assertSame('Dos frases. Nada más.', $corto->summary());
+    }
+
+    /**
+     * Ni un solo destino de la configuración puede ser «#».
+     *
+     * Había treinta y ocho. Un enlace muerto no rompe nada y por eso se queda
+     * meses: se ve igual que uno bueno hasta que alguien lo pulsa. Un ancla con
+     * nombre —«#transparencia»— sí vale: lleva a una sección de la propia
+     * página.
+     */
+    public function test_ningun_destino_de_la_configuracion_es_un_enlace_muerto(): void
+    {
+        $muertos = [];
+
+        $revisar = function (mixed $valor, string $ruta) use (&$revisar, &$muertos): void {
+            if (is_array($valor)) {
+                foreach ($valor as $clave => $hijo) {
+                    $revisar($hijo, $ruta.'.'.$clave);
+                }
+
+                return;
+            }
+
+            if ($valor === '#') {
+                $muertos[] = $ruta;
+            }
+        };
+
+        $revisar(config('huv'), 'huv');
+
+        $this->assertSame([], $muertos, 'Hay destinos sin resolver en config/huv.php.');
+    }
+
+    /** Y tampoco puede llegar ninguno al HTML de la portada. */
+    public function test_la_portada_no_publica_enlaces_muertos(): void
+    {
+        $html = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertSame(
+            0,
+            preg_match_all('/href="#"/', $html),
+            'La portada publica enlaces que no llevan a ninguna parte.'
+        );
+    }
+
+    /**
+     * Los siete enlaces de «Participa» apuntaban a «#».
+     *
+     * Un enlace muerto en el menú principal no rompe nada y por eso puede
+     * quedarse ahí meses: se ve igual que uno bueno hasta que alguien lo pulsa.
+     * Con 'path' se resuelven solos según lo que esté migrado.
+     */
+    public function test_el_menu_de_participa_no_tiene_enlaces_muertos(): void
+    {
+        $participa = collect(config('huv.nav'))->firstWhere('key', 'participa');
+
+        $this->assertNotNull($participa, 'Desapareció el menú «Participa».');
+        $this->assertCount(7, $participa['children']);
+
+        foreach ($participa['children'] as $link) {
+            $this->assertArrayNotHasKey('url', $link, "«{$link['label']}» sigue sin destino.");
+            $this->assertStringStartsWith('/tema/', $link['path']);
+            $this->assertNotSame('#', LegacyLink::resolve($link)['href']);
+        }
     }
 }

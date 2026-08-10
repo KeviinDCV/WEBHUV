@@ -57,7 +57,10 @@
         </svg>
     </button>
 
-    <a href="#" aria-label="Centro de relevo — lengua de señas colombiana"
+    {{-- El mismo destino que en el portal, que lo abre en una ventana aparte:
+         es el servicio del Estado, no una página del hospital. --}}
+    <a href="https://centroderelevo.gov.co" target="_blank" rel="noopener noreferrer"
+       aria-label="Centro de relevo — lengua de señas colombiana (se abre en una pestaña nueva)"
        title="Lengua de señas colombiana"
        class="flex size-10 items-center justify-center text-10-5 font-bold text-on-accent no-underline
               hover:bg-azure-dark hover:text-on-accent hover:no-underline">

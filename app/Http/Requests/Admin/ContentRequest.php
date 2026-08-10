@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Content;
 use App\Models\ContentMedia;
+use App\Support\CommentWall;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -78,7 +79,7 @@ class ContentRequest extends FormRequest
             'library_ids' => ['array', 'max:20'],
             'library_ids.*' => ['integer', 'exists:library_images,id'],
 
-            'participation' => ['nullable', Rule::in(Content::PARTICIPATION_STAGES)],
+            'comment_wall' => ['nullable', Rule::in(CommentWall::values())],
 
             'is_featured' => ['boolean'],
             'show_in_feed' => ['boolean'],

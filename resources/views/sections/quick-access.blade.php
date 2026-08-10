@@ -1,4 +1,8 @@
-@php $quick = config('huv.quick_access'); @endphp
+@php
+    use App\Support\LegacyLink;
+
+    $quick = config('huv.quick_access');
+@endphp
 
 <section aria-labelledby="huv-accesos" class="border-b border-line-pale bg-surface">
     <x-container class="pt-11 pb-12">
@@ -10,8 +14,13 @@
 
         <ul class="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($quick['items'] as $item)
+                {{-- Por LegacyLink, como los del menú: mientras la sección no
+                     esté migrada el acceso lleva al portal anterior, y pasa a
+                     este aplicativo solo. --}}
+                @php($destino = LegacyLink::resolve($item))
                 <li class="flex">
-                    <a href="{{ $item['url'] }}"
+                    <a href="{{ $destino['href'] }}"
+                       @if ($destino['external']) target="_blank" rel="noopener noreferrer" @endif
                        class="group flex w-full flex-col gap-[9px] rounded-[4px] border border-line border-t-4
                               border-t-rule-accent bg-card px-5 pt-[22px] pb-6 no-underline transition
                               hover:border-rule-brand hover:border-t-rule-accent hover:no-underline
@@ -21,6 +30,9 @@
                         <span class="mt-auto flex items-center gap-1 pt-2 text-12-5 font-bold text-link">
                             {{ $item['cta'] }}
                             <span aria-hidden="true" class="transition-transform group-hover:translate-x-[3px]">→</span>
+                            @if ($destino['external'])
+                                <span class="sr-only">(se abre en una pestaña nueva)</span>
+                            @endif
                         </span>
                     </a>
                 </li>

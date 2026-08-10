@@ -1,4 +1,6 @@
 @php
+    use App\Support\LegacyLink;
+
     $institution = config('huv.institution');
     $footer = config('huv.footer');
     $legalTime = $footer['legal_time'];
@@ -102,8 +104,14 @@
             <nav aria-label="Enlaces legales y de servicio">
                 <ul class="flex flex-wrap items-center gap-x-8 gap-y-3">
                     @foreach ($footer['legal_links'] as $link)
+                        {{-- Por LegacyLink: «Políticas», «Mapa del sitio» y
+                             «Estadísticas» son páginas del portal que todavía no
+                             existen aquí, y el día que existan estos enlaces se
+                             mueven solos. --}}
+                        @php($destino = LegacyLink::resolve($link))
                         <li>
-                            <a href="{{ $link['url'] }}"
+                            <a href="{{ $destino['href'] }}"
+                               @if ($destino['external']) target="_blank" rel="noopener noreferrer" @endif
                                class="font-medium text-heading underline underline-offset-4 hover:text-heading-hover">
                                 {{ $link['label'] }}
                             </a>
