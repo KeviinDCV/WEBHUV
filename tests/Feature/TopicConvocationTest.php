@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Topic;
 use App\Models\TopicItem;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
@@ -116,6 +118,37 @@ class TopicConvocationTest extends TestCase
         // la tarjeta ilegible: tiene que salir del tema.
         $this->assertStringNotContainsString('#3B76FB', $html);
         $this->assertStringNotContainsString('rgb(59, 118, 251)', $html);
+    }
+
+    /**
+     * El lápiz de administración tiene que verse sobre la tarjeta azul.
+     *
+     * Se pintaba en «text-link» —azul oscuro sobre azul— y desaparecía: quien
+     * administra daba por hecho que una convocatoria no se podía editar.
+     */
+    public function test_el_lapiz_se_ve_sobre_la_tarjeta_de_color(): void
+    {
+        $topic = $this->tema();
+        $item = $this->convocatoria($topic);
+
+        $editor = User::firstOrCreate(
+            ['email' => 'editora@huv.gov.co'],
+            ['name' => 'Editora del portal', 'password' => Hash::make('Contrasena-Segura-2026#')]
+        );
+
+        $html = $this->actingAs($editor)->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        // El botón de acciones de este elemento, no cualquier botón de la
+        // página: el buscador y las pestañas también llevan «text-link».
+        preg_match(
+            '~<button[^>]*>(?:(?!</button>).)*?Acciones de «'.preg_quote($item->title, '~').'~su',
+            $html,
+            $m
+        );
+
+        $this->assertNotEmpty($m, 'No se está pintando el lápiz de la convocatoria.');
+        $this->assertStringContainsString('text-on-accent', $m[0], 'El lápiz se pierde sobre el azul.');
+        $this->assertStringNotContainsString('text-link', $m[0]);
     }
 
     /** El tema no ofrece ordenar por fecha de expedición: no hay documentos. */

@@ -1,4 +1,10 @@
-@props(['item'])
+@props(['item', 'tone' => 'default'])
+
+@php
+    // «Programado» es azul sobre blanco; sobre la tarjeta azul de una
+    // convocatoria desaparece. Se oscurece para que siga leyéndose.
+    $sobreColor = $tone === 'accent';
+@endphp
 
 @auth
     {{-- Lo inactivo y lo oculto sigue apareciendo para quien administra
@@ -13,7 +19,11 @@
             @endif
 
             @if ($item->isScheduled())
-                <span class="rounded-[2px] bg-azure px-2 py-[2px] text-10-5 font-bold tracking-[0.06em] text-on-accent uppercase">
+                <span @class([
+                    'rounded-[2px] px-2 py-[2px] text-10-5 font-bold tracking-[0.06em] uppercase',
+                    'bg-navy-deep text-on-brand' => $sobreColor,
+                    'bg-azure text-on-accent' => ! $sobreColor,
+                ])>
                     Programado · {{ $item->published_at->translatedFormat('j M Y, H:i') }}
                 </span>
             @endif

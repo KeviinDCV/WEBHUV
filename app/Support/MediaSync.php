@@ -21,8 +21,18 @@ final class MediaSync
 {
     public function __construct(
         private readonly Model $owner,
-        /** Carpeta del disco público donde se guardan las fotos nuevas. */
-        private readonly string $imageDirectory,
+        /** Carpeta del disco público donde se guarda lo que se sube. */
+        private readonly string $directory,
+        /**
+         * Si el dueño publica fotos y vídeo, además de archivos.
+         *
+         * Un documento y una convocatoria solo publican archivos: su ficha no
+         * pinta ni imagen ni galería. Y no basta con excluirlas de la
+         * validación —`Rule::excludeIf` solo las deja fuera de los datos
+         * validados—, porque aquí se leen de la petición: se guardarían en
+         * disco y no se verían en ninguna parte.
+         */
+        private readonly bool $gallery = true,
     ) {}
 
     public function apply(Request $request): void
@@ -43,10 +53,10 @@ final class MediaSync
         // 3. Fotos nuevas.
         $alts = $request->input('photo_alts', []);
 
-        foreach ($request->file('photos', []) as $index => $photo) {
+        foreach ($this->gallery ? $request->file('photos', []) : [] as $index => $photo) {
             $this->owner->media()->create([
                 'type' => ContentMedia::TYPE_IMAGE,
-                'path' => $photo->store($this->imageDirectory, 'public'),
+                'path' => $photo->store($this->directory, 'public'),
                 'alt' => $alts[$index] ?? null,
                 'original_name' => $photo->getClientOriginalName(),
                 'size' => $photo->getSize(),
@@ -60,21 +70,26 @@ final class MediaSync
         foreach ($request->file('files', []) as $index => $file) {
             $this->owner->media()->create([
                 'type' => ContentMedia::TYPE_FILE,
-                'path' => $file->store('documentos', 'public'),
-                'alt' => $titles[$index] ?: $file->getClientOriginalName(),
+                // En la carpeta del dueño, no en una suelta llamada
+                // «documentos»: así lo de un tema vive junto a lo de ese tema y
+                // una copia de seguridad no tiene que reconciliar tres árboles.
+                'path' => $file->store($this->directory, 'public'),
+                'alt' => ($titles[$index] ?? null) ?: $file->getClientOriginalName(),
                 'original_name' => $file->getClientOriginalName(),
                 'size' => $file->getSize(),
                 'position' => $this->owner->media()->max('position') + 1,
             ]);
         }
 
-        // 5. Imágenes de la biblioteca: se sincroniza el conjunto elegido.
-        $this->syncLibraryImages($request->input('library_ids', []));
+        if ($this->gallery) {
+            // 5. Imágenes de la biblioteca: se sincroniza el conjunto elegido.
+            $this->syncLibraryImages($request->input('library_ids', []));
 
-        // 6. Vídeo: uno por contenido.
-        $this->syncVideo($request->input('video_url'));
+            // 6. Vídeo: uno por contenido.
+            $this->syncVideo($request->input('video_url'));
 
-        $this->settleMainImage($request->input('media_main'));
+            $this->settleMainImage($request->input('media_main'));
+        }
     }
 
     /**

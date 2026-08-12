@@ -82,6 +82,21 @@ class RichText
             return null;
         }
 
+        // Envoltorios que se quitan dejando dentro lo que traen.
+        //
+        // El saneador borra la etiqueta que no conoce JUNTO CON SU CONTENIDO, así
+        // que un cuerpo entero envuelto en <article> desaparecía sin más: le
+        // pasó a «Respuesta del caso Nº 0993312025», donde el editor del portal
+        // pegó el texto dentro de un <article class="content-descri">.
+        //
+        // Se desenvuelven en vez de convertirse a <p> porque llevan párrafos
+        // dentro, y un <p> dentro de otro <p> no es HTML válido.
+        $unwrap = ['article', 'section', 'main', 'header', 'footer', 'aside'];
+
+        foreach ($unwrap as $tag) {
+            $html = preg_replace('~<\s*/?\s*'.$tag.'(\s[^>]*)?>~i', '', (string) $html);
+        }
+
         $equivalences = [
             'b' => 'strong',
             'i' => 'em',

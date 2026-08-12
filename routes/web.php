@@ -19,6 +19,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('contents.show');
 
 /*
+| Páginas propias del portal, fuera del esquema «/tema/…». Al añadir una hay que
+| declararla también en App\Support\LegacyLink para que sus enlaces dejen de
+| resolverse contra el portal anterior.
+*/
+Route::view('/sucursales', 'sucursales')->name('branches');
+
+/*
 | Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado
 | siguen resolviéndose contra el portal actual; ver App\Support\LegacyLink.
 |

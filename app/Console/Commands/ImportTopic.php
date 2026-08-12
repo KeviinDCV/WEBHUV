@@ -218,11 +218,14 @@ class ImportTopic extends Command
                         // Los demás archivos del documento. El origen publica
                         // hasta veinticinco en uno solo, y quedarse con el
                         // primero los tiraba sin decir nada.
+                        // Con imagen: un documento puede traerla y el portal la
+                        // pinta en la tarjeta en vez del icono del archivo, como
+                        // en «ACREDITACIÓN», que es un documento con foto y sin
+                        // archivo. La ficha sigue siendo texto y descargas.
                         ['files' => $f, 'failed' => $x] = $this->downloadMedia(
                             $item,
                             $detail,
-                            array_slice($detail['files'] ?? [], 1, null, true),
-                            withImage: false
+                            array_slice($detail['files'] ?? [], 1, null, true)
                         );
 
                         $files += $f;
@@ -664,8 +667,16 @@ class ImportTopic extends Command
     {
         $expected = count($detail['files'] ?? []);
 
+        // Solo lo que trajo la importación. Los medios sin identificador de
+        // origen los añadió alguien desde el editor y no cuadran contra lo que
+        // publica el portal: contarlos daba un «4 de 2» permanente que invitaba
+        // a reejecutar el comando y enterraba el aviso de verdad. Es el mismo
+        // filtro con el que pruneMedia() decide qué le pertenece.
         $actual = ($item->isDownloaded() ? 1 : 0)
-            + $item->media()->where('type', ContentMedia::TYPE_FILE)->count();
+            + $item->media()
+                ->where('type', ContentMedia::TYPE_FILE)
+                ->whereNotNull('legacy_file_id')
+                ->count();
 
         return $actual === $expected ? null : "{$actual} de {$expected}";
     }

@@ -24,10 +24,10 @@
     $topicConfig = [
         'meta' => $meta,
         'categories' => $categories,
-        'publicTabs' => [
-            ['key' => 'recientes', 'label' => 'Recientes'],
-            ['key' => 'az', 'label' => 'A-Z'],
-        ],
+        // Las decide el servidor: un tema de orden manual no ofrece ninguna,
+        // porque reordenar por fecha desharía delante del visitante el orden que
+        // alguien colocó a mano.
+        'publicTabs' => $tabs,
         'perPage' => $perPage,
         'canModerate' => auth()->check(),
         'openEditor' => $editing !== null || $errors->any(),

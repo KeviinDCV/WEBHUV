@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Topic;
 use App\Models\TopicCategory;
+use App\Models\TopicItem;
 use Illuminate\Support\Str;
 
 /**
@@ -22,6 +23,18 @@ class LegacyLink
 {
     /** @var list<string>|null */
     private static ?array $migratedTopics = null;
+
+    /**
+     * Páginas propias ya migradas, las que no son un tema.
+     *
+     * El portal tiene secciones fuera de «/tema/…» —«/sucursales»,
+     * «/politicas», «/mapa-del-sitio»…—. Mientras no existan aquí, sus enlaces
+     * se sirven del portal anterior; en cuanto una se construye, se declara en
+     * esta lista y todos sus enlaces se mueven solos.
+     */
+    private const MIGRATED_PAGES = [
+        '/sucursales' => 'branches',
+    ];
 
     /**
      * @param  array{label: string, url?: string, path?: string}  $link
@@ -101,8 +114,12 @@ class LegacyLink
     /** Dirección dentro de este aplicativo, si la sección ya se migró. */
     private static function internalRoute(string $path): ?string
     {
+        if ($route = self::MIGRATED_PAGES[rtrim($path, '/')] ?? null) {
+            return route($route);
+        }
+
         if (! Str::startsWith($path, '/tema/')) {
-            return null;
+            return self::itemRoute($path);
         }
 
         // El portal admite «/tema/{tema}/{categoría}» para abrir un tema ya
@@ -130,6 +147,40 @@ class LegacyLink
         return $id === null
             ? route('topics.show', $slug)
             : route('topics.show', [$slug, 'categoria' => $id]);
+    }
+
+    /**
+     * Ficha de un elemento de otro tema.
+     *
+     * El portal las publica en «/{tema}/{elemento}», sin el «/tema/» delante:
+     * dos de los tres enlaces de «Datos abiertos» apuntan así a documentos de
+     * «Rendición de cuentas». Aquí la misma ficha vive en
+     * «/tema/{tema}/{elemento}».
+     *
+     * Se traduce solo si el tema está migrado y el elemento existe: cualquier
+     * otra cosa de dos tramos —«/tramites-y-servicios/historia-clinica»— sigue
+     * viviendo en el portal anterior y allí se queda.
+     */
+    private static function itemRoute(string $path): ?string
+    {
+        $parts = explode('/', trim($path, '/'));
+
+        if (count($parts) !== 2) {
+            return null;
+        }
+
+        [$topicSlug, $itemSlug] = $parts;
+
+        if (! in_array($topicSlug, self::migratedTopics(), true)) {
+            return null;
+        }
+
+        $item = TopicItem::query()
+            ->whereHas('topic', fn ($query) => $query->where('slug', $topicSlug))
+            ->where('slug', $itemSlug)
+            ->first();
+
+        return $item ? route('topics.items.show', [$topicSlug, $itemSlug]) : null;
     }
 
     /**

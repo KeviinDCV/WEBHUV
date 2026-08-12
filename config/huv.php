@@ -477,6 +477,11 @@ return [
     */
     'content_feed' => [
         'per_page' => 6,
+
+        // Cuántos contenidos llegan al HTML de la portada. El muro filtra en el
+        // navegador, así que todo lo que se imprime pesa: con las 425
+        // notificaciones judiciales sin tope, la portada ocupaba 1,17 MB.
+        'max_items' => 120,
     ],
 
     /*

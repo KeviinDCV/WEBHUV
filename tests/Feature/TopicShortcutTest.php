@@ -65,7 +65,7 @@ class TopicShortcutTest extends TestCase
     {
         $topic = $this->atajos();
 
-        $this->assertFalse($topic->isLinkList());
+        $this->assertFalse($topic->isCompactList());
 
         $this->atajo($topic, 'Normatividad para población vulnerable', '/tema/normatividad/poblacion-vulnerable', 33);
 
@@ -86,7 +86,7 @@ class TopicShortcutTest extends TestCase
             'imported_at' => now(),
         ]);
 
-        $this->assertTrue($contrataciones->isLinkList());
+        $this->assertTrue($contrataciones->isCompactList());
     }
 
     /**
@@ -127,6 +127,108 @@ class TopicShortcutTest extends TestCase
             ->assertSee(route('topics.show', [$destino, 'categoria' => $categoria->id]), false)
             // Y por tanto no hay enlace a una ficha del atajo.
             ->assertDontSee(route('topics.items.show', [$topic, $item]), false);
+    }
+
+    /**
+     * Un enlace en tarjeta lleva al destino aunque el tema no sea de orden
+     * manual: «Datos abiertos» es Default y sus tres tarjetas van derechas.
+     *
+     * La regla estuvo atada a `isSortable()` y dejaba fuera este tema, que en
+     * la API es idéntico a «Contrataciones» y sin embargo el portal publica en
+     * tarjetas. Lo que decide es la plantilla, no el orden.
+     */
+    public function test_una_tarjeta_de_enlace_lleva_al_destino_aunque_el_tema_no_sea_manual(): void
+    {
+        $topic = Topic::create([
+            'name' => 'Datos abiertos',
+            'slug' => 'datos-abiertos',
+            'legacy_content_types' => ['Link'],
+            'imported_at' => now(),
+        ]);
+
+        $item = $this->atajo(
+            $topic,
+            'Registros de activos de información',
+            'https://www.datos.gov.co/Salud-y-Proteccion-Social/REGISTRO/naix-b9bv',
+            1
+        );
+
+        $this->assertFalse($topic->isSortable());
+        $this->assertSame('https://www.datos.gov.co/Salud-y-Proteccion-Social/REGISTRO/naix-b9bv', $item->url());
+    }
+
+    /**
+     * El portal publica las fichas en «/{tema}/{elemento}», sin «/tema/»
+     * delante: dos de los tres enlaces de «Datos abiertos» apuntan así a
+     * documentos de «Rendición de cuentas».
+     */
+    public function test_un_destino_que_es_la_ficha_de_otro_tema_apunta_aqui(): void
+    {
+        $destino = Topic::create([
+            'name' => 'Rendición de cuentas',
+            'slug' => 'control',
+            'legacy_content_types' => ['Document'],
+            'imported_at' => now(),
+        ]);
+
+        $documento = $destino->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Esquema de publicación de información',
+            'slug' => 'esquema-de-publicacion-de-informacion',
+            'body' => '<p>Texto.</p>',
+            'published_at' => now(),
+        ]);
+
+        $this->assertSame(
+            route('topics.items.show', [$destino, $documento]),
+            LegacyLink::rewrite('/control/esquema-de-publicacion-de-informacion')
+        );
+    }
+
+    /** Y una ficha que aquí no existe se queda en el portal anterior. */
+    public function test_una_ficha_inexistente_sigue_en_el_portal_anterior(): void
+    {
+        Topic::create([
+            'name' => 'Rendición de cuentas',
+            'slug' => 'control',
+            'legacy_content_types' => ['Document'],
+            'imported_at' => now(),
+        ]);
+
+        $this->assertSame(
+            'https://portal-anterior.gov.co/control/documento-que-no-existe',
+            LegacyLink::rewrite('/control/documento-que-no-existe')
+        );
+
+        // Y lo de un tema sin migrar, tampoco se toca.
+        $this->assertSame(
+            'https://portal-anterior.gov.co/tramites-y-servicios/historia-clinica',
+            LegacyLink::rewrite('/tramites-y-servicios/historia-clinica')
+        );
+    }
+
+    /**
+     * «Sucursales» es una página propia, no un tema: vive en «/sucursales» y no
+     * bajo «/tema/…». En cuanto existe aquí, sus enlaces dejan de ir al portal
+     * anterior sin tocar la configuración del menú.
+     */
+    public function test_una_pagina_propia_migrada_deja_de_apuntar_al_portal_anterior(): void
+    {
+        $this->assertSame(route('branches'), LegacyLink::rewrite('/sucursales'));
+        $this->assertSame(route('branches'), LegacyLink::resolve(['label' => 'Sucursales', 'path' => '/sucursales'])['href']);
+
+        // Y la página existe de verdad, con su título y su ruta de navegación.
+        $this->get(route('branches'))
+            ->assertOk()
+            ->assertSee('Sucursales')
+            ->assertSee('Ruta de navegación');
+    }
+
+    /** Lo que todavía no existe aquí sigue sirviéndose del portal anterior. */
+    public function test_una_pagina_sin_migrar_sigue_en_el_portal_anterior(): void
+    {
+        $this->assertSame('https://portal-anterior.gov.co/politicas', LegacyLink::rewrite('/politicas'));
+        $this->assertSame('https://portal-anterior.gov.co/mapa-del-sitio', LegacyLink::rewrite('/mapa-del-sitio'));
     }
 
     /** El orden es el que colocó quien edita, no el de la fecha. */

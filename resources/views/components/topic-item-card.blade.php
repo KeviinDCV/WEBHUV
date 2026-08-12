@@ -4,27 +4,40 @@
     {{--
         Documento: el icono lleva la extensión escrita porque en un listado de
         decenas de PDF la forma del icono no distingue nada.
+
+        Cuando el documento trae imagen, manda la imagen y no el icono: es lo
+        que hace el portal con «ACREDITACIÓN», que es un documento sin archivo y
+        con foto. Y si no hay ni una cosa ni la otra no se pinta nada, en vez de
+        un recuadro que anuncia un PDF que no existe.
     --}}
     <article class="flex w-full gap-4 overflow-hidden rounded-[4px] border border-line bg-card p-4
                     transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]">
 
-        <div class="flex shrink-0 flex-col items-center gap-1">
-            <span class="flex size-[62px] flex-col items-center justify-center rounded-[3px] border-2
-                         border-rule-accent bg-card">
-                <svg class="size-5 text-link" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M14 3v5h5" />
-                    <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
-                </svg>
-                <span class="mt-[2px] font-display text-10-5 font-bold tracking-[0.04em] text-link">
-                    {{ $item->extension() }}
+        @if ($item->imageUrl())
+            <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true" class="block shrink-0">
+                <img src="{{ $item->imageUrl() }}" alt=""
+                     loading="lazy" decoding="async"
+                     class="size-[62px] rounded-[3px] object-cover">
+            </a>
+        @elseif ($item->isDownloaded() || filled($item->source_url))
+            <div class="flex shrink-0 flex-col items-center gap-1">
+                <span class="flex size-[62px] flex-col items-center justify-center rounded-[3px] border-2
+                             border-rule-accent bg-card">
+                    <svg class="size-5 text-link" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 3v5h5" />
+                        <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
+                    </svg>
+                    <span class="mt-[2px] font-display text-10-5 font-bold tracking-[0.04em] text-link">
+                        {{ $item->extension() }}
+                    </span>
                 </span>
-            </span>
 
-            @if ($item->humanSize())
-                <span class="text-12 text-muted">{{ $item->humanSize() }}</span>
-            @endif
-        </div>
+                @if ($item->humanSize())
+                    <span class="text-12 text-muted">{{ $item->humanSize() }}</span>
+                @endif
+            </div>
+        @endif
 
         <div class="flex min-w-0 flex-1 flex-col gap-[6px]">
             <x-topic-item-meta :item="$item" />

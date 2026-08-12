@@ -9,6 +9,15 @@
     // Puede haber dos editores en la misma página: sin sufijo, los `id`
     // chocarían y las etiquetas apuntarían al campo equivocado.
     $uid = $uid ?? '';
+
+    // Fotos y vídeo solo donde la ficha los pinta. Un documento y una
+    // convocatoria llevan archivos, pero sus fichas no tienen ni imagen ni
+    // galería: ofrecerlas sería guardar en disco algo que no se ve.
+    $gallery = $gallery ?? true;
+
+    // Expresión de Alpine que decide si la galería se ve, para los temas que
+    // mezclan tipos y eligen uno u otro sin recargar. Vacía: se ve siempre.
+    $galleryWhen = $galleryWhen ?? null;
 @endphp
 
 <fieldset class="mb-8 border-0 p-0"
@@ -27,11 +36,11 @@
           }">
     <legend class="p-0 font-display text-15 font-bold text-heading">Medios</legend>
     <p class="m-0 mt-1 mb-5 text-13-5 text-muted">
-        Fotos, vídeo y documentos que acompañan al contenido.
+        {{ $gallery ? 'Fotos, vídeo y documentos que acompañan al contenido.' : 'Archivos que acompañan al contenido.' }}
     </p>
 
     {{-- ---------------- Fotos ya guardadas ---------------- --}}
-    @if ($images->isNotEmpty())
+    @if ($gallery && $images->isNotEmpty())
         <p class="m-0 mb-2 text-13-5 font-semibold text-heading">Fotos publicadas</p>
         <ul class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             @foreach ($images as $image)
@@ -68,8 +77,13 @@
         </ul>
     @endif
 
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div @class([
+        'grid grid-cols-1 gap-4',
+        'lg:grid-cols-3' => $gallery,
+    ])>
 
+        @if ($gallery)
+        <div @if ($galleryWhen) x-show="{{ $galleryWhen }}" x-cloak @endif class="contents">
         {{-- ---------------- Agregar foto ---------------- --}}
         <div class="rounded-[3px] border border-dashed border-stroke-strong p-4">
             <label for="photos{{ $uid }}" class="flex cursor-pointer items-center gap-2 font-display text-14 font-semibold text-link">
@@ -121,6 +135,9 @@
                    class="w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
             <p class="m-0 mt-2 text-12 text-faint">Deje el campo vacío para quitar el vídeo.</p>
         </div>
+
+        </div>
+        @endif
 
         {{-- ---------------- Agregar archivo ---------------- --}}
         <div class="rounded-[3px] border border-dashed border-stroke-strong p-4">

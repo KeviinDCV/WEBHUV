@@ -157,21 +157,27 @@ class Topic extends Model
     }
 
     /**
-     * Tema de enlaces: listado compacto y paginado.
+     * Temas que el portal publica en listado compacto.
      *
-     * El portal les da otra plantilla —filas con una raya en medio y páginas
-     * numeradas en vez de «Cargar más»—, y con setecientas contrataciones no es
-     * un capricho: imprimirlas todas de golpe haría una página imposible.
+     * Filas con una raya en medio y páginas numeradas, en vez de tarjetas y
+     * «Cargar más». No se deduce de los datos: en la API, «Contrataciones» y
+     * «Datos abiertos» son idénticos —los dos de tipo Link, los dos con
+     * plantilla Default, mismos campos— y el portal pinta el primero en filas y
+     * el segundo en tarjetas. Tampoco es cuestión de volumen: «Normatividad»
+     * son ocho documentos y va en filas; «Presupuesto» son ochenta y cinco y va
+     * en tarjetas. Es una decisión suya tema por tema, así que aquí se escribe
+     * igual de explícita, por nombre.
      *
-     * Queda fuera el tema de enlaces de orden manual, que no es un archivo sino
-     * un puñado de atajos colocados a mano: «Población vulnerable» son cuatro
-     * tarjetas hacia otros temas. El portal de origen las publica con la misma
-     * plantilla de tarjetas que los demás temas, y la fila de filas no le
-     * pega ni tendría qué paginar.
+     * «Normatividad» es el otro que la usa allí. Entrará en esta lista cuando
+     * se migre: su listado ofrece además ordenar por fecha de expedición, y el
+     * compacto de aquí todavía no lo hace.
      */
-    public function isLinkList(): bool
+    private const COMPACT_TOPICS = ['contrataciones'];
+
+    /** Listado compacto y paginado en el servidor. */
+    public function isCompactList(): bool
     {
-        return $this->supportedKinds() === [TopicItem::KIND_LINK] && ! $this->isSortable();
+        return in_array($this->slug, self::COMPACT_TOPICS, true);
     }
 
     /** Cómo se cuentan en el pie del listado. */

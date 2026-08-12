@@ -366,6 +366,38 @@ class ImportDocumentFilesTest extends TestCase
         $this->assertSame(0, ContentMedia::whereKey($retirado->id)->count());
     }
 
+    /**
+     * El recuento mide lo que trajo la importación, no lo que añadió el editor.
+     *
+     * Sumarlo todo daba un «4 de 2» permanente: el aviso salía en cada pasada,
+     * invitaba a reejecutar el comando —que revierte las correcciones hechas a
+     * mano— y enterraba el aviso de verdad en un tema de cientos de documentos.
+     */
+    public function test_un_adjunto_puesto_a_mano_no_descuadra_el_recuento(): void
+    {
+        $this->fakePortal([$this->documento([[451, 'principal.pdf'], [452, 'anexo.pdf']])]);
+        $this->importar();
+
+        $item = TopicItem::sole();
+
+        // Lo que añadiría alguien desde el editor: sin identificador de origen.
+        $item->media()->create([
+            'type' => ContentMedia::TYPE_FILE,
+            'path' => 'temas/'.$item->topic_id.'/anexo-propio.pdf',
+            'original_name' => 'anexo-propio.pdf',
+            'alt' => 'Anexo propio',
+            'size' => 1234,
+            'position' => 9,
+        ]);
+
+        $this->artisan('huv:importar rendicion-de-cuentas')
+            ->doesntExpectOutputToContain('faltan archivos')
+            ->assertSuccessful();
+
+        // Y sigue ahí: la importación respeta lo que no es suyo.
+        $this->assertSame(1, $item->media()->whereNull('legacy_file_id')->count());
+    }
+
     /** La ficha los publica en una sola lista, sin costura visible. */
     public function test_la_ficha_publica_todos_los_archivos_en_una_lista(): void
     {

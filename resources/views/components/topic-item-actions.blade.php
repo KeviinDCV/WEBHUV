@@ -1,4 +1,11 @@
-@props(['item'])
+@props(['item', 'tone' => 'default'])
+
+@php
+    // Sobre la tarjeta azul de una convocatoria, el lápiz en «text-link» se
+    // pierde: es azul oscuro sobre azul. Quien administra no lo encuentra y da
+    // por hecho que ese contenido no se puede editar.
+    $sobreColor = $tone === 'accent';
+@endphp
 
 @auth
     @php
@@ -35,8 +42,11 @@
         <button type="button" @click="open = ! open"
                 :aria-expanded="open ? 'true' : 'false'"
                 aria-haspopup="true"
-                class="flex size-7 items-center justify-center rounded-full border-0 bg-transparent
-                       text-link hover:bg-tint">
+                @class([
+                    'flex size-7 items-center justify-center rounded-full border-0 bg-transparent',
+                    'text-on-accent hover:bg-white/25' => $sobreColor,
+                    'text-link hover:bg-tint' => ! $sobreColor,
+                ])>
             <svg class="size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M12 20h9" />

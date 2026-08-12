@@ -132,7 +132,20 @@ class HomeController extends Controller
             ->values();
     }
 
-    /** Muro de contenidos: todo lo publicado, sea de la categoría que sea. */
+    /**
+     * Muro de contenidos: lo publicado, sea de la categoría que sea.
+     *
+     * Acotado a los más recientes porque el muro se imprime entero en el HTML y
+     * filtra en el navegador. Al importar «Notificaciones Judiciales» pasó de
+     * setenta contenidos a casi quinientos y la portada saltó de ciento
+     * cincuenta kilobytes a 1,17 megabytes: una página que en una conexión
+     * lenta tarda más en llegar que en leerse.
+     *
+     * El tope es holgado —veinte pulsaciones de «Cargar más»— pero es un tope:
+     * la búsqueda del muro no encuentra más atrás. Lo de verdad correcto es
+     * paginar en el servidor, como ya se hace en «Contrataciones»; mientras
+     * tanto, esto evita servir un megabyte de portada.
+     */
     private function feed(): \Illuminate\Support\Collection
     {
         return Content::query()
@@ -143,6 +156,7 @@ class HomeController extends Controller
             ->whereNotIn('category', $this->categoriesHiddenFromFeed())
             ->tap($this->visibility(...))
             ->recent()
+            ->limit(config('huv.content_feed.max_items', 120))
             ->get();
     }
 

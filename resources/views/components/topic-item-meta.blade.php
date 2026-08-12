@@ -32,7 +32,7 @@
         {{ $item->title }}
     </a>
     {{-- El lápiz va pegado al título, como en el portal actual. --}}
-    <x-topic-item-actions :item="$item" class="ml-1 inline-flex align-[-5px]" />
+    <x-topic-item-actions :item="$item" :tone="$tone" class="ml-1 inline-flex align-[-5px]" />
 </h3>
 
 @if (filled($item->summary()))
@@ -45,4 +45,4 @@
 
 <x-participa-link :item="$item" class="mt-1" />
 
-<x-topic-item-badges :item="$item" />
+<x-topic-item-badges :item="$item" :tone="$tone" />

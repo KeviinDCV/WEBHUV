@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Content;
+use App\Support\LegacyLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -211,12 +212,11 @@ class HomePageTest extends TestCase
             foreach ($column['links'] as $link) {
                 $response->assertSee($link['label'], false);
 
-                // Los enlaces internos aún no migrados apuntan al portal actual;
-                // los externos, a su propio dominio.
-                $expected = $link['url']
-                    ?? rtrim((string) config('huv.legacy_base'), '/').$link['path'];
-
-                $this->assertStringContainsString(e($expected), $html);
+                // Cada enlace lleva adonde diga el resolutor: a este aplicativo
+                // si la sección ya se migró —«/sucursales» es una página propia
+                // desde que existe—, al portal anterior si todavía no, y a su
+                // dominio si es de otra entidad.
+                $this->assertStringContainsString(e(LegacyLink::resolve($link)['href']), $html);
             }
         }
 
@@ -329,5 +329,35 @@ class HomePageTest extends TestCase
         $response->assertSee('Herramientas de accesibilidad', false);
         $response->assertSee('aria-roledescription="carrusel"', false);
         $response->assertSee('lang="es-CO"', false);
+    }
+
+    /**
+     * El muro de la portada no puede imprimirlo todo.
+     *
+     * Se imprime entero en el HTML y filtra en el navegador, así que cada
+     * contenido pesa. Al importar las 425 notificaciones judiciales la portada
+     * pasó de 150 KB a 1,17 MB de una sola vez.
+     */
+    public function test_el_muro_de_la_portada_esta_acotado(): void
+    {
+        config(['huv.content_feed.max_items' => 10]);
+
+        foreach (range(1, 25) as $i) {
+            Content::create([
+                'title' => 'Contenido '.$i,
+                'slug' => 'contenido-'.$i,
+                'category' => 'Noticias',
+                'body' => '<p>Texto.</p>',
+                'published_at' => now()->subDays($i),
+                'show_in_feed' => true,
+            ]);
+        }
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertViewHas('feed', fn ($feed) => $feed->count() === 10)
+            // Y son los más recientes, no diez cualesquiera.
+            ->assertSee('Contenido 1')
+            ->assertDontSee('Contenido 25');
     }
 }

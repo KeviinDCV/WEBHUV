@@ -265,14 +265,18 @@ class TopicItem extends Model
     /**
      * Adónde lleva la ficha desde el listado.
      *
-     * Un enlace de un tema de orden manual es un atajo, no un contenido: en
-     * «Población vulnerable» las cuatro tarjetas llevan derecho a su destino,
-     * como en el portal de origen. Darle ficha propia sería un clic de más para
+     * Un enlace en tarjeta es un atajo, no un contenido: en «Población
+     * vulnerable» y en «Datos abiertos» la tarjeta entera lleva derecha a su
+     * destino, como en el portal. Darle ficha propia sería un clic de más para
      * leer el mismo párrafo que ya se lee en la tarjeta.
+     *
+     * La excepción es el listado compacto: allí el portal sí le da ficha a cada
+     * enlace —«Contrataciones» abre el expediente desde ella— porque la fila no
+     * enseña bastante para decidir sin entrar.
      */
     public function url(): string
     {
-        if ($this->isLink() && $this->topic->isSortable() && filled($this->source_url)) {
+        if ($this->isLink() && ! $this->topic->isCompactList() && filled($this->source_url)) {
             return LegacyLink::rewrite($this->source_url);
         }
 

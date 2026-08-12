@@ -65,4 +65,33 @@ class RichTextTest extends TestCase
             RichText::toPlainText("<p>Uno\n  dos</p>\n<p>tres</p>")
         );
     }
+
+    /**
+     * Un cuerpo envuelto en <article> no puede desaparecer.
+     *
+     * El saneador borra la etiqueta que no conoce JUNTO CON SU CONTENIDO. El
+     * editor del portal pegó el texto de «Respuesta del caso Nº 0993312025»
+     * dentro de un <article class="content-descri"> y la importación lo guardó
+     * vacío: 424 notificaciones con texto y una en blanco.
+     */
+    public function test_un_cuerpo_envuelto_en_un_bloque_desconocido_sobrevive(): void
+    {
+        $envoltorios = ['article', 'section', 'main', 'header', 'footer', 'aside'];
+
+        foreach ($envoltorios as $tag) {
+            $html = '<'.$tag.' class="content-descri"><p>Señor usuario, la respuesta está disponible.</p></'.$tag.'>';
+
+            $limpio = RichText::clean(RichText::normalizeLegacy($html));
+
+            $this->assertStringContainsString(
+                'Señor usuario, la respuesta está disponible.',
+                (string) $limpio,
+                "El texto envuelto en <{$tag}> se perdió."
+            );
+
+            // Se desenvuelve, no se convierte: un <p> dentro de otro <p> no es
+            // HTML válido y el saneador lo partiría.
+            $this->assertStringNotContainsString('<'.$tag, (string) $limpio);
+        }
+    }
 }

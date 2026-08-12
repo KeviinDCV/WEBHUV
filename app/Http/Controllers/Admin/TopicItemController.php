@@ -154,12 +154,31 @@ class TopicItemController extends Controller
             $item->source_url = $request->input('link');
         }
 
+        // La convocatoria abre y cierra, y cerrada se sigue leyendo: sus fechas
+        // van a columnas propias y nunca a `expires_at`, que retiraría del
+        // listado un proceso que el portal sigue publicando.
+        if ($item->isConvocation()) {
+            $item->opens_at = $request->date('opens_at');
+            $item->closes_at = $request->date('closes_at');
+            $item->expires_at = null;
+            $item->comment_wall = $this->commentWall($request);
+
+            return;
+        }
+
         $item->expires_at = $request->boolean('no_end_date') ? null : $request->date('expires_at');
-        // Sin `filled()` esto tendría una trampa: si el campo llega vacío, el
-        // middleware lo convierte en null, `input()` devuelve null en lugar del
-        // valor por defecto —la clave existe— y `(int) null` es cero, que
-        // justamente significa «participación pública».
-        $item->comment_wall = filled($request->input('comment_wall'))
+        $item->comment_wall = $this->commentWall($request);
+    }
+
+    /**
+     * Sin `filled()` esto tendría una trampa: si el campo llega vacío, el
+     * middleware lo convierte en null, `input()` devuelve null en lugar del
+     * valor por defecto —la clave existe— y `(int) null` es cero, que
+     * justamente significa «participación pública».
+     */
+    private function commentWall(TopicItemRequest $request): int
+    {
+        return filled($request->input('comment_wall'))
             ? (int) $request->input('comment_wall')
             : CommentWall::NINGUNA;
     }
@@ -181,14 +200,26 @@ class TopicItemController extends Controller
     }
 
     /**
-     * Un artículo lleva fotos, vídeo y adjuntos; un documento, un solo archivo
-     * con su recuadro de extensión.
+     * Fotos, vídeo y archivos.
+     *
+     * Los lleva el artículo, la convocatoria y también el documento: el portal
+     * publica hasta veinticinco archivos en un mismo documento, y hasta ahora
+     * el editor solo dejaba subir uno.
+     *
+     * El documento conserva además su archivo principal en columnas propias
+     * —es el que da el icono y el peso a la tarjeta del listado—, así que sigue
+     * teniendo su control de reemplazo. Los demás son medios como los del
+     * artículo, y la ficha los publica todos en una sola lista.
      */
     private function syncMedia(TopicItem $item, TopicItemRequest $request, Topic $topic): void
     {
-        if ($item->isArticle()) {
-            (new MediaSync($item, 'temas/'.$topic->id))->apply($request);
+        if ($item->isArticle() || $item->isConvocation() || $item->isDocument()) {
+            // Sin galería salvo en el artículo: la ficha de un documento y la
+            // de una convocatoria son texto y archivos, sin imagen ni vídeo.
+            (new MediaSync($item, 'temas/'.$topic->id, gallery: $item->isArticle()))->apply($request);
+        }
 
+        if (! $item->isDocument()) {
             return;
         }
 
@@ -205,6 +236,13 @@ class TopicItemController extends Controller
         $item->deleteFile();
 
         $item->update([
+            // Se suelta la dirección de origen, salvo que se haya escrito un
+            // enlace nuevo a mano. Sin esto, una reimportación devolvía nombre,
+            // peso y extensión a los del portal y dejaba en disco el archivo
+            // que había subido quien edita: la ficha anunciaba una cosa y
+            // entregaba otra. Ahora el origen ve que el archivo cambió y vuelve
+            // a traer el suyo, que es lo que significa reimportar.
+            'source_url' => $request->filled('link') ? $item->source_url : null,
             'file_path' => $file->store('documentos/'.$topic->id, 'public'),
             'file_name' => $request->input('file_alt') ?: $file->getClientOriginalName(),
             'file_size' => $file->getSize(),

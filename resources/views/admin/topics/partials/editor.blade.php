@@ -42,6 +42,11 @@
           get isDocument() { return this.kind === @js(TopicItem::KIND_DOCUMENT) },
           get isArticle() { return this.kind === @js(TopicItem::KIND_ARTICLE) },
           get isLink() { return this.kind === @js(TopicItem::KIND_LINK) },
+          get isConvocation() { return this.kind === @js(TopicItem::KIND_CONVOCATION) },
+          // Quién lleva fotos, vídeo y archivos. El documento entra aquí desde
+          // que el editor admite varios: el portal publica hasta veinticinco
+          // en uno solo.
+          get hasMedia() { return this.isArticle || this.isDocument || this.isConvocation },
           get isFuture() {
               return this.scheduling && this.publishedAt && new Date(this.publishedAt) > new Date();
           },
@@ -129,8 +134,33 @@
         </p>
     </fieldset>
 
+    {{-- ---------------- Apertura y cierre (convocatoria) ---------------- --}}
+    <fieldset class="mb-5 border-0 p-0" x-show="isConvocation" :disabled="! isConvocation" x-cloak>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="opens_at{{ $uid }}" class="text-13-5 text-link">Fecha y hora de inicio</label>
+                <input id="opens_at{{ $uid }}" name="opens_at" type="datetime-local"
+                       value="{{ old('opens_at', $item->opens_at?->format('Y-m-d\TH:i')) }}"
+                       class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+            </div>
+
+            <div>
+                <label for="closes_at{{ $uid }}" class="text-13-5 text-link">Fecha y hora de cierre</label>
+                <input id="closes_at{{ $uid }}" name="closes_at" type="datetime-local"
+                       value="{{ old('closes_at', $item->closes_at?->format('Y-m-d\TH:i')) }}"
+                       class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+            </div>
+        </div>
+
+        <p class="m-0 mt-1 text-12-5 text-muted">
+            Cerrada se sigue consultando: la fecha de cierre informa del proceso,
+            no retira la convocatoria del listado.
+        </p>
+    </fieldset>
+
     {{-- ---------------- Fecha final de visualización (artículo) ---------------- --}}
-    <fieldset class="mb-5 border-0 p-0" x-show="! isDocument" :disabled="isDocument" x-cloak>
+    <fieldset class="mb-5 border-0 p-0" x-show="! isDocument && ! isConvocation"
+              :disabled="isDocument || isConvocation" x-cloak>
         <label for="no_end_date{{ $uid }}" class="flex items-center gap-2 text-13-5 text-body">
             {{-- @checked además de x-model: sin JavaScript el estado tiene que
                  salir del HTML, no del componente. --}}
@@ -175,14 +205,6 @@
          oculto sigue participando en la validación del navegador, y este se
          niega a enviar el formulario sin poder señalar dónde está el problema
          porque no se ve. Deshabilitado, ni valida ni viaja. --}}
-    {{-- Solo el artículo lleva medios: un aviso es título y texto. --}}
-    @if (in_array(TopicItem::KIND_ARTICLE, $kinds, true))
-        <fieldset class="border-0 p-0" x-show="isArticle" :disabled="! isArticle" x-cloak>
-            @include('admin.contents.partials.media', ['content' => $item])
-            @include('admin.contents.partials.library', ['content' => $item])
-        </fieldset>
-    @endif
-
     {{-- ---------------- Archivo del documento ---------------- --}}
     <fieldset class="border-0 p-0" x-show="isDocument" :disabled="! isDocument" x-cloak>
         <div class="mb-6">
@@ -193,7 +215,7 @@
                         <path d="M14 3v5h5" />
                         <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
                     </svg>
-                    Archivo actual:
+                    Archivo principal:
                     <a href="{{ $item->fileUrl() }}" class="font-semibold text-link">{{ $item->file_name }}</a>
                     <span class="text-muted">({{ $item->extension() }} · {{ $item->humanSize() }})</span>
                 </p>
@@ -207,7 +229,7 @@
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 12.5 12.9 20.6a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 1 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />
                     </svg>
-                    {{ $editing && $item->isDownloaded() ? 'Reemplazar archivo' : 'Agrega archivo' }}
+                    {{ $editing && $item->isDownloaded() ? 'Reemplazar el archivo principal' : 'Archivo principal' }}
                 </span>
                 <span class="text-12-5 text-muted">Peso máximo: 30 MB · pdf, doc, xls, ppt, csv, txt o zip</span>
             </label>
@@ -226,6 +248,36 @@
                    class="w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
         </div>
     </fieldset>
+
+    {{--
+        Fotos, vídeo y archivos.
+
+        Los archivos los lleva el artículo, la convocatoria y también el
+        documento: un aviso, una pregunta o un enlace son solo título y texto.
+        El documento entró aquí porque el portal publica hasta veinticinco
+        archivos en uno solo y el editor únicamente dejaba subir el primero.
+
+        Las fotos, el vídeo y la biblioteca se quedan en el artículo: son lo
+        único que su ficha pinta. Ofrecerlas en un documento sería guardar en
+        disco algo que no se ve en ninguna parte.
+    --}}
+    @if (array_intersect([TopicItem::KIND_ARTICLE, TopicItem::KIND_CONVOCATION, TopicItem::KIND_DOCUMENT], $kinds))
+        <fieldset class="border-0 p-0" x-show="hasMedia" :disabled="! hasMedia" x-cloak>
+            @include('admin.contents.partials.media', [
+                'content' => $item,
+                // Fotos y vídeo solo donde la ficha los pinta. La de un
+                // documento y la de una convocatoria son texto y archivos.
+                'gallery' => in_array(TopicItem::KIND_ARTICLE, $kinds, true),
+                'galleryWhen' => 'isArticle',
+            ])
+
+            @if (in_array(TopicItem::KIND_ARTICLE, $kinds, true))
+                <div x-show="isArticle" x-cloak>
+                    @include('admin.contents.partials.library', ['content' => $item])
+                </div>
+            @endif
+        </fieldset>
+    @endif
 
     {{-- ---------------- Categorías ---------------- --}}
     <div class="mb-6">

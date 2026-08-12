@@ -36,10 +36,10 @@ class TopicController extends Controller
             return $this->showContents($topic);
         }
 
-        // Un tema de enlaces se pagina en el servidor: «Contrataciones» tiene
-        // setecientos y publicarlos todos en el HTML, como se hace con los
-        // demás, daría una página imposible de cargar.
-        if ($topic->isLinkList()) {
+        // Los temas que el portal publica en listado compacto se paginan en el
+        // servidor: «Contrataciones» tiene setecientos y publicarlos todos en
+        // el HTML, como se hace con los demás, daría una página imposible.
+        if ($topic->isCompactList()) {
             return $this->showLinks($topic);
         }
 
@@ -181,6 +181,10 @@ class TopicController extends Controller
         return view('topics.contents', [
             'topic' => $topic,
             'items' => $items,
+            // Las mismas que en el resto de temas, y por la misma razón: uno de
+            // orden manual no ofrece ninguna. «Notificaciones Judiciales» lo es,
+            // y el portal no le pone fila de orden.
+            'tabs' => $this->tabsFor($topic),
             'categories' => $topic->categories()
                 ->get()
                 ->map(fn ($category) => [

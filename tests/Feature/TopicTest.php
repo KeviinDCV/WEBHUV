@@ -302,6 +302,104 @@ class TopicTest extends TestCase
     }
 
     /**
+     * Un tema de orden manual servido por la tabla de contenidos tampoco ofrece
+     * fila de orden.
+     *
+     * «Notificaciones Judiciales» lo es —425 elementos, plantilla Sortable— y
+     * el listado de contenidos fijaba «Recientes» y «A-Z» a mano, sin mirar el
+     * tema, así que le pintaba dos pestañas que el portal no tiene.
+     */
+    public function test_un_tema_de_contenidos_de_orden_manual_no_ofrece_pestanas(): void
+    {
+        $manual = $this->tema([
+            'name' => 'Notificaciones Judiciales',
+            'slug' => 'notificaciones-judiciales',
+            'content_category' => 'Notificaciones Judiciales',
+            'legacy_content_types' => ['Article', 'Document'],
+            'legacy_template_type' => Topic::TEMPLATE_SORTABLE,
+        ]);
+
+        $html = $this->get(route('topics.show', $manual))
+            ->assertOk()
+            ->assertViewIs('topics.contents')
+            ->assertViewHas('tabs', [])
+            ->getContent();
+
+        // En el HTML, que es lo que de verdad pinta las pestañas: el listado
+        // las recibía por su cuenta y no miraba lo que decidía el servidor.
+        $this->assertStringContainsString('"publicTabs":[]', $html);
+
+        // Y uno de plantilla normal las conserva.
+        $noticias = $this->tema([
+            'name' => 'Noticias',
+            'slug' => 'noticias',
+            'content_category' => 'Noticias',
+            'legacy_content_types' => ['Article', 'Link'],
+        ]);
+
+        $htmlNoticias = $this->get(route('topics.show', $noticias))
+            ->assertOk()
+            ->assertViewHas('tabs', [
+                ['key' => 'recientes', 'label' => 'Recientes'],
+                ['key' => 'az', 'label' => 'A-Z'],
+            ])
+            ->getContent();
+
+        $this->assertStringContainsString('"recientes"', $htmlNoticias);
+        $this->assertStringNotContainsString('"publicTabs":[]', $htmlNoticias);
+    }
+
+    /**
+     * La tarjeta de un documento sin archivo no puede anunciar un PDF.
+     *
+     * «ACREDITACIÓN», en Procesos y procedimientos, es un documento con foto y
+     * sin archivo: el portal pinta la foto. Nosotros pintábamos siempre el
+     * recuadro con la extensión, y como `extension()` cae en «PDF» cuando no
+     * hay ninguna, prometía una descarga que no existe.
+     */
+    public function test_la_tarjeta_de_un_documento_sin_archivo_no_promete_un_pdf(): void
+    {
+        $topic = $this->tema();
+
+        $topic->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Acreditación',
+            'body' => '<p>Qué es la acreditación.</p>',
+            'published_at' => now(),
+        ]);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        preg_match('~<article\b.*?</article>~s', $html, $m);
+
+        $this->assertNotEmpty($m, 'No se pintó la tarjeta.');
+        $this->assertStringContainsString('Acreditación', $m[0]);
+
+        // El recuadro de la extensión, no la palabra suelta: el marcado la
+        // envuelve con saltos de línea y buscarla pegada no encontraba nada.
+        $this->assertDoesNotMatchRegularExpression(
+            '~border-rule-accent~',
+            $m[0],
+            'Anuncia un archivo que no existe.'
+        );
+    }
+
+    /** Y el que sí lo tiene lo sigue anunciando, con su peso. */
+    public function test_la_tarjeta_de_un_documento_con_archivo_conserva_su_icono(): void
+    {
+        $topic = $this->tema();
+        $this->documento($topic);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        preg_match('~<article\b.*?</article>~s', $html, $m);
+
+        $this->assertMatchesRegularExpression('~border-rule-accent~', $m[0]);
+        $this->assertMatchesRegularExpression('~>\s*PDF\s*<~', $m[0]);
+        $this->assertStringContainsString('1 Mb', $m[0]);
+    }
+
+    /**
      * Ni un solo destino de la configuración puede ser «#».
      *
      * Había treinta y ocho. Un enlace muerto no rompe nada y por eso se queda

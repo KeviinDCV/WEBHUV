@@ -57,6 +57,15 @@ class TopicItemRequest extends FormRequest
         $isArticle = $this->kind() === TopicItem::KIND_ARTICLE;
         // Un enlace se define por su destino: sin él no lleva a ninguna parte.
         $isLink = $this->kind() === TopicItem::KIND_LINK;
+        // Una convocatoria abre y cierra, y lleva sus pliegos adjuntos.
+        $isConvocation = $this->kind() === TopicItem::KIND_CONVOCATION;
+
+        // Archivos y galería no van juntos. Archivos los lleva también el
+        // documento y la convocatoria —el portal publica hasta veinticinco en
+        // uno solo—, pero sus fichas no pintan ni fotos ni vídeo: admitirlos
+        // sería guardar en disco algo que no se ve en ninguna parte.
+        $hasFiles = $isArticle || $isDocument || $isConvocation;
+        $hasGallery = $isArticle;
 
         return [
             'kind' => ['nullable', Rule::in($this->topic()->supportedKinds())],
@@ -66,6 +75,15 @@ class TopicItemRequest extends FormRequest
 
             /* --- Propio del documento --- */
             'issued_at' => [Rule::excludeIf(! $isDocument), 'nullable', 'date'],
+
+            /* --- Propio de la convocatoria --- */
+            'opens_at' => [Rule::excludeIf(! $isConvocation), 'nullable', 'date'],
+            'closes_at' => [
+                Rule::excludeIf(! $isConvocation),
+                'nullable', 'date',
+                // Cerrar antes de abrir no es una convocatoria, es una errata.
+                'after_or_equal:opens_at',
+            ],
             'link' => [
                 Rule::excludeIf(! $isDocument && ! $isLink),
                 Rule::requiredIf($isLink),
@@ -77,6 +95,7 @@ class TopicItemRequest extends FormRequest
                 // al editar basta con que ya tuviera uno subido.
                 Rule::requiredIf(fn () => $isDocument
                     && blank($this->input('link'))
+                    && blank($this->file('files'))
                     && ! $this->route('item')?->isDownloaded()),
                 'nullable', 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip',
@@ -85,9 +104,9 @@ class TopicItemRequest extends FormRequest
             'file_alt' => [Rule::excludeIf(! $isDocument), 'nullable', 'string', 'max:250'],
 
             /* --- Propio del artículo --- */
-            'no_end_date' => [Rule::excludeIf($isDocument), 'boolean'],
+            'no_end_date' => [Rule::excludeIf($isDocument || $isConvocation), 'boolean'],
             'expires_at' => [
-                Rule::excludeIf($isDocument || $this->boolean('no_end_date')),
+                Rule::excludeIf($isDocument || $isConvocation || $this->boolean('no_end_date')),
                 'nullable', 'date',
             ],
             'comment_wall' => [
@@ -97,7 +116,7 @@ class TopicItemRequest extends FormRequest
             ],
 
             /* --- Fotos nuevas --- */
-            'photos' => [Rule::excludeIf(! $isArticle), 'array', 'max:10'],
+            'photos' => [Rule::excludeIf(! $hasGallery), 'array', 'max:10'],
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,gif,bmp,webp', 'max:2048'],
             // La obligatoriedad de la descripción se comprueba en after():
             // `required_with` no sirve aquí porque, si no llega ningún
@@ -114,12 +133,12 @@ class TopicItemRequest extends FormRequest
 
             /* --- Vídeo --- */
             'video_url' => [
-                Rule::excludeIf(! $isArticle),
+                Rule::excludeIf(! $hasGallery),
                 'nullable', 'url:http,https', 'max:2048', 'regex:~(youtube\.com|youtu\.be)~i',
             ],
 
             /* --- Archivos adjuntos del artículo --- */
-            'files' => [Rule::excludeIf(! $isArticle), 'array', 'max:10'],
+            'files' => [Rule::excludeIf(! $hasFiles), 'array', 'max:20'],
             'files.*' => [
                 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip',
@@ -129,7 +148,7 @@ class TopicItemRequest extends FormRequest
             'file_titles.*' => ['nullable', 'string', 'max:250'],
 
             /* --- Imágenes de la biblioteca --- */
-            'library_ids' => [Rule::excludeIf(! $isArticle), 'array', 'max:20'],
+            'library_ids' => [Rule::excludeIf(! $hasGallery), 'array', 'max:20'],
             'library_ids.*' => ['integer', 'exists:library_images,id'],
 
             /* --- Categorías del tema --- */
@@ -158,6 +177,8 @@ class TopicItemRequest extends FormRequest
             'body' => 'descripción',
             'link' => 'enlace',
             'issued_at' => 'fecha de expedición',
+            'opens_at' => 'fecha de inicio',
+            'closes_at' => 'fecha de cierre',
             'expires_at' => 'fecha final de visualización',
             'file' => 'archivo',
             'file_alt' => 'descripción del archivo',
@@ -179,7 +200,9 @@ class TopicItemRequest extends FormRequest
             'file.required' => 'Adjunte el archivo o indique un enlace donde consultarlo.',
             'file.max' => 'El archivo puede pesar como máximo 30 MB.',
             'file.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
+            'files.max' => 'Se pueden adjuntar como máximo 20 archivos de una vez.',
             'files.*.max' => 'Cada archivo puede pesar como máximo 30 MB.',
+            'closes_at.after_or_equal' => 'La fecha de cierre no puede ir antes de la de inicio.',
             'files.*.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
             'photos.*.max' => 'Cada foto puede pesar como máximo 2 MB.',
             'photos.*.image' => 'Solo se admiten imágenes en gif, jpg, jpeg, png, bmp o webp.',
