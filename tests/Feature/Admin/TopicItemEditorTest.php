@@ -415,4 +415,48 @@ class TopicItemEditorTest extends TestCase
             );
         }
     }
+
+    /* ---------------- Fotos de un documento ---------------- */
+
+    /**
+     * Un documento puede tener fotos aunque no pueda subirlas.
+     *
+     * El portal de origen mezcla imágenes y documentos en la misma lista de
+     * archivos y los separa con `isImage`, así que la importación puede dejar
+     * fotos colgando de un documento. Su ficha las publica en la galería; si el
+     * editor no las listara, quedarían a la vista del público y fuera del
+     * alcance de quien edita: ni describir ni quitar.
+     */
+    public function test_el_editor_lista_las_fotos_importadas_de_un_documento(): void
+    {
+        $topic = $this->tema('Document', 'rendicion-de-cuentas');
+
+        $item = $topic->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Informe de gestión',
+            'slug' => 'informe-de-gestion',
+            'published_at' => now(),
+        ]);
+
+        $foto = $item->media()->create([
+            'legacy_file_id' => 900,
+            'type' => ContentMedia::TYPE_IMAGE,
+            'is_main' => false,
+            'position' => 1,
+            'original_name' => 'grafica.jpg',
+            'path' => 'temas/1/grafica.jpg',
+        ]);
+
+        $pagina = $this->actingAs($this->editor())
+            ->get(route('topics.show', $topic).'?editar='.$item->id)
+            ->assertOk();
+
+        $pagina->assertSee('Fotos publicadas');
+        $pagina->assertSee('name="media_alt['.$foto->id.']"', false);
+        $pagina->assertSee('name="media_delete[]" value="'.$foto->id.'"', false);
+
+        // Pero no se ofrece elegir portada: en un documento el formulario no
+        // llega a guardarla, y un control que no hace nada es peor que ninguno.
+        $pagina->assertDontSee('name="media_main"', false);
+    }
 }

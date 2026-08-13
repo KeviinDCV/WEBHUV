@@ -121,7 +121,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Relaciones                                                          */
+    /* Relaciones */
     /* ------------------------------------------------------------------ */
 
     /** @return BelongsTo<Topic, self> */
@@ -146,7 +146,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Tipo                                                                */
+    /* Tipo */
     /* ------------------------------------------------------------------ */
 
     public function isDocument(): bool
@@ -180,7 +180,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Consultas                                                           */
+    /* Consultas */
     /* ------------------------------------------------------------------ */
 
     /** @param  Builder<self>  $query */
@@ -217,7 +217,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Presentación                                                        */
+    /* Presentación */
     /* ------------------------------------------------------------------ */
 
     /**
@@ -250,7 +250,7 @@ class TopicItem extends Model
      */
     public function summary(int $characters = 200): string
     {
-        return Str::limit(RichText::toPlainText($this->body), $characters, '', preserveWords: true);
+        return RichText::excerpt($this->body, $characters);
     }
 
     /**
@@ -289,7 +289,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Medios: mismas firmas que Content                                   */
+    /* Medios: mismas firmas que Content */
     /* ------------------------------------------------------------------ */
 
     /** @return Collection<int, ContentMedia> */
@@ -320,7 +320,7 @@ class TopicItem extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Archivo propio del documento                                        */
+    /* Archivo propio del documento */
     /* ------------------------------------------------------------------ */
 
     /**

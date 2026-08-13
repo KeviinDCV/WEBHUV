@@ -667,23 +667,23 @@ class ImportTopic extends Command
     {
         $expected = count($detail['files'] ?? []);
 
-        // Solo lo que trajo la importación. Los medios sin identificador de
-        // origen los añadió alguien desde el editor y no cuadran contra lo que
-        // publica el portal: contarlos daba un «4 de 2» permanente que invitaba
-        // a reejecutar el comando y enterraba el aviso de verdad. Es el mismo
-        // filtro con el que pruneMedia() decide qué le pertenece.
-        // Los dos tipos: un adjunto que resulta ser una foto se guarda como
-        // imagen, y contar solo las descargas haría que «Valores y Principios
-        // Corporativos» avisara de «0 de 7» archivos perdidos en cada pasada
-        // teniendo los siete.
+        // Se cuenta uno a uno por identificador de origen, no por tipo.
+        //
+        // Por identificador, porque los medios sin él los añadió alguien desde
+        // el editor y no cuadran contra lo que publica el portal: contarlos
+        // daba un «4 de 2» permanente que invitaba a reejecutar el comando y
+        // enterraba el aviso de verdad.
+        //
+        // Y no por tipo, porque un adjunto que resulta ser una foto se guarda
+        // como imagen —el portal las mezcla con los documentos y las marca con
+        // `isImage`—, así que mirar solo las descargas haría que «Valores y
+        // Principios Corporativos» avisara de «0 de 7» teniendo las siete.
+        // Comparando contra esta lista la portada se queda fuera sola: su
+        // identificador sale de `defaultImage` y no está en ella.
+        $ids = array_filter(array_column($detail['files'] ?? [], 'fileID'));
+
         $actual = ($item->isDownloaded() ? 1 : 0)
-            + $item->media()
-                ->whereIn('type', [ContentMedia::TYPE_FILE, ContentMedia::TYPE_IMAGE])
-                ->whereNotNull('legacy_file_id')
-                // La imagen de portada no sale de `files`: viene de
-                // `defaultImage` y contarla daría siempre uno de más.
-                ->where('is_main', false)
-                ->count();
+            + $item->media()->whereIn('legacy_file_id', $ids ?: [0])->count();
 
         return $actual === $expected ? null : "{$actual} de {$expected}";
     }
@@ -798,7 +798,12 @@ class ImportTopic extends Command
             // después de haber descargado nueve.
             $traido = (int) ($media?->wasRecentlyCreated || $media?->wasChanged('path'));
 
-            $isImage ? $images += $traido : $downloaded += $traido;
+            if ($isImage) {
+                $images += $traido;
+            } else {
+                $downloaded += $traido;
+            }
+
             $seen[] = $media?->id;
         }
 
@@ -830,14 +835,28 @@ class ImportTopic extends Command
             ->get()
             ->each->delete();
 
-        // Solo una imagen puede ser la principal. Se marca por consulta y no
-        // con update() sobre el modelo: el que se acaba de crear ya cree ser el
-        // principal, así que Eloquent no vería nada que cambiar y no escribiría.
+        // Solo una imagen puede ser la principal, y la principal es la portada:
+        // la que sale de `defaultImage`, no la primera que se encuentre.
+        //
+        // Antes se preguntaba por mainImage(), que cuando no hay ninguna
+        // marcada devuelve la primera de la lista. Daba igual mientras de
+        // `files` no salieran imágenes —la única que había era la portada—,
+        // pero ahora un artículo puede traer siete láminas y ninguna portada, y
+        // ascender la primera la sacaba de la galería, la dejaba sin enlace ni
+        // texto alternativo, la convertía en la miniatura de la tarjeta y
+        // descuadraba el recuento de integridad, que avisaba de «6 de 7»
+        // archivos perdidos en cada pasada teniendo los siete.
+        //
+        // Se marca por consulta y no con update() sobre el modelo: el que se
+        // acaba de crear ya cree ser el principal, así que Eloquent no vería
+        // nada que cambiar y no escribiría.
         $item->load('media');
 
-        if ($main = $item->mainImage()) {
-            $item->media()->where('type', ContentMedia::TYPE_IMAGE)->update(['is_main' => false]);
-            $item->media()->whereKey($main->getKey())->update(['is_main' => true]);
+        if ($main = $item->images()->firstWhere('is_main', true)) {
+            $item->media()
+                ->where('type', ContentMedia::TYPE_IMAGE)
+                ->whereKeyNot($main->getKey())
+                ->update(['is_main' => false]);
         }
     }
 
@@ -855,6 +874,23 @@ class ImportTopic extends Command
         $media = $attributes['legacy_file_id'] === null
             ? null
             : $item->media()->firstWhere('legacy_file_id', $attributes['legacy_file_id']);
+
+        // Un texto alternativo escrito a mano no se borra nunca. El origen no
+        // lo publica —las fotos llegan siempre sin él, y por eso el resumen
+        // avisa de que hay que escribirlo—, así que dejar pasar el vacío haría
+        // que cada reimportación destruyera justo lo que se pidió escribir.
+        //
+        // Con una excepción: cuando una descarga pasa a ser foto. Ahí el `alt`
+        // que hay no lo escribió nadie, lo puso la importación anterior con el
+        // nombre del fichero, que como rótulo de una descarga sirve y como
+        // texto alternativo de una imagen no describe nada (WCAG 1.1.1). Ese sí
+        // se limpia, y así el aviso del resumen vuelve a pedirlo.
+        $reclasificada = ($attributes['type'] ?? null) === ContentMedia::TYPE_IMAGE
+            && $media?->type === ContentMedia::TYPE_FILE;
+
+        if ($media && ! $reclasificada && blank($attributes['alt'] ?? null) && filled($media->alt)) {
+            unset($attributes['alt']);
+        }
 
         // Ya está y el origen no lo ha sustituido: se refresca lo que sí puede
         // haber cambiado sin cambiar el fichero —el orden, el nombre— y se deja

@@ -67,7 +67,12 @@ class TopicMapTest extends TestCase
         $this->get(route('topics.show', $topic))
             ->assertOk()
             ->assertSee('huvMap(', false)
-            ->assertSee('Ubicación física');
+            ->assertSee('Ubicación física')
+            // `isolate`: Leaflet reparte z-index de hasta 1000 entre sus capas.
+            // Sin contexto de apilamiento propio compiten en el raíz contra la
+            // cabecera fija y el cajón de navegación, y los botones de zoom
+            // acaban pintados por encima de ellos.
+            ->assertSee('relative isolate mt-10', false);
     }
 
     public function test_un_tema_sin_mapa_no_carga_el_componente(): void

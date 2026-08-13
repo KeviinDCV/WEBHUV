@@ -579,6 +579,15 @@ html[data-huv-contrast='on'] {
    especificidad que la biblioteca, ganaría ella por orden.
 --------------------------------------------------------------------------- */
 
+/* El fondo mientras cargan las teselas. Leaflet lo fija en #ddd con una regla
+   sin capa, y las utilidades de Tailwind viven en `@layer utilities`: lo que
+   está fuera de una capa gana siempre, así que `bg-tint` en el contenedor no
+   llegaba a verse nunca. Con `html` delante la especificidad ya alcanza, y en
+   alto contraste el destello deja de ser gris claro sobre fondo negro. */
+html .leaflet-container {
+    background: var(--color-tint);
+}
+
 /* Chincheta propia. Hereda el color del tema, así que en alto contraste se
    vuelve amarilla como el resto de la interfaz. */
 .leaflet-container .huv-map-pin svg {

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $content->title.' — '.config('huv.institution.short_name'))
-@section('description', $content->summary(160))
+@section('description', Str::squish($content->summary(160)))
 
 @section('og_type', 'article')
 @if ($content->imageUrl())

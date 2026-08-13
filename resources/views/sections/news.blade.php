@@ -69,7 +69,7 @@
                                     <x-content-actions :content="$featured" tone="on-brand" class="mt-[2px]" />
                                 </div>
 
-                                <p class="m-0 text-14 leading-[1.6] text-pretty text-on-brand-muted">
+                                <p class="m-0 text-14 leading-[1.6] whitespace-pre-line text-pretty text-on-brand-muted">
                                     {{ $featured->summary() }}
                                 </p>
 

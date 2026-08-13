@@ -55,7 +55,7 @@
             <x-content-actions :content="$content" class="ml-1 inline-flex align-[-5px]" />
         </h3>
 
-        <p class="m-0 text-13-5 leading-[1.6] text-pretty text-muted">{{ $content->summary() }}</p>
+        <p class="m-0 text-13-5 leading-[1.6] whitespace-pre-line text-pretty text-muted">{{ $content->summary() }}</p>
 
         <x-participa-link :item="$content" class="mt-1" />
 

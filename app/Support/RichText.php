@@ -82,6 +82,20 @@ class RichText
             return null;
         }
 
+        // Saltos de línea del texto, a <br>.
+        //
+        // El editor del portal guarda tal cual lo que se teclea, y al pintarlo
+        // convierte esos saltos en <br>. Media docena de contenidos del
+        // «Directorio de entidades» son bloques de dirección escritos así, sin
+        // una sola etiqueta: «Tipo de control: …\nCarrera 10 #64 - 28…\n(+57)
+        // 601 742 2121\nsoytransparente@invima.gov.co». Sin esta conversión el
+        // HTML los junta todos en un renglón.
+        //
+        // Solo los saltos que separan texto de texto: los que hay entre
+        // etiquetas —el sangrado del propio HTML— no significan nada, y
+        // convertirlos duplicaría los <br> que ya vienen puestos.
+        $html = preg_replace('~([^>\s])[ \t]*\r?\n[ \t]*(?=[^<\s])~u', '$1<br>', (string) $html);
+
         // Envoltorios que se quitan dejando dentro lo que traen.
         //
         // El saneador borra la etiqueta que no conoce JUNTO CON SU CONTENIDO, así
@@ -114,9 +128,72 @@ class RichText
         return $html;
     }
 
-    /** Texto plano del cuerpo, para resúmenes y metadatos. */
+    /**
+     * Texto plano del cuerpo, para resúmenes y metadatos.
+     *
+     * Conserva la forma del texto —un salto por cada <br> y por cada bloque que
+     * cierra— por dos motivos:
+     *
+     * 1. `strip_tags` no separa nada. «…Evaristo García E.S.E.</p><p>Dirección:»
+     *    salía como «E.S.E.Dirección», dos palabras hechas una, en 52 resúmenes.
+     * 2. El portal las conserva. Media docena de contenidos del «Directorio de
+     *    entidades» son bloques de dirección —tipo de control, calle, teléfono,
+     *    correo—, y en una sola línea corrida no hay quien los lea.
+     *
+     * Quien necesite una línea sin más —una etiqueta <meta>— que la colapse.
+     */
     public static function toPlainText(?string $html): string
     {
-        return trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $html))) ?? '');
+        // El sangrado del HTML no es texto. Un «</h2>\n<p>» tiene un salto que
+        // solo está ahí para que el HTML se lea, y contarlo dejaba una línea en
+        // blanco de más entre el título y el párrafo que le sigue.
+        $text = preg_replace('~>\s*\n\s*<~u', '><', (string) $html);
+
+        $text = preg_replace('~<br\s*/?>~i', "\n", (string) $text);
+        $text = preg_replace('~</(?:p|div|h[1-6]|li|tr|blockquote|pre)\s*>~i', "\n", (string) $text);
+
+        $text = html_entity_decode(strip_tags((string) $text));
+
+        // Espacios sí, saltos no. `[^\S\n]` es «blanco que no sea salto de
+        // línea»: recoge también el espacio duro que deja el editor del portal.
+        $text = preg_replace('~[^\S\n]+~u', ' ', $text);
+        $text = preg_replace('~ *\n *~u', "\n", (string) $text);
+
+        // Una línea en blanco como mucho: los cierres encadenados de bloque
+        // —«</p></div></li>»— dejarían tres o cuatro seguidas.
+        return trim(preg_replace('~\n{3,}~u', "\n\n", (string) $text) ?? '');
+    }
+
+    /** El mismo texto en una sola línea, para atributos y metadatos. */
+    public static function toSingleLine(?string $html): string
+    {
+        return trim(preg_replace('/\s+/u', ' ', self::toPlainText($html)) ?? '');
+    }
+
+    /**
+     * Resumen del cuerpo, cortado sin partir palabras y sin perder las líneas.
+     *
+     * No sirve `Str::limit(..., preserveWords: true)`: además de cortar,
+     * convierte los saltos de línea en espacios, y eso deshace justo lo que
+     * `toPlainText()` conserva —los bloques de dirección del «Directorio de
+     * entidades» volvían a salir en un solo renglón—.
+     */
+    public static function excerpt(?string $html, int $characters): string
+    {
+        $text = self::toPlainText($html);
+
+        if (mb_strlen($text) <= $characters) {
+            return $text;
+        }
+
+        $cut = mb_substr($text, 0, $characters);
+
+        // Se corta en el último hueco: partir una palabra por la mitad se lee
+        // mal y, en un teléfono o un correo, se lee mal y además engaña.
+        $espacio = mb_strrpos($cut, ' ');
+        $salto = mb_strrpos($cut, "\n");
+        $en = max($espacio === false ? 0 : $espacio, $salto === false ? 0 : $salto);
+
+        return rtrim($en > 0 ? mb_substr($cut, 0, $en) : $cut);
     }
 }

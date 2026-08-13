@@ -22,7 +22,7 @@
 </h3>
 
 @if (filled($item->summary(280)))
-    <p class="m-0 mt-1 text-13 leading-[1.5] text-pretty text-muted">{{ $item->summary(280) }}</p>
+    <p class="m-0 mt-1 text-13 leading-[1.5] whitespace-pre-line text-pretty text-muted">{{ $item->summary(280) }}</p>
 @endif
 
 <x-topic-item-badges :item="$item" />

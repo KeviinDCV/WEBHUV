@@ -37,7 +37,7 @@
 
 @if (filled($item->summary()))
     <p @class([
-        'm-0 text-13-5 leading-[1.6] text-pretty',
+        'm-0 text-13-5 leading-[1.6] whitespace-pre-line text-pretty',
         'text-on-accent/90' => $sobreColor,
         'text-muted' => ! $sobreColor,
     ])>{{ $item->summary() }}</p>

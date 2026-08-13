@@ -59,7 +59,18 @@ export default function huvMap({ latitude, longitude, zoom = 16, label = '', add
                 zoomAnimation: !still,
                 fadeAnimation: !still,
                 markerZoomAnimation: !still,
+                // Los rótulos de Leaflet vienen en inglés y son el nombre
+                // accesible de los botones: en una página declarada en español,
+                // un lector de pantalla los leería con la voz equivocada
+                // (WCAG 3.1.2). Se ponen a mano porque la biblioteca no trae
+                // traducciones.
+                zoomControl: false,
             });
+
+            L.control.zoom({
+                zoomInTitle: 'Acercar',
+                zoomOutTitle: 'Alejar',
+            }).addTo(this.map);
 
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -104,6 +115,11 @@ export default function huvMap({ latitude, longitude, zoom = 16, label = '', add
                 + 'Cómo llegar<span class="sr-only"> (se abre en una pestaña nueva)</span></a>',
                 { closeButton: true, maxWidth: 260 }
             ).openPopup();
+
+            // El aspa del globo también llega rotulada en inglés, y su opción
+            // de texto no se puede pasar al construirlo.
+            canvas.querySelector('.leaflet-popup-close-button')
+                ?.setAttribute('aria-label', 'Cerrar la información');
 
             // Arrastrar, pellizcar, los botones de zoom y el teclado funcionan
             // desde el primer momento. La rueda es la única que espera a que se

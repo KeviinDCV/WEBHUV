@@ -10,9 +10,13 @@
     // chocarían y las etiquetas apuntarían al campo equivocado.
     $uid = $uid ?? '';
 
-    // Fotos y vídeo solo donde la ficha los pinta. Un documento y una
-    // convocatoria llevan archivos, pero sus fichas no tienen ni imagen ni
-    // galería: ofrecerlas sería guardar en disco algo que no se ve.
+    // Subir fotos y vídeo solo donde la ficha los pinta: un documento y una
+    // convocatoria llevan archivos, y su ficha no tiene ni imagen de portada ni
+    // vídeo, así que ofrecerlos sería guardar en disco algo que no se ve.
+    //
+    // Ojo: es solo el alta. Las fotos que ya existen se listan siempre, porque
+    // un documento sí puede traerlas de la importación y su ficha sí las
+    // publica en la galería.
     $gallery = $gallery ?? true;
 
     // Expresión de Alpine que decide si la galería se ve, para los temas que
@@ -39,8 +43,16 @@
         {{ $gallery ? 'Fotos, vídeo y documentos que acompañan al contenido.' : 'Archivos que acompañan al contenido.' }}
     </p>
 
-    {{-- ---------------- Fotos ya guardadas ---------------- --}}
-    @if ($gallery && $images->isNotEmpty())
+    {{--
+        ---------------- Fotos ya guardadas ----------------
+
+        Sin condicionar a `$gallery`: lo que ya existe siempre se puede
+        describir o quitar. Un documento no ofrece subir fotos, pero puede
+        tenerlas —el portal de origen mezcla imágenes y documentos en la misma
+        lista de archivos y las marca con `isImage`, y su ficha las publica—, y
+        esconderlas aquí dejaba fotos que se ven en público y nadie puede tocar.
+    --}}
+    @if ($images->isNotEmpty())
         <p class="m-0 mb-2 text-13-5 font-semibold text-heading">Fotos publicadas</p>
         <ul class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             @foreach ($images as $image)
@@ -51,12 +63,17 @@
                          class="size-[86px] shrink-0 rounded-[2px] border border-line object-cover">
 
                     <div class="flex min-w-0 flex-1 flex-col gap-2">
-                        <label class="flex items-center gap-2 text-12-5 font-semibold text-heading">
-                            <input type="radio" name="media_main" value="{{ $image->id }}"
-                                   @checked($mainId === $image->id) :disabled="remove"
-                                   class="size-4 accent-azure">
-                            Principal
-                        </label>
+                        {{-- Elegir portada solo donde se guarda: sin galería,
+                             `settleMainImage()` no llega a ejecutarse y el
+                             botón prometería algo que el formulario ignora. --}}
+                        @if ($gallery)
+                            <label class="flex items-center gap-2 text-12-5 font-semibold text-heading">
+                                <input type="radio" name="media_main" value="{{ $image->id }}"
+                                       @checked($mainId === $image->id) :disabled="remove"
+                                       class="size-4 accent-azure">
+                                Principal
+                            </label>
+                        @endif
 
                         <label class="sr-only" for="media_alt_{{ $image->id }}{{ $uid }}">
                             Descripción de la foto {{ $loop->iteration }}

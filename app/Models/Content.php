@@ -86,7 +86,7 @@ class Content extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Consultas                                                           */
+    /* Consultas */
     /* ------------------------------------------------------------------ */
 
     /** @param  Builder<self>  $query */
@@ -141,11 +141,11 @@ class Content extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Presentación                                                        */
+    /* Presentación */
     /* ------------------------------------------------------------------ */
 
     /* ------------------------------------------------------------------ */
-    /* Medios                                                              */
+    /* Medios */
     /* ------------------------------------------------------------------ */
 
     /** @return HasMany<ContentMedia, self> */
@@ -193,7 +193,7 @@ class Content extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /* Fechas y enlaces                                                    */
+    /* Fechas y enlaces */
     /* ------------------------------------------------------------------ */
 
     /** Fecha que se muestra; nula si se publicó «sin fecha de visualización». */
@@ -234,6 +234,6 @@ class Content extends Model
             return $this->excerpt;
         }
 
-        return Str::limit(RichText::toPlainText($this->body), $limit, '', preserveWords: true);
+        return RichText::excerpt($this->body, $limit);
     }
 }

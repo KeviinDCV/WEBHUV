@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $item->title.' — '.$topic->name.' — '.config('huv.institution.short_name'))
-@section('description', $item->summary(160) ?: $item->title)
+@section('description', Str::squish($item->summary(160)) ?: $item->title)
 
 @if ($item->isArticle())
     @section('og_type', 'article')
@@ -103,6 +103,18 @@
                     @if (filled($item->body))
                         <div class="huv-prose mt-8">{!! $item->body !!}</div>
                     @endif
+
+                    {{--
+                        Fotos adjuntas. El origen mezcla imágenes y documentos en
+                        la misma lista y las marca con `isImage`; sin esto, la
+                        foto de un documento no aparecía por ningún lado: esta
+                        rama solo pinta descargas, y una imagen no es una.
+
+                        Todas, sin apartar la principal: esta ficha no tiene
+                        bloque de imagen de portada donde enseñarla, así que
+                        filtrarla la dejaría otra vez sin sitio.
+                    --}}
+                    <x-media-gallery :images="$item->images()" />
 
                     {{-- ---------------- Archivos ---------------- --}}
                     @php($attachments = $item->attachments())

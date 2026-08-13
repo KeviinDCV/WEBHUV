@@ -13,7 +13,15 @@
     con la red caída o con un bloqueador de por medio, la dirección y el enlace
     al mapa siguen ahí. El componente la retira al tomar el mando.
 --}}
-<section aria-labelledby="huv-mapa-titulo" x-data='huvMap(@json($map))' class="relative mt-10">
+{{--
+    `isolate` no es decorativo. Leaflet coloca sus capas con z-index propios
+    —hasta 1000 en los controles—, y ni esta sección ni su contenedor crean
+    contexto de apilamiento por sí solos: esos números competirían en el
+    contexto raíz contra la cabecera fija, el rail de accesibilidad y el cajón
+    de navegación, y los botones de zoom acabarían pintados por encima. Con
+    `isolate` la escala de Leaflet se queda dentro de su caja.
+--}}
+<section aria-labelledby="huv-mapa-titulo" x-data='huvMap(@json($map))' class="relative isolate mt-10">
     <h2 id="huv-mapa-titulo" class="sr-only">{{ $map['title'] }}</h2>
 
     {{-- Aviso de la rueda: aparece solo si se intenta acercar sin haber pulsado

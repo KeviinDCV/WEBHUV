@@ -1,5 +1,19 @@
 @php
-    $mainImage = $item->mainImage();
+    /*
+     | La portada, y solo la portada.
+     |
+     | No se usa mainImage(): cuando nada está marcado devuelve la primera de
+     | la lista, y un artículo puede traer siete láminas y ninguna portada. Esa
+     | primera acababa arriba, a lo ancho, sin enlace para ampliarla y con el
+     | alt vacío que trae la importación —anunciada como decorativa a un lector
+     | de pantalla—, mientras sus seis hermanas iban a la galería con enlace y
+     | texto de respaldo. Sin portada no hay portada: van las siete a la
+     | galería, que además es lo que hace el portal.
+     |
+     | La otra cara de mainImage(), la de dar miniatura a las tarjetas del
+     | listado, se queda como está: ahí sí conviene enseñar la que haya.
+     */
+    $mainImage = $item->images()->firstWhere('is_main', true);
     $gallery = $item->images()->reject(fn ($image) => $mainImage && $image->is($mainImage));
     $video = $item->video();
     $files = $item->files();
@@ -50,25 +64,7 @@
 @endif
 
 {{-- Galería --}}
-@if ($gallery->isNotEmpty())
-    <div class="mt-8">
-        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">Galería</h2>
-        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3">
-            @foreach ($gallery as $image)
-                <li>
-                    <figure class="m-0">
-                        <img src="{{ $image->fileUrl() }}" alt="{{ $image->alt }}"
-                             loading="lazy" decoding="async"
-                             class="aspect-[4/3] w-full rounded-[3px] border border-line object-cover">
-                        @if (filled($image->alt))
-                            <figcaption class="mt-1 text-12 text-muted">{{ $image->alt }}</figcaption>
-                        @endif
-                    </figure>
-                </li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+<x-media-gallery :images="$gallery" />
 
 {{-- Archivos --}}
 @if ($files->isNotEmpty())
