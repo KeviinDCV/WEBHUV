@@ -37,6 +37,47 @@ class LegacyLink
     ];
 
     /**
+     * ¿Este enlace del menú lleva a la página que se está viendo?
+     *
+     * El portal resalta «Normatividad» al entrar en Normatividad, y ahí acierta.
+     * Con lo que cuelga de un desplegable se pierde: en «Diagnóstico e
+     * Identificación de problemas» —que es hija de «Participa»— resalta
+     * «Inicio», y en «Entidad» no resalta nada. Aquí se marca el desplegable al
+     * que pertenece la página, que es lo que de verdad dice dónde está uno.
+     *
+     * Se compara la dirección y no una marca escrita en la configuración: con
+     * la marca, «Inicio» salía resaltado en todas las páginas del sitio.
+     *
+     * @param  array{label: string, url?: string, path?: string, children?: array<int, array<string, mixed>>}  $link
+     */
+    public static function isCurrent(array $link): bool
+    {
+        // Un desplegable no tiene destino propio: está «aquí» si lo está
+        // alguno de los suyos.
+        if (! empty($link['children'])) {
+            foreach ($link['children'] as $child) {
+                if (self::isCurrent($child)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $href = self::resolve($link)['href'];
+
+        // Un destino de fuera nunca es la página abierta, aunque su ruta
+        // coincida: «https://citas.huv.gov.co/login» no es nuestro «/login».
+        if (! str_starts_with($href, '/') && ! str_starts_with($href, url('/'))) {
+            return false;
+        }
+
+        $destino = rtrim((string) (parse_url($href, PHP_URL_PATH) ?: '/'), '/');
+
+        return $destino === rtrim(request()->getPathInfo(), '/');
+    }
+
+    /**
      * @param  array{label: string, url?: string, path?: string}  $link
      * @return array{href: string, external: bool}
      */

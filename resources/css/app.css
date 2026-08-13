@@ -1,9 +1,91 @@
 @import 'tailwindcss';
 
-/* Fuentes self-hosted: sin peticiones a Google Fonts (mejor privacidad,
-   rendimiento y funcionamiento en la intranet del hospital). */
-@import '@fontsource-variable/montserrat';
-@import '@fontsource-variable/work-sans';
+/* ---------------------------------------------------------------------------
+   TIPOGRAFÍA
+
+   Self-hosted: sin peticiones a Google Fonts —mejor privacidad, y funciona en
+   la intranet del hospital—. Los ficheros son los de @fontsource-variable,
+   copiados a resources/fonts para que Vite los versione y se puedan precargar.
+
+   Se declaran a mano en vez de importar el CSS del paquete por dos motivos:
+
+   1. `font-display`. El paquete trae «swap», que pinta la página con la fuente
+      de reserva y la cambia cuando llega la de verdad: es el parpadeo de dos
+      tipografías que se veía en cada recarga y en cada cambio de página. Con
+      «optional» el navegador decide una sola vez y no cambia nada a mitad; si
+      la fuente no está lista la deja para la siguiente página, que con la
+      precarga y la caché es siempre.
+
+   2. Los subconjuntos. El paquete declara cirílico y vietnamita, que este
+      portal no usa: pesaban 160 kB en cada compilación para no descargarse
+      nunca.
+
+   Los rangos Unicode son los mismos que publica @fontsource.
+--------------------------------------------------------------------------- */
+
+@font-face {
+    font-family: 'Work Sans Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: optional;
+    src: url('../fonts/work-sans-latin.woff2') format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+        U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Work Sans Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: optional;
+    src: url('../fonts/work-sans-latin-ext.woff2') format('woff2-variations');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+        U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Montserrat Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: optional;
+    src: url('../fonts/montserrat-latin.woff2') format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+        U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Montserrat Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: optional;
+    src: url('../fonts/montserrat-latin-ext.woff2') format('woff2-variations');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+        U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Reservas con las métricas ajustadas a las dos fuentes reales.
+   `font-display: optional` puede dejar la página en la reserva, y sin esto la
+   maqueta se movía: Arial es más estrecha que Work Sans y más ancha que
+   Montserrat. Con el ajuste, el texto ocupa lo mismo caiga la que caiga. */
+@font-face {
+    font-family: 'Work Sans reserva';
+    src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+    size-adjust: 109%;
+    ascent-override: 92%;
+    descent-override: 24%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Montserrat reserva';
+    src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+    size-adjust: 110%;
+    ascent-override: 85%;
+    descent-override: 22%;
+    line-gap-override: 0%;
+}
 
 @source '../views';
 
@@ -20,8 +102,8 @@
    porque en alto contraste cada uso necesita un valor diferente.
 --------------------------------------------------------------------------- */
 @theme {
-    --font-sans: 'Work Sans Variable', 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --font-display: 'Montserrat Variable', Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-sans: 'Work Sans Variable', 'Work Sans reserva', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-display: 'Montserrat Variable', 'Montserrat reserva', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
     /* --- Superficies ------------------------------------------------------ */
     --color-page: #ffffff;        /* fondo general del documento            */

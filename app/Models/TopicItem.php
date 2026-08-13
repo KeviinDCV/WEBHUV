@@ -357,7 +357,17 @@ class TopicItem extends Model
 
     public function extension(): string
     {
-        return strtoupper(ltrim((string) $this->file_extension, '.')) ?: 'PDF';
+        if (filled($this->file_extension)) {
+            return strtoupper(ltrim($this->file_extension, '.'));
+        }
+
+        // Sin archivo propio, un documento puede llevar enlace. La extensión
+        // sale de la dirección si la tiene —el decreto de MinSalud es un PDF—,
+        // y si no la tiene no se inventa: «Gaceta Departamental» apunta a una
+        // página, y anunciarla como PDF sería mentir sobre lo que se abre.
+        $path = (string) parse_url((string) $this->source_url, PHP_URL_PATH);
+
+        return strtoupper(pathinfo($path, PATHINFO_EXTENSION));
     }
 
     /**

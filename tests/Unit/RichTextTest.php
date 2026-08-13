@@ -59,32 +59,66 @@ class RichTextTest extends TestCase
     }
 
     /**
-     * El texto plano conserva la forma, no la aplasta.
+     * El texto plano es el mismo que arma el portal.
      *
-     * Colapsa los espacios, pero cada bloque que cierra deja su salto. Sin eso,
-     * `strip_tags` pegaba «…Evaristo García E.S.E.</p><p>Dirección:» en
-     * «E.S.E.Dirección» —dos palabras hechas una en 52 resúmenes— y los bloques
-     * de dirección del «Directorio de entidades» salían en un solo renglón.
+     * No hace falta adivinarlo: su API publica en `metaDescription` el resumen
+     * que enseña en la tarjeta. Estos dos casos son literales —cuerpo y resumen
+     * tal como los devuelve— y el resultado coincide carácter a carácter,
+     * espacios dobles incluidos.
      */
-    public function test_el_texto_plano_colapsa_los_espacios_y_conserva_los_saltos(): void
+    public function test_el_texto_plano_reproduce_el_resumen_del_portal(): void
     {
-        // El salto entre «</p>» y «<p>» es sangrado del HTML y no cuenta; el
-        // que hay entre «Uno» y «dos» está dentro del texto y sí.
+        // INVIMA, del «Directorio de entidades»: una dirección escrita a salto
+        // de línea, sin una sola etiqueta dentro del párrafo.
         $this->assertSame(
-            "Uno\ndos\ntres",
-            RichText::toPlainText("<p>Uno\n  dos</p>\n<p>tres</p>")
+            "Tipo de control: Inspección y Vigilancia\nCarrera 10 #64 - 28, Bogotá D.C.\n"
+                ."(+57) 601 742 2121\nsoytransparente@invima.gov.co\n",
+            RichText::toPlainText(
+                "<p>Tipo de control: Inspección y Vigilancia\nCarrera 10 #64 - 28, Bogotá D.C.\n"
+                    ."(+57) 601 742 2121\nsoytransparente@invima.gov.co</p>"
+            )
         );
 
+        // Servicio Geológico Colombiano: la misma dirección, pero escrita con
+        // <br> Y con salto detrás. El <br> no cuenta —si contara, saldría una
+        // línea en blanco entre cada renglón—.
         $this->assertSame(
-            "Hospital Universitario del Valle E.S.E.\nDirección: Cl. 5 # 36-08",
-            RichText::toPlainText('<p>Hospital Universitario del Valle E.S.E.</p><p>Dirección: Cl. 5 # 36-08</p>')
+            "Tipo de Control: Inspección y Vigilancia \nCarrera 50 # 26-20 Bogotá D.C Colombia  \n"
+                ."(+57) 601 2200000 \nrelacionciudadana@sgc.gov.co \n\n \n",
+            RichText::toPlainText(
+                "<p>Tipo de Control: Inspección y Vigilancia <br>\nCarrera 50 # 26-20 Bogotá D.C Colombia  <br>\n"
+                    ."(+57) 601 2200000 <br>\nrelacionciudadana@sgc.gov.co \n\n </p>"
+            )
         );
+    }
 
-        // Un párrafo vacío entre dos bloques deja una línea en blanco, y solo
-        // una: los cierres encadenados dejarían tres o cuatro seguidas.
+    /**
+     * Un <br> no separa; un bloque que cierra, sí.
+     *
+     * En la tarjeta de «Valores y Principios Corporativos» se lee «…servicios
+     * de salud:Destacarse por la calidad…»: el <br> que hay en medio no separa
+     * nada. Se reproduce igual, con las palabras pegadas incluidas.
+     */
+    public function test_un_br_no_separa_pero_un_bloque_que_cierra_si(): void
+    {
         $this->assertSame(
-            "Título\n\nCuerpo",
-            RichText::toPlainText('<h2>Título</h2><p><br></p><p>Cuerpo</p>')
+            "Principios Corporativos\n\n1. Liderazgo:Destacarse\n",
+            RichText::toPlainText(
+                '<p>Principios Corporativos</p><p><img src="x"></p><p><br><!--StartFragment-->'
+                    .'<b>1. Liderazgo:</b><br><span>Destacarse</span></p>'
+            )
+        );
+    }
+
+    /** El blanco entre dos etiquetas es sangrado del HTML y no cuenta. */
+    public function test_el_sangrado_entre_etiquetas_no_deja_saltos(): void
+    {
+        $this->assertSame(
+            "Oficina Control Interno\nEvaluar el sistema\nde la entidad\n",
+            RichText::toPlainText(
+                "<h2><b>Oficina Control Interno</b></h2>\n"
+                    ."<p><span>Evaluar el sistema\nde la entidad</span><br></p>"
+            )
         );
     }
 
@@ -106,7 +140,7 @@ class RichTextTest extends TestCase
      */
     public function test_el_resumen_corta_sin_perder_los_saltos(): void
     {
-        $html = '<p>Tipo de control: Inspección y Vigilancia<br>Carrera 10 #64 - 28<br>(+57) 601 742 2121</p>';
+        $html = "<p>Tipo de control: Inspección y Vigilancia\nCarrera 10 #64 - 28\n(+57) 601 742 2121</p>";
 
         $this->assertSame(
             "Tipo de control: Inspección y Vigilancia\nCarrera 10 #64 - 28\n(+57) 601 742 2121",
@@ -118,28 +152,6 @@ class RichTextTest extends TestCase
         $this->assertSame(
             "Tipo de control: Inspección y Vigilancia\nCarrera 10 #64 -",
             RichText::excerpt($html, 60)
-        );
-    }
-
-    /**
-     * Los saltos del texto se vuelven <br>, los del sangrado no.
-     *
-     * El editor del portal guarda lo que se teclea y lo pinta convirtiendo esos
-     * saltos; media docena de contenidos del «Directorio de entidades» son
-     * bloques de dirección escritos así, sin una sola etiqueta.
-     */
-    public function test_los_saltos_del_texto_se_vuelven_br(): void
-    {
-        $this->assertSame(
-            '<p>Tipo de control: Vigilancia<br>Carrera 10 #64 - 28</p>',
-            RichText::normalizeLegacy("<p>Tipo de control: Vigilancia\nCarrera 10 #64 - 28</p>")
-        );
-
-        // Entre etiquetas no se toca: ni el sangrado ni, sobre todo, un salto
-        // detrás de un <br> que ya estaba puesto, que quedaría duplicado.
-        $this->assertSame(
-            "<p>Uno<br>\nDos</p>\n<p>Tres</p>",
-            RichText::normalizeLegacy("<p>Uno<br>\nDos</p>\n<p>Tres</p>")
         );
     }
 

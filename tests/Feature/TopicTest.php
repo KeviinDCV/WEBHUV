@@ -8,6 +8,7 @@ use App\Models\TopicItem;
 use App\Models\User;
 use App\Support\LegacyLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -58,7 +59,7 @@ class TopicTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Listado público                                                     */
+    /* Listado público */
     /* ------------------------------------------------------------------ */
 
     public function test_el_tema_muestra_sus_documentos(): void
@@ -141,7 +142,7 @@ class TopicTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Ficha del documento                                                 */
+    /* Ficha del documento */
     /* ------------------------------------------------------------------ */
 
     public function test_la_ficha_muestra_la_fecha_de_expedicion_y_el_archivo(): void
@@ -200,7 +201,7 @@ class TopicTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Enlaces del menú durante la migración                               */
+    /* Enlaces del menú durante la migración */
     /* ------------------------------------------------------------------ */
 
     public function test_un_tema_migrado_se_enlaza_dentro_del_aplicativo(): void
@@ -461,5 +462,113 @@ class TopicTest extends TestCase
             $this->assertStringStartsWith('/tema/', $link['path']);
             $this->assertNotSame('#', LegacyLink::resolve($link)['href']);
         }
+    }
+    /* ------------------------------------------------------------------ */
+    /* Normatividad: listado en filas */
+    /* ------------------------------------------------------------------ */
+
+    private function normatividad(): Topic
+    {
+        return $this->tema([
+            'name' => 'Normatividad',
+            'slug' => 'normatividad',
+            'legacy_content_types' => ['Document'],
+        ]);
+    }
+
+    /**
+     * «Normatividad» va en filas, no en tarjetas.
+     *
+     * El portal lo decide tema por tema y no se deduce de los datos: son ocho
+     * documentos —«Presupuesto» tiene ochenta y cinco y va en tarjetas—. La
+     * fila lleva el icono con su peso, la categoría encima del título y las dos
+     * fechas debajo: cuándo se publicó y cuándo se expidió, que es lo que se
+     * consulta de una norma.
+     */
+    public function test_normatividad_se_publica_en_filas_con_las_dos_fechas(): void
+    {
+        $topic = $this->normatividad();
+
+        $categoria = $topic->categories()->create(['name' => 'Resoluciones', 'slug' => 'resoluciones']);
+
+        $item = $this->documento($topic, [
+            'title' => 'Manual de contratación',
+            'slug' => 'manual-de-contratacion',
+            'file_name' => 'resolucion-manual-de-contratacion-2021.pdf',
+            'file_size' => 12730298,
+            'issued_at' => Carbon::parse('2021-11-29 08:00:00'),
+        ]);
+
+        $item->categories()->attach($categoria);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        // Fila, no tarjeta: la rejilla de dos columnas no aparece.
+        $this->assertStringNotContainsString('md:grid-cols-2', $html);
+        $this->assertStringContainsString('border-b border-line py-5', $html);
+
+        $this->assertStringContainsString('RESOLUCIONES', mb_strtoupper($html));
+        $this->assertStringContainsString('Publicación:', $html);
+        $this->assertStringContainsString('Expedición:', $html);
+        $this->assertStringContainsString('2021/11/29 08:00:00', $html);
+        $this->assertStringContainsString('12 Mb', $html);
+    }
+
+    /**
+     * Un documento puede tener enlace en vez de archivo.
+     *
+     * «Decreto Único Reglamentario del Sector Salud» no sube el decreto: apunta
+     * al PDF que publica MinSalud. La importación se quedaba solo con el
+     * archivo adjunto y tiraba ese destino, así que su ficha no ofrecía nada.
+     */
+    public function test_un_documento_sin_archivo_conserva_su_enlace(): void
+    {
+        $topic = $this->normatividad();
+
+        $item = $topic->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Decreto Único Reglamentario del Sector Salud',
+            'slug' => 'decreto-unico-reglamentario',
+            'published_at' => now(),
+            'source_url' => 'https://www.minsalud.gov.co/sites/rid/decreto-780-unico-modificado-2016.pdf',
+        ]);
+
+        // La extensión sale de la dirección, no de un valor por omisión.
+        $this->assertSame('PDF', $item->extension());
+
+        $this->get(route('topics.items.show', [$topic, $item]))
+            ->assertOk()
+            ->assertSee('minsalud.gov.co/sites/rid/decreto-780-unico-modificado-2016.pdf', false);
+    }
+
+    /**
+     * Y si la dirección no dice qué es, no se inventa.
+     *
+     * «Gaceta Departamental» apunta a una página, no a un archivo. Anunciarla
+     * como PDF sería mentir sobre lo que se abre al pulsar.
+     */
+    public function test_un_enlace_sin_extension_no_se_anuncia_como_pdf(): void
+    {
+        $topic = $this->normatividad();
+
+        $item = $topic->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Gaceta Departamental',
+            'slug' => 'gaceta-departamental',
+            'published_at' => now(),
+            'source_url' => 'https://impretics.gov.co/GACETA-DEPARTAMENTAL/',
+        ]);
+
+        $this->assertSame('', $item->extension());
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        // La fila del listado, no la de un menú: el cajón de navegación
+        // también se pinta con <ul> y <li>.
+        preg_match('~<li[^>]*border-b border-line py-5.*?</li>~s', $html, $m);
+
+        $this->assertNotEmpty($m, 'No se pintó la fila del listado.');
+        $this->assertStringContainsString('Gaceta Departamental', $m[0]);
+        $this->assertStringNotContainsString('>PDF<', preg_replace('/\s+/', '', $m[0]));
     }
 }

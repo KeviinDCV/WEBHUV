@@ -17,9 +17,13 @@
         <div class="hidden w-full items-stretch lg:flex">
             @foreach ($items as $item)
                 @if (empty($item['children']))
+                    @php
+                        $aqui = App\Support\LegacyLink::isCurrent($item);
+                    @endphp
+
                     <a href="{{ App\Support\LegacyLink::resolve($item)['href'] }}"
-                       @if (! empty($item['active'])) aria-current="page" @endif
-                       class="{{ ! empty($item['active'])
+                       @if ($aqui) aria-current="page" @endif
+                       class="{{ $aqui
                            ? 'bg-azure px-[34px] font-semibold text-14-5 text-on-accent hover:bg-azure-dark hover:text-on-accent'
                            : 'px-[22px] font-medium text-13-5 text-heading hover:bg-tint-hover' }}
                               flex min-h-[58px] items-center font-display leading-[1.3] no-underline hover:no-underline
@@ -35,6 +39,9 @@
                         $total = count($item['children']);
                         $columnas = min(3, (int) ceil($total / $maxPorColumna));
                         $filas = (int) ceil($total / $columnas);
+
+                        // El desplegable al que pertenece la página abierta.
+                        $aqui = App\Support\LegacyLink::isCurrent($item);
                     @endphp
                     <div class="relative flex"
                          @mouseenter="hoverOpen('{{ $item['key'] }}')"
@@ -43,11 +50,16 @@
                                 data-huv-trigger="{{ $item['key'] }}"
                                 @click="toggle('{{ $item['key'] }}')"
                                 aria-haspopup="true"
+                                {{-- «true» y no «page»: la página abierta es una
+                                     de las de dentro, no este botón. --}}
+                                @if ($aqui) aria-current="true" @endif
                                 :aria-expanded="isOpen('{{ $item['key'] }}') ? 'true' : 'false'"
                                 aria-controls="huv-menu-{{ $item['key'] }}"
-                                class="flex min-h-[58px] items-center gap-2 border-0 bg-transparent px-[22px]
-                                       text-left font-display text-13-5 leading-[1.3] font-medium text-heading
-                                       hover:bg-tint-hover
+                                class="{{ $aqui
+                                    ? 'bg-azure font-semibold text-on-accent hover:bg-azure-dark'
+                                    : 'bg-transparent font-medium text-heading hover:bg-tint-hover' }}
+                                       flex min-h-[58px] items-center gap-2 border-0 px-[22px]
+                                       text-left font-display text-13-5 leading-[1.3]
                                        {{ ! empty($item['narrow']) ? 'max-w-[210px]' : '' }}">
                             {{ $item['label'] }}
                             <svg class="size-[9px] shrink-0 transition-transform duration-150"
@@ -108,9 +120,20 @@
 
         {{-- ---------------- Barra móvil / tableta ---------------- --}}
         <div class="flex w-full items-stretch justify-between lg:hidden">
-            <a href="{{ url('/') }}" aria-current="page"
-               class="flex min-h-[52px] items-center bg-azure px-6 font-display text-14-5 font-semibold
-                      text-on-accent no-underline hover:text-on-accent hover:no-underline">
+            {{-- En móvil solo cabe «Inicio», y se resalta únicamente cuando se
+                 está en la portada: marcarlo siempre era decirle a quien navega
+                 que está en una página en la que no está. --}}
+            @php
+                $enPortada = request()->getPathInfo() === '/';
+            @endphp
+
+            <a href="{{ url('/') }}"
+               @if ($enPortada) aria-current="page" @endif
+               class="{{ $enPortada
+                   ? 'bg-azure text-on-accent hover:text-on-accent'
+                   : 'text-heading hover:bg-tint-hover hover:text-heading' }}
+                      flex min-h-[52px] items-center px-6 font-display text-14-5 font-semibold
+                      no-underline hover:no-underline">
                 Inicio
             </a>
             <button type="button"

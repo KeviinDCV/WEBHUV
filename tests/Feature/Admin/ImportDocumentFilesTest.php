@@ -420,4 +420,38 @@ class ImportDocumentFilesTest extends TestCase
             // Una sola sección, no una por cada procedencia.
             ->assertDontSee('Documentos adjuntos');
     }
+
+    /**
+     * Un documento sin archivo puede tener enlace, y no se descarga.
+     *
+     * «Decreto Único Reglamentario del Sector Salud» no sube el decreto: apunta
+     * al PDF que publica MinSalud, y «Gaceta Departamental» a la página de la
+     * gaceta. La importación se quedaba solo con `filePath` y tiraba ese
+     * destino, así que las dos fichas no ofrecían nada. Y traérselo tampoco
+     * vale: guardaría una página web haciéndose pasar por el documento.
+     */
+    public function test_un_documento_sin_archivo_guarda_su_enlace_y_no_lo_descarga(): void
+    {
+        $this->fakePortal([$this->documento([], [
+            'friendlyName' => 'decreto-unico-reglamentario',
+            'name' => 'Decreto Único Reglamentario del Sector Salud',
+            'embedUrl' => 'https://www.minsalud.gov.co/rid/decreto-780-unico-modificado-2016.pdf',
+        ])]);
+
+        $this->importar();
+
+        $item = TopicItem::sole();
+
+        $this->assertSame(
+            'https://www.minsalud.gov.co/rid/decreto-780-unico-modificado-2016.pdf',
+            $item->source_url
+        );
+        $this->assertFalse($item->isDownloaded());
+        $this->assertNull($item->file_name);
+
+        // La extensión sale de la dirección, no de un valor por omisión.
+        $this->assertSame('PDF', $item->extension());
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'minsalud'));
+    }
 }

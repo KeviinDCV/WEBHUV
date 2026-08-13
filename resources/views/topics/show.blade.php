@@ -157,14 +157,21 @@
                     {{-- Un tema puede mezclar documentos, noticias y avisos; el
                          portal deja filtrar por tipo cuando eso ocurre. Se
                          decide en el servidor: dentro de un <template> el
-                         desplegable estaría en el HTML de todos los temas. --}}
-                    @if (count($topic->supportedKinds()) > 1)
+                         desplegable estaría en el HTML de todos los temas.
+
+                         Los tipos que hay, no los que el tema admite: «Planeación
+                         y presupuesto participativo» declara doce en el origen y
+                         publica tres, y ofrecer los otros nueve sería prometer
+                         filtros que siempre devuelven la lista vacía. --}}
+                    @php($tipos = $topic->kindsInUse())
+
+                    @if (count($tipos) > 1)
                         <label for="huv-tipo-tema" class="sr-only">Filtrar por tipo de contenido</label>
                         <select id="huv-tipo-tema" x-model="kind"
                                 class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                        font-semibold text-heading">
                             <option value="todos">Todos los contenidos</option>
-                            @foreach ($topic->supportedKinds() as $option)
+                            @foreach ($tipos as $option)
                                 <option value="{{ $option }}">{{ $topic->itemNoun($option) }}</option>
                             @endforeach
                         </select>
@@ -252,15 +259,29 @@
                     Todavía no hay contenidos publicados en {{ $topic->name }}.
                 </p>
             @else
-                <ul class="grid grid-cols-1 gap-5" :class="view === 'grid' && 'md:grid-cols-2'">
-                    @foreach ($items as $item)
-                        <li x-show="isVisible({{ $item->id }})"
-                            :style="{ order: positionOf({{ $item->id }}) }"
-                            class="flex">
-                            <x-topic-item-card :item="$item" />
-                        </li>
-                    @endforeach
-                </ul>
+                @if ($topic->isRowList())
+                    {{-- Filas con una raya en medio, como publica el portal
+                         «Normatividad»: sin tarjeta y a una sola columna. --}}
+                    <ul class="flex flex-col">
+                        @foreach ($items as $item)
+                            <li x-show="isVisible({{ $item->id }})"
+                                :style="{ order: positionOf({{ $item->id }}) }"
+                                class="border-b border-line py-5 first:pt-0">
+                                <x-topic-item-row :item="$item" />
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <ul class="grid grid-cols-1 gap-5" :class="view === 'grid' && 'md:grid-cols-2'">
+                        @foreach ($items as $item)
+                            <li x-show="isVisible({{ $item->id }})"
+                                :style="{ order: positionOf({{ $item->id }}) }"
+                                class="flex">
+                                <x-topic-item-card :item="$item" />
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             @endif
 
             {{-- Sin resultados tras filtrar --}}

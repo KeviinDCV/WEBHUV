@@ -99,6 +99,30 @@ class Topic extends Model
         return $kinds ?: [TopicItem::KIND_DOCUMENT];
     }
 
+    /**
+     * Los tipos que de verdad hay publicados en el tema.
+     *
+     * No es lo mismo que `supportedKinds()`: «Planeación y presupuesto
+     * participativo» declara doce tipos en el origen y solo usa tres. El
+     * editor tiene que ofrecer los doce —quien publica puede escribir
+     * cualquiera—, pero el filtro del listado no: ofrecer «Convocatoria» donde
+     * no hay ninguna es prometer un filtro que siempre devuelve nada.
+     *
+     * @return list<string>
+     */
+    public function kindsInUse(): array
+    {
+        $kinds = $this->items()
+            ->distinct()
+            ->orderBy('kind')
+            ->pluck('kind')
+            ->all();
+
+        // En el orden en que se declaran, no alfabético: es el que usa el
+        // editor y el que ve quien administra.
+        return array_values(array_intersect($this->supportedKinds(), $kinds));
+    }
+
     public function defaultKind(): string
     {
         return in_array(TopicItem::KIND_DOCUMENT, $this->supportedKinds(), true)
@@ -148,7 +172,9 @@ class Topic extends Model
     {
         return match ($kind ?? $this->defaultKind()) {
             TopicItem::KIND_DOCUMENT => 'Documento',
-            TopicItem::KIND_NOTICE => 'Aviso',
+            // «Clasificado» es como lo llama el portal en su propio editor, y
+            // es el rótulo que ve quien filtra el listado por tipo.
+            TopicItem::KIND_NOTICE => 'Clasificado',
             TopicItem::KIND_LINK => 'Link',
             TopicItem::KIND_QUESTION => 'Pregunta',
             TopicItem::KIND_CONVOCATION => 'Convocatoria',
@@ -157,24 +183,35 @@ class Topic extends Model
     }
 
     /**
-     * Temas que el portal publica en listado compacto.
+     * Temas que el portal publica en filas y no en tarjetas.
      *
-     * Filas con una raya en medio y páginas numeradas, en vez de tarjetas y
-     * «Cargar más». No se deduce de los datos: en la API, «Contrataciones» y
-     * «Datos abiertos» son idénticos —los dos de tipo Link, los dos con
-     * plantilla Default, mismos campos— y el portal pinta el primero en filas y
-     * el segundo en tarjetas. Tampoco es cuestión de volumen: «Normatividad»
-     * son ocho documentos y va en filas; «Presupuesto» son ochenta y cinco y va
-     * en tarjetas. Es una decisión suya tema por tema, así que aquí se escribe
-     * igual de explícita, por nombre.
+     * Filas con una raya en medio. No se deduce de los datos: en la API,
+     * «Contrataciones» y «Datos abiertos» son idénticos —los dos de tipo Link,
+     * los dos con plantilla Default, mismos campos— y el portal pinta el
+     * primero en filas y el segundo en tarjetas. Tampoco es cuestión de
+     * volumen: «Normatividad» son ocho documentos y va en filas; «Presupuesto»
+     * son ochenta y cinco y va en tarjetas. Es una decisión suya tema por tema,
+     * así que aquí se escribe igual de explícita, por nombre.
+     */
+    private const ROW_TOPICS = ['contrataciones', 'normatividad'];
+
+    /**
+     * De esos, los que además se paginan en el servidor.
      *
-     * «Normatividad» es el otro que la usa allí. Entrará en esta lista cuando
-     * se migre: su listado ofrece además ordenar por fecha de expedición, y el
-     * compacto de aquí todavía no lo hace.
+     * Es cuestión de volumen, no de aspecto: «Contrataciones» son setecientos
+     * registros y no se pueden imprimir todos para decidir después cuáles se
+     * ven. «Normatividad» son ocho, y el portal los pagina como a cualquier
+     * otro tema —de seis en seis, con «Cargar más»—, así que aquí también.
      */
     private const COMPACT_TOPICS = ['contrataciones'];
 
-    /** Listado compacto y paginado en el servidor. */
+    /** Listado en filas y no en tarjetas. */
+    public function isRowList(): bool
+    {
+        return in_array($this->slug, self::ROW_TOPICS, true);
+    }
+
+    /** Listado en filas y, además, paginado en el servidor. */
     public function isCompactList(): bool
     {
         return in_array($this->slug, self::COMPACT_TOPICS, true);

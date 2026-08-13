@@ -82,19 +82,14 @@ class RichText
             return null;
         }
 
-        // Saltos de línea del texto, a <br>.
+        // Los saltos de línea del texto se dejan como están.
         //
-        // El editor del portal guarda tal cual lo que se teclea, y al pintarlo
-        // convierte esos saltos en <br>. Media docena de contenidos del
-        // «Directorio de entidades» son bloques de dirección escritos así, sin
-        // una sola etiqueta: «Tipo de control: …\nCarrera 10 #64 - 28…\n(+57)
-        // 601 742 2121\nsoytransparente@invima.gov.co». Sin esta conversión el
-        // HTML los junta todos en un renglón.
-        //
-        // Solo los saltos que separan texto de texto: los que hay entre
-        // etiquetas —el sangrado del propio HTML— no significan nada, y
-        // convertirlos duplicaría los <br> que ya vienen puestos.
-        $html = preg_replace('~([^>\s])[ \t]*\r?\n[ \t]*(?=[^<\s])~u', '$1<br>', (string) $html);
+        // Media docena de contenidos del «Directorio de entidades» son bloques
+        // de dirección escritos a salto de línea y sin una sola etiqueta. Da la
+        // tentación de convertirlos en <br>, pero el portal no lo hace: en su
+        // ficha, «…autónoma y objetiva\nde la entidad…» se lee de corrido, en
+        // un solo párrafo. Los renglones sueltos solo salen en el resumen de la
+        // tarjeta, y de eso se encarga toPlainText().
 
         // Envoltorios que se quitan dejando dentro lo que traen.
         //
@@ -129,39 +124,33 @@ class RichText
     }
 
     /**
-     * Texto plano del cuerpo, para resúmenes y metadatos.
+     * Texto plano del cuerpo, tal como lo arma el portal para sus resúmenes.
      *
-     * Conserva la forma del texto —un salto por cada <br> y por cada bloque que
-     * cierra— por dos motivos:
+     * No es una interpretación: la API publica en `metaDescription` el mismo
+     * resumen que enseña en la tarjeta, y comparándolo con el cuerpo de cuatro
+     * contenidos distintos salen exactamente estas cuatro reglas.
      *
-     * 1. `strip_tags` no separa nada. «…Evaristo García E.S.E.</p><p>Dirección:»
-     *    salía como «E.S.E.Dirección», dos palabras hechas una, en 52 resúmenes.
-     * 2. El portal las conserva. Media docena de contenidos del «Directorio de
-     *    entidades» son bloques de dirección —tipo de control, calle, teléfono,
-     *    correo—, y en una sola línea corrida no hay quien los lea.
+     *   · El blanco que hay ENTRE dos etiquetas es sangrado del HTML y se tira.
+     *   · Cada bloque que cierra —</p>, </div>, </h2>…— deja un salto de línea.
+     *   · <br> no deja nada. Por eso «…servicios de salud:</b><br><span>
+     *     Destacarse…» sale pegado en la tarjeta de «Valores y Principios
+     *     Corporativos», y así tiene que quedar.
+     *   · Todo lo demás se respeta: los saltos que el texto trae escritos y los
+     *     espacios, incluidos los dobles.
      *
-     * Quien necesite una línea sin más —una etiqueta <meta>— que la colapse.
+     * Quien necesite una línea sin más —una etiqueta <meta>— que use
+     * toSingleLine().
      */
     public static function toPlainText(?string $html): string
     {
-        // El sangrado del HTML no es texto. Un «</h2>\n<p>» tiene un salto que
-        // solo está ahí para que el HTML se lea, y contarlo dejaba una línea en
-        // blanco de más entre el título y el párrafo que le sigue.
-        $text = preg_replace('~>\s*\n\s*<~u', '><', (string) $html);
-
-        $text = preg_replace('~<br\s*/?>~i', "\n", (string) $text);
+        $text = preg_replace('~>\s+<~u', '><', (string) $html);
         $text = preg_replace('~</(?:p|div|h[1-6]|li|tr|blockquote|pre)\s*>~i', "\n", (string) $text);
 
         $text = html_entity_decode(strip_tags((string) $text));
 
-        // Espacios sí, saltos no. `[^\S\n]` es «blanco que no sea salto de
-        // línea»: recoge también el espacio duro que deja el editor del portal.
-        $text = preg_replace('~[^\S\n]+~u', ' ', $text);
-        $text = preg_replace('~ *\n *~u', "\n", (string) $text);
-
-        // Una línea en blanco como mucho: los cierres encadenados de bloque
-        // —«</p></div></li>»— dejarían tres o cuatro seguidas.
-        return trim(preg_replace('~\n{3,}~u', "\n\n", (string) $text) ?? '');
+        // Un cuerpo que solo tiene párrafos vacíos daría una ristra de saltos
+        // que se pinta como un hueco: para eso, mejor nada.
+        return trim((string) $text) === '' ? '' : (string) $text;
     }
 
     /** El mismo texto en una sola línea, para atributos y metadatos. */
@@ -177,10 +166,13 @@ class RichText
      * convierte los saltos de línea en espacios, y eso deshace justo lo que
      * `toPlainText()` conserva —los bloques de dirección del «Directorio de
      * entidades» volvían a salir en un solo renglón—.
+     *
+     * El corte sí recorta los blancos de los extremos, que es lo que se ve en
+     * el portal: el resumen empieza en la primera palabra.
      */
     public static function excerpt(?string $html, int $characters): string
     {
-        $text = self::toPlainText($html);
+        $text = trim(self::toPlainText($html));
 
         if (mb_strlen($text) <= $characters) {
             return $text;

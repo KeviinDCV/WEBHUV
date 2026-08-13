@@ -250,7 +250,8 @@ class TopicArticleTest extends TestCase
         ]);
 
         $this->assertTrue($aviso->isNotice());
-        $this->assertSame('Aviso', $topic->itemNoun(TopicItem::KIND_NOTICE));
+        // «Clasificado» es como lo llama el portal en su propio editor.
+        $this->assertSame('Clasificado', $topic->itemNoun(TopicItem::KIND_NOTICE));
 
         $this->get(route('topics.show', $topic))
             ->assertOk()

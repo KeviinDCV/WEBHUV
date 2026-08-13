@@ -28,9 +28,11 @@
                         <path d="M14 3v5h5" />
                         <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
                     </svg>
-                    <span class="mt-[2px] font-display text-10-5 font-bold tracking-[0.04em] text-link">
-                        {{ $item->extension() }}
-                    </span>
+                    @if (filled($item->extension()))
+                        <span class="mt-[2px] font-display text-10-5 font-bold tracking-[0.04em] text-link">
+                            {{ $item->extension() }}
+                        </span>
+                    @endif
                 </span>
 
                 @if ($item->humanSize())
@@ -57,6 +59,31 @@
                     hover:shadow-[0_10px_26px_rgba(23,32,64,0.18)]">
         <div class="flex flex-1 flex-col gap-[6px] p-5">
             <x-topic-item-meta :item="$item" tone="accent" />
+        </div>
+    </article>
+@elseif ($item->isLink())
+    {{--
+        Enlace: la miniatura va al lado, no encima.
+
+        Es la misma disposición que un documento, y la del portal: en «Servicio
+        al público» los cuatro enlaces a vídeos de YouTube enseñan la carátula
+        recortada en un cuadrado a la izquierda del título, mientras que un
+        artículo la pone arriba y a todo el ancho. Un enlace sin imagen —los del
+        «Directorio de entidades»— se queda en solo texto.
+    --}}
+    <article class="flex w-full gap-4 overflow-hidden rounded-[4px] border border-line bg-card p-5
+                    transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]">
+
+        @if ($item->imageUrl())
+            <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true" class="block shrink-0">
+                <img src="{{ $item->imageUrl() }}" alt=""
+                     loading="lazy" decoding="async"
+                     class="size-[62px] rounded-[3px] object-cover">
+            </a>
+        @endif
+
+        <div class="flex min-w-0 flex-1 flex-col gap-[6px]">
+            <x-topic-item-meta :item="$item" />
         </div>
     </article>
 @else

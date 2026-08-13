@@ -539,7 +539,14 @@ class ImportTopic extends Command
             $name = $file['name'] ?? null;
 
             $item->issued_at = $this->date($detail['startingDate'] ?? null);
-            $item->source_url = $file['filePath'] ?? null;
+
+            // Sin archivo adjunto, un documento todavía puede tener destino:
+            // «Decreto Único Reglamentario del Sector Salud» no sube el decreto,
+            // apunta al PDF que publica MinSalud, y «Gaceta Departamental» a la
+            // página de la gaceta. El portal los publica como a los demás, con
+            // su fila y su enlace; quedarnos solo con `filePath` dejaba dos
+            // fichas sin nada que ofrecer.
+            $item->source_url = $file['filePath'] ?? ($detail['embedUrl'] ?? null);
             $item->file_name = $name;
             $item->file_size = $file['size'] ?? null;
             // La extensión llega siempre vacía: se deduce del nombre.
@@ -698,7 +705,11 @@ class ImportTopic extends Command
      */
     private function download(TopicItem $item): string
     {
-        if (blank($item->source_url)) {
+        // Sin nombre de archivo no hay archivo que traer, aunque haya destino:
+        // ahí `source_url` es el enlace externo del documento —el PDF de
+        // MinSalud, la página de la Gaceta Departamental— y descargarlo
+        // guardaría una página web haciéndose pasar por el documento.
+        if (blank($item->source_url) || blank($item->file_name)) {
             return self::FILE_MISSING;
         }
 

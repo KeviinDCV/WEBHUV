@@ -82,7 +82,6 @@ return [
         [
             'label' => 'Inicio',
             'url' => '/',
-            'active' => true,
         ],
         [
             'label' => 'Transparencia y acceso a la información pública',

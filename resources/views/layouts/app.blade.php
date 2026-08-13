@@ -24,6 +24,22 @@
     <meta name="theme-color" content="#2b3b80">
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{--
+        Las dos fuentes, antes que nada.
+
+        Sin esto el navegador no sabe que existen hasta haber descargado y leído
+        la hoja de estilos, y para entonces ya ha pintado la página con la
+        tipografía de reserva. Precargadas llegan a tiempo, que es lo que hace
+        que `font-display: optional` se decida siempre por la buena.
+
+        Solo el subconjunto latino: el extendido lo pide el navegador únicamente
+        si el texto trae algún carácter que lo necesite.
+    --}}
+    @foreach (['resources/fonts/montserrat-latin.woff2', 'resources/fonts/work-sans-latin.woff2'] as $fuente)
+        <link rel="preload" as="font" type="font/woff2" crossorigin
+              href="{{ Vite::asset($fuente) }}">
+    @endforeach
+
     {{-- Open Graph / Twitter --}}
     <meta property="og:type" content="{{ $pageType }}">
     <meta property="og:locale" content="es_CO">

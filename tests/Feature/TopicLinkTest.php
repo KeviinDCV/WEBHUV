@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ContentMedia;
 use App\Models\Topic;
 use App\Models\TopicCategory;
 use App\Models\TopicItem;
@@ -209,5 +210,47 @@ class TopicLinkTest extends TestCase
             ->assertSee('C26-VISIBLE')
             ->assertDontSee('C26-INACTIVO')
             ->assertDontSee('C26-OCULTO');
+    }
+
+    /**
+     * La miniatura de un enlace va al lado, no encima.
+     *
+     * Es la misma disposición que la de un documento, y la del portal: los
+     * cuatro enlaces a vídeos de «Servicio al público» enseñan la carátula
+     * recortada en un cuadrado a la izquierda del título. Un artículo sí la
+     * pone arriba y a todo el ancho, y confundir las dos deja el listado con
+     * dos tarjetas de altura muy distinta mezcladas.
+     */
+    public function test_la_tarjeta_de_un_enlace_pone_la_miniatura_al_lado(): void
+    {
+        $topic = Topic::create([
+            'name' => 'Servicio al público, normas, formularios y protocolos',
+            'slug' => 'servicio-al-publico-normas-formularios-y-protocolos',
+            'legacy_content_types' => ['Link'],
+            'legacy_template_type' => Topic::TEMPLATE_SORTABLE,
+            'imported_at' => now(),
+        ]);
+
+        $item = $this->enlace($topic, [
+            'title' => 'Deberes del Paciente en Lenguaje de Señas',
+            'slug' => 'deberes-del-paciente-en-lenguaje-de-senas',
+            'source_url' => 'https://www.youtube.com/watch?v=71mkUlJocyA',
+        ]);
+
+        $item->media()->create([
+            'type' => ContentMedia::TYPE_IMAGE,
+            'is_main' => true,
+            'position' => 0,
+            'path' => 'temas/1/caratula.jpg',
+        ]);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        preg_match('~<article\b.*?</article>~s', $html, $m);
+
+        $this->assertNotEmpty($m, 'No se pintó la tarjeta.');
+        $this->assertStringContainsString('Lenguaje de Señas', $m[0]);
+        $this->assertStringContainsString('size-[62px]', $m[0]);
+        $this->assertStringNotContainsString('aspect-[16/9]', $m[0]);
     }
 }

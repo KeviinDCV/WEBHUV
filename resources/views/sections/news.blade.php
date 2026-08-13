@@ -69,9 +69,10 @@
                                     <x-content-actions :content="$featured" tone="on-brand" class="mt-[2px]" />
                                 </div>
 
-                                <p class="m-0 text-14 leading-[1.6] whitespace-pre-line text-pretty text-on-brand-muted">
-                                    {{ $featured->summary() }}
-                                </p>
+                                {{-- El resumen conserva sus saltos de línea, así que se imprime
+                                     pegado a las etiquetas: con `whitespace-pre-line`, el sangrado
+                                     de esta plantilla saldría como una línea en blanco delante. --}}
+                                <p class="m-0 text-14 leading-[1.6] whitespace-pre-line text-pretty text-on-brand-muted">{{ $featured->summary() }}</p>
 
                                 @if ($featured->displayDate())
                                     <x-published-at :value="$featured->displayDate()" class="text-12-5 text-on-brand-label" />
