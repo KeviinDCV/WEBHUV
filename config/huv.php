@@ -40,6 +40,31 @@ return [
         'closed_days' => 'Días no laborales: sábados, domingos y festivos. Urgencias: 24 horas.',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mapas de ubicación
+    |--------------------------------------------------------------------------
+    |
+    | Indexados por el identificador del tema en cuya página se pintan. Las
+    | coordenadas son las que publica el portal en su bloque «Ubicación fisica»
+    | —así, sin tilde—: 3.430215008, -76.545449495, a zoom 16.
+    |
+    | El portal centra el mapa unos noventa metros al este de la chincheta,
+    | porque guarda el centro y la chincheta por separado y quien lo editó
+    | arrastró uno de los dos. Aquí se centra en la chincheta.
+    |
+    */
+    'maps' => [
+        'directorio-institucional' => [
+            'title' => 'Ubicación física',
+            'label' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
+            'address' => 'Calle 5 # 36-08, Santiago de Cali, Valle del Cauca',
+            'latitude' => 3.430215,
+            'longitude' => -76.545449,
+            'zoom' => 16,
+        ],
+    ],
+
     'seo' => [
         'title' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
         'description' => 'Institución de salud pública de alta complejidad del suroccidente colombiano. '

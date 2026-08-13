@@ -11,6 +11,7 @@ import huvClock from './components/clock';
 import huvContentFeed from './components/content-feed';
 import huvLeaveSite from './components/leave-site';
 import huvLogoStrip from './components/logo-strip';
+import huvMap from './components/map';
 import huvNav from './components/nav';
 import huvTopicList from './components/topic-list';
 
@@ -74,6 +75,7 @@ Alpine.data('huvClock', huvClock);
 Alpine.data('huvContentFeed', huvContentFeed);
 Alpine.data('huvLeaveSite', huvLeaveSite);
 Alpine.data('huvLogoStrip', huvLogoStrip);
+Alpine.data('huvMap', huvMap);
 Alpine.data('huvNav', huvNav);
 Alpine.data('huvTopicList', huvTopicList);
 

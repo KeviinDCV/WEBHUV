@@ -292,4 +292,9 @@
             @endif
         </x-container>
     </div>
+
+    {{-- Fuera del contenedor: el mapa va de borde a borde, como en el portal. --}}
+    @if ($map = $topic->map())
+        <x-location-map :map="$map" />
+    @endif
 @endsection

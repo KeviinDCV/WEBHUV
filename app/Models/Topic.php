@@ -180,6 +180,21 @@ class Topic extends Model
         return in_array($this->slug, self::COMPACT_TOPICS, true);
     }
 
+    /**
+     * Mapa de ubicación del tema, si lo tiene.
+     *
+     * En el portal es un «bloque» que se cuelga de un tema y se edita desde el
+     * panel; en todo el sitio hay uno solo —«Ubicación fisica», colgado de
+     * Directorio institucional—, así que aquí se queda en configuración en vez
+     * de traerse un sistema de bloques entero para un único caso.
+     *
+     * @return array{title: string, label: string, address: string, latitude: float, longitude: float, zoom: int}|null
+     */
+    public function map(): ?array
+    {
+        return config('huv.maps.'.$this->slug);
+    }
+
     /** Cómo se cuentan en el pie del listado. */
     public function itemsNoun(): string
     {

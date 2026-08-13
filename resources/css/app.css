@@ -569,3 +569,99 @@ html[data-huv-contrast='on'] {
 [x-cloak] {
     display: none !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Mapa de ubicación (Leaflet)
+
+   Las reglas de Leaflet llegan en un fragmento aparte, que se pide cuando el
+   componente lo carga y por tanto se inserta DESPUÉS de esta hoja. Por eso
+   aquí se apunta siempre desde `.leaflet-container`: con la misma
+   especificidad que la biblioteca, ganaría ella por orden.
+--------------------------------------------------------------------------- */
+
+/* Chincheta propia. Hereda el color del tema, así que en alto contraste se
+   vuelve amarilla como el resto de la interfaz. */
+.leaflet-container .huv-map-pin svg {
+    width: 30px;
+    height: 40px;
+    color: var(--color-azure);
+    fill: currentColor;
+    stroke: var(--color-card);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 3px 5px rgb(23 32 64 / 0.4));
+}
+
+.leaflet-container .huv-map-pin svg circle {
+    fill: var(--color-card);
+    stroke: none;
+}
+
+/* Globo de información con la tipografía y los cantos del sitio. */
+.leaflet-container .leaflet-popup-content-wrapper {
+    border-radius: 4px;
+    box-shadow: 0 12px 30px rgb(23 32 64 / 0.22);
+    background: var(--color-card);
+    color: var(--color-ink);
+}
+
+.leaflet-container .leaflet-popup-tip {
+    background: var(--color-card);
+}
+
+.leaflet-container .leaflet-popup-content {
+    margin: 14px 16px;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.leaflet-container .huv-map-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-heading);
+}
+
+.leaflet-container .huv-map-address {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-muted);
+}
+
+.leaflet-container .huv-map-route {
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: 600;
+    color: var(--color-link);
+}
+
+/* Controles: mismos bordes y colores que los botones del sitio. */
+.leaflet-container .leaflet-bar,
+.leaflet-container .leaflet-control-attribution {
+    border: 1px solid var(--color-line);
+    background: var(--color-card);
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-bar a:hover {
+    background: var(--color-card);
+    color: var(--color-heading);
+    border-bottom-color: var(--color-line);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+    background: var(--color-tint);
+}
+
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-attribution a {
+    color: var(--color-muted);
+}
+
+/* En alto contraste las teselas se desaturan y se refuerzan: son fotografías
+   rasterizadas, la paleta del sitio no las alcanza. Solo se toca la capa de
+   teselas, para que la chincheta amarilla siga destacando sobre ellas. */
+html[data-huv-contrast='on'] .leaflet-container .leaflet-tile-pane {
+    filter: grayscale(1) contrast(1.35) brightness(0.9);
+}

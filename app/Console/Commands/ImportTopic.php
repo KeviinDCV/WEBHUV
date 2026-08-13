@@ -163,7 +163,7 @@ class ImportTopic extends Command
                         $images += $i;
                         $files += $f;
 
-                        if ($content->images()->isNotEmpty()) {
+                        if ($content->images()->contains(fn ($image) => blank($image->alt))) {
                             $withoutAlt[] = $entry['friendlyName'];
                         }
                     }
@@ -236,7 +236,7 @@ class ImportTopic extends Command
                         $files += $f;
                         $failed += $x;
 
-                        if ($item->images()->isNotEmpty()) {
+                        if ($item->images()->contains(fn ($image) => blank($image->alt))) {
                             $withoutAlt[] = $entry['friendlyName'];
                         }
                     }
@@ -672,10 +672,17 @@ class ImportTopic extends Command
         // publica el portal: contarlos daba un «4 de 2» permanente que invitaba
         // a reejecutar el comando y enterraba el aviso de verdad. Es el mismo
         // filtro con el que pruneMedia() decide qué le pertenece.
+        // Los dos tipos: un adjunto que resulta ser una foto se guarda como
+        // imagen, y contar solo las descargas haría que «Valores y Principios
+        // Corporativos» avisara de «0 de 7» archivos perdidos en cada pasada
+        // teniendo los siete.
         $actual = ($item->isDownloaded() ? 1 : 0)
             + $item->media()
-                ->where('type', ContentMedia::TYPE_FILE)
+                ->whereIn('type', [ContentMedia::TYPE_FILE, ContentMedia::TYPE_IMAGE])
                 ->whereNotNull('legacy_file_id')
+                // La imagen de portada no sale de `files`: viene de
+                // `defaultImage` y contarla daría siempre uno de más.
+                ->where('is_main', false)
                 ->count();
 
         return $actual === $expected ? null : "{$actual} de {$expected}";
@@ -756,11 +763,24 @@ class ImportTopic extends Command
         // Cero o muchos: «Informes a organismos de inspección, vigilancia y
         // control» trae veinticinco.
         foreach ($files as $position => $file) {
+            // El origen mezcla fotos y documentos en la misma lista y los
+            // distingue con `isImage`; según ese campo el portal las pinta en
+            // el carrusel de la ficha o las publica como descargas. Sin mirarlo,
+            // los siete JPG de «Valores y Principios Corporativos» salían aquí
+            // como siete filas de «JPG · 856 Kb» en vez de como las láminas que
+            // son.
+            $isImage = (bool) ($file['isImage'] ?? false);
+
             try {
                 $media = $this->attach($item, [
                     'legacy_file_id' => $file['fileID'] ?? null,
-                    'type' => ContentMedia::TYPE_FILE,
-                    'alt' => $file['name'] ?? null,
+                    'type' => $isImage ? ContentMedia::TYPE_IMAGE : ContentMedia::TYPE_FILE,
+                    // En una descarga `alt` es el rótulo visible y el nombre del
+                    // archivo sirve. En una foto es el texto alternativo, y
+                    // «valores-y-principios-respeto.jpg» no describe nada a
+                    // quien no la ve (WCAG 1.1.1): se deja vacío y el resumen
+                    // avisa de que hay que escribirlo.
+                    'alt' => $isImage ? null : ($file['name'] ?? null),
                     'original_name' => $file['name'] ?? null,
                     'position' => $position + 1,
                 ], $file['filePath'] ?? null);
@@ -776,7 +796,9 @@ class ImportTopic extends Command
             // origen cambia se vuelve a bajar sobre la fila que ya existía, y
             // contar solo las altas hacía que el resumen dijera «0 archivos»
             // después de haber descargado nueve.
-            $downloaded += (int) ($media?->wasRecentlyCreated || $media?->wasChanged('path'));
+            $traido = (int) ($media?->wasRecentlyCreated || $media?->wasChanged('path'));
+
+            $isImage ? $images += $traido : $downloaded += $traido;
             $seen[] = $media?->id;
         }
 
@@ -823,7 +845,7 @@ class ImportTopic extends Command
      * Trae un medio del artículo, si no estaba ya.
      *
      * @param  array<string, mixed>  $attributes
-     * @return ContentMedia|null  El medio, nuevo o el que ya existía
+     * @return ContentMedia|null El medio, nuevo o el que ya existía
      */
     private function attach(Model $item, array $attributes, ?string $url): ?ContentMedia
     {
