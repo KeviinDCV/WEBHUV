@@ -42,14 +42,14 @@ class ImportGalleryImagesTest extends TestCase
     /**
      * @param  list<array{int, string, bool}>  $files  Identificador, nombre y si es imagen.
      */
-    private function articulo(array $files, ?string $portada = null): array
+    private function articulo(array $files, ?string $portada = null, ?string $body = null): array
     {
         return [
             'contentID' => 8100,
             'friendlyName' => 'valores-y-principios-corporativos',
             'name' => 'Valores y Principios Corporativos',
             'contentType' => 'Article',
-            'body' => '<p>Principios corporativos.</p>',
+            'body' => $body ?? '<p>Principios corporativos.</p>',
             'creationDate' => '2023/06/27 16:05:21',
             'modifiedDate' => '2024/07/01 20:05:10',
             'published' => true,
@@ -330,5 +330,246 @@ class ImportGalleryImagesTest extends TestCase
         $this->assertCount(3, $item->images());
         $this->assertTrue($item->mainImage()->is_main);
         $this->assertCount(1, $item->files());
+    }
+
+    /* ------------------------------------------------------------------ */
+
+    /** Un PNG de un píxel, para tener bytes que de verdad sean una imagen. */
+    private const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+    private function conImagenPegada(string $datos = self::PNG, string $tipo = 'image/png'): array
+    {
+        return $this->articulo([], body: '<p>La casa de la humanización.</p>'
+            .'<img src="data:'.$tipo.';base64,'.$datos.'">'
+            .'<p>Sus cinco pilares.</p>');
+    }
+
+    /**
+     * Una imagen pegada dentro del texto se rescata a la galería.
+     *
+     * El editor del portal deja soltar una imagen en el cuerpo, y entonces
+     * viaja incrustada en el HTML como base64. El saneador la descarta —un
+     * `src` con los datos dentro es la vía habitual de colar un SVG con
+     * scripts—, y hasta aquí eso significaba perderla: el diagrama de la «Casa
+     * de la Humanización» no es ninguna de las seis fotos adjuntas y no está en
+     * ningún otro sitio del que recuperarlo.
+     */
+    public function test_una_imagen_pegada_en_el_texto_se_rescata_a_la_galeria(): void
+    {
+        $this->fakePortal([$this->conImagenPegada()]);
+
+        // El aviso de imágenes perdidas es para las que enlazan a una
+        // dirección; estas ya no se pierden.
+        $this->artisan('huv:importar entidad')
+            ->doesntExpectOutputToContain('no se conservan')
+            ->assertSuccessful();
+
+        $item = TopicItem::sole();
+        $foto = $item->images()->sole();
+
+        $this->assertSame(ContentMedia::TYPE_IMAGE, $foto->type);
+        $this->assertFalse((bool) $foto->is_main);
+        $this->assertTrue(Storage::disk('public')->exists($foto->path));
+        $this->assertSame(base64_decode(self::PNG), Storage::disk('public')->get($foto->path));
+
+        // Y no se queda además dentro del cuerpo: son 50 KB de base64 al lado
+        // de tres de texto, y el saneador los tira de todas formas.
+        $this->assertStringNotContainsString('base64', (string) $item->body);
+        $this->assertStringContainsString('Sus cinco pilares', (string) $item->body);
+
+        $this->get(route('topics.items.show', [Topic::sole(), $item]))
+            ->assertOk()
+            ->assertSee('Galería')
+            ->assertSee('<img src="'.e($foto->fileUrl()), false);
+    }
+
+    /**
+     * Reimportar no cuelga otra copia de la misma imagen.
+     *
+     * El origen no le da identificador —no es un archivo suyo, es parte del
+     * texto—, así que la identidad tiene que salir de su contenido. Sin eso,
+     * cada pasada del comando añadiría el mismo diagrama a la galería.
+     */
+    public function test_reimportar_no_duplica_la_imagen_pegada_en_el_texto(): void
+    {
+        $this->fakePortal([$this->conImagenPegada()]);
+
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $this->assertCount(1, TopicItem::sole()->images());
+        $this->assertCount(1, Storage::disk('public')->allFiles());
+    }
+
+    /**
+     * El mismo PNG, engordado hasta el tamaño que se pida.
+     *
+     * Se le cuelga un bloque de texto —«tEXt», que el formato admite para
+     * metadatos— justo antes del final. Sigue siendo un PNG válido y de un
+     * píxel; lo único que cambia es lo que ocupa, que es de lo que va la
+     * prueba.
+     */
+    private function pngDe(int $bytes): string
+    {
+        $png = base64_decode(self::PNG);
+        $datos = "relleno\0".str_repeat('x', max(0, $bytes - strlen($png) - 20));
+        $bloque = pack('N', strlen($datos)).'tEXt'.$datos.pack('N', crc32('tEXt'.$datos));
+
+        // El chunk final —IEND, doce bytes— tiene que seguir siendo el último.
+        return substr($png, 0, -12).$bloque.substr($png, -12);
+    }
+
+    /**
+     * Una imagen pegada grande no se lleva por delante el resto del texto.
+     *
+     * Es el fallo de verdad, y era mudo. El analizador de HTML5 abandona el
+     * documento cuando se topa con un atributo de decenas de miles de
+     * caracteres, así que el cuerpo de «Humanización» —3.485 caracteres, con el
+     * diagrama de 67 KB en mitad— entraba entero y salía con 1.071: se perdían
+     * las tres líneas de acción, y lo que quedaba estaba bien formado y
+     * terminaba en un punto, sin nada que delatara el corte.
+     */
+    public function test_una_imagen_pegada_grande_no_se_come_el_resto_del_texto(): void
+    {
+        // Por encima de los ~15 KB de atributo en que el analizador se rinde.
+        $this->fakePortal([$this->conImagenPegada(base64_encode($this->pngDe(30_000)))]);
+
+        $this->artisan('huv:importar entidad')
+            ->doesntExpectOutputToContain('han perdido parte del texto')
+            ->assertSuccessful();
+
+        $item = TopicItem::sole();
+
+        $this->assertStringContainsString('La casa de la humanización', (string) $item->body);
+        $this->assertStringContainsString('Sus cinco pilares', (string) $item->body);
+
+        // Y la imagen, que es lo que se estaba rescatando, sigue llegando.
+        $this->assertCount(1, $item->images());
+    }
+
+    /**
+     * Cuando de verdad se pierde texto, el resumen lo dice.
+     *
+     * Hermana de la comprobación de archivos que faltan: un cuerpo recortado se
+     * parece en la base a uno corto, así que sin este recuento no hay forma de
+     * enterarse. Aquí el saneador se lleva un pie de figura entero —descarta
+     * las etiquetas que no conoce junto con lo que envuelven—, que es
+     * exactamente la clase de merma que hay que ver.
+     */
+    public function test_el_resumen_avisa_cuando_el_cuerpo_pierde_texto(): void
+    {
+        $perdido = str_repeat('Texto que el saneador se lleva por delante. ', 20);
+
+        $this->fakePortal([$this->articulo([], body: '<p>Un párrafo corto.</p>'
+            .'<figure><figcaption>'.$perdido.'</figcaption></figure>')]);
+
+        $this->artisan('huv:importar entidad')
+            ->expectsOutputToContain('han perdido parte del texto')
+            ->assertSuccessful();
+
+        $this->assertStringNotContainsString('se lleva por delante', (string) TopicItem::sole()->body);
+    }
+
+    /**
+     * Cambiar la imagen pegada la sustituye; quitarla la retira.
+     *
+     * La identidad de una imagen rescatada es su contenido, así que la de ayer
+     * y la de hoy son dos filas distintas. Como no tienen identificador de
+     * origen —no son un archivo del portal, son parte del texto—, la poda las
+     * dejaba pasar: retocar el diagrama de un artículo dejaba aquí los dos, y
+     * quitarlo del cuerpo no lo quitaba de la galería. Reimportar no lo
+     * arreglaba nunca.
+     */
+    public function test_al_cambiar_la_imagen_pegada_la_anterior_se_retira(): void
+    {
+        $this->fakePortal([$this->conImagenPegada()]);
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $primera = TopicItem::sole()->images()->sole();
+
+        // El portal retoca el diagrama: mismos <p> alrededor, otros bytes.
+        $this->fakePortal([$this->conImagenPegada(base64_encode($this->pngDe(400)))]);
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $segunda = TopicItem::sole()->images()->sole();
+
+        $this->assertNotSame($primera->id, $segunda->id);
+        $this->assertFalse(Storage::disk('public')->exists($primera->path));
+        $this->assertTrue(Storage::disk('public')->exists($segunda->path));
+
+        // Y al desaparecer del cuerpo, desaparece de la galería.
+        $this->fakePortal([$this->articulo([], body: '<p>Ya sin diagrama.</p>')]);
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $this->assertCount(0, TopicItem::sole()->images());
+        $this->assertSame([], Storage::disk('public')->allFiles());
+    }
+
+    /**
+     * Lo que añade quien edita no lo toca la importación.
+     *
+     * Es la otra mitad de la poda: se reconoce lo suyo por el identificador de
+     * origen o por la marca de las incrustadas, y todo lo demás se respeta.
+     */
+    public function test_la_poda_respeta_las_fotos_anadidas_desde_el_editor(): void
+    {
+        $this->fakePortal([$this->conImagenPegada()]);
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $aMano = TopicItem::sole()->media()->create([
+            'type' => ContentMedia::TYPE_IMAGE,
+            'path' => 'temas/1/foto-de-la-jornada.jpg',
+            'alt' => 'Foto de la jornada',
+            'position' => 9,
+        ]);
+
+        $this->fakePortal([$this->articulo([], body: '<p>Ya sin diagrama.</p>')]);
+        $this->artisan('huv:importar entidad')->assertSuccessful();
+
+        $this->assertNotNull($aMano->fresh());
+        $this->assertCount(1, TopicItem::sole()->images());
+    }
+
+    /**
+     * El aviso de texto perdido no cuenta como texto lo que nunca lo fue.
+     *
+     * `strip_tags()` quita la etiqueta <style> y deja dentro el CSS; el
+     * saneador descarta el bloque entero, y hace bien. Midiendo así, un cuerpo
+     * pegado desde Word —que arrastra hojas de estilo de Mso más largas que el
+     * párrafo que acompañan— salía listado en rojo como si hubiera perdido
+     * media página teniéndola entera. Un aviso que grita en falso deja de
+     * mirarse, y este existe justo para que se mire.
+     */
+    public function test_el_aviso_no_confunde_una_hoja_de_estilos_con_texto(): void
+    {
+        $estilos = '<style>'.str_repeat('p.MsoNormal{margin:0cm;font-size:11.0pt;font-family:"Calibri",sans-serif;}', 6).'</style>';
+
+        $this->fakePortal([$this->articulo([], body: $estilos.'<p>El texto llega entero, con sus estilos de Word delante.</p>')]);
+
+        $this->artisan('huv:importar entidad')
+            ->doesntExpectOutputToContain('han perdido parte del texto')
+            ->assertSuccessful();
+
+        $this->assertStringContainsString('llega entero', (string) TopicItem::sole()->body);
+    }
+
+    /**
+     * El tipo declarado no basta: se miran los bytes.
+     *
+     * Lo que va entre `data:` y `;base64` lo escribe quien publica en el portal
+     * anterior. Fiarse de él convertiría esto en una puerta para dejar
+     * cualquier cosa en el disco que sirve el servidor web con solo llamarla
+     * «image/png».
+     */
+    public function test_lo_que_no_es_una_imagen_no_entra_aunque_el_tipo_lo_diga(): void
+    {
+        $this->fakePortal([$this->conImagenPegada(base64_encode('<?php echo "hola";'))]);
+
+        $this->artisan('huv:importar entidad')
+            ->expectsOutputToContain('no es una imagen que se admita')
+            ->assertSuccessful();
+
+        $this->assertCount(0, TopicItem::sole()->images());
+        $this->assertSame([], Storage::disk('public')->allFiles());
     }
 }

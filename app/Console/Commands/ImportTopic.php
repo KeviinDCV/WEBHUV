@@ -138,6 +138,7 @@ class ImportTopic extends Command
         $skipped = [];
         $failures = [];
         $emptyBody = [];
+        $shortened = [];
         $withoutAlt = [];
         $withoutFile = [];
         $inlineImages = [];
@@ -156,6 +157,10 @@ class ImportTopic extends Command
 
                     if (filled($detail['body'] ?? null) && blank($content->body)) {
                         $emptyBody[] = $entry['friendlyName'];
+                    }
+
+                    if ($perdido = $this->lostText($detail, $content->body)) {
+                        $shortened[$entry['friendlyName']] = $perdido;
                     }
 
                     if (! $this->option('sin-archivos')) {
@@ -196,7 +201,15 @@ class ImportTopic extends Command
                     $emptyBody[] = $entry['friendlyName'];
                 }
 
-                if (substr_count((string) ($detail['body'] ?? ''), '<img') > 0) {
+                if ($perdido = $this->lostText($detail, $item->body)) {
+                    $shortened[$entry['friendlyName']] = $perdido;
+                }
+
+                // Solo las que enlazan a una dirección: las que llevan los datos
+                // dentro se rescatan a la galería y no se pierden. Estas otras
+                // suelen ser una miniatura de una foto que ya está adjunta, así
+                // que se avisa en vez de duplicarlas.
+                if (preg_match('~<img[^>]+src="(?!data:)~i', (string) ($detail['body'] ?? ''))) {
                     $inlineImages[] = $entry['friendlyName'];
                 }
 
@@ -282,9 +295,20 @@ class ImportTopic extends Command
             );
         }
 
+        if ($shortened !== []) {
+            $this->components->error(
+                'Estos contenidos han perdido parte del texto al depurar el HTML: '
+                .implode(', ', array_map(
+                    fn (string $nombre, string $cuanto) => "{$nombre} ({$cuanto})",
+                    array_keys($shortened),
+                    $shortened
+                ))
+            );
+        }
+
         if ($inlineImages !== []) {
             $this->components->warn(
-                'Con imágenes incrustadas en el texto, que no se conservan: '.implode(', ', $inlineImages)
+                'Con imágenes enlazadas dentro del texto, que no se conservan: '.implode(', ', $inlineImages)
             );
         }
 
@@ -536,6 +560,20 @@ class ImportTopic extends Command
         $item->event_location = $event ? $this->attribute($detail, 'EventLocation') : null;
         $item->event_host = $event ? $this->attribute($detail, 'EventHost') : null;
 
+        // Un trámite trae en la misma lista de atributos su modalidad, su
+        // costo y lo que tarda: los tres datos que el portal enseña al lado
+        // del nombre y lo único que distingue una fila de otra de un vistazo.
+        $procedure = $kind === TopicItem::KIND_PROCEDURE;
+
+        $item->procedure_type = $procedure
+            ? (int) $this->attribute($detail, 'ProcedureTypeID') ?: null
+            : null;
+        $item->procedure_cost_type = $procedure && $this->attribute($detail, 'ProcedureCostType') !== null
+            ? (int) $this->attribute($detail, 'ProcedureCostType')
+            : null;
+        $item->procedure_cost = $procedure ? $this->attribute($detail, 'ProcedureValue') : null;
+        $item->procedure_time = $procedure ? $this->attribute($detail, 'ProcedureTime') : null;
+
         // Los dos bloques se escriben SIEMPRE, aunque uno quede en nulo. Un
         // contenido puede cambiar de tipo en el origen, y dejar la caducidad de
         // cuando era artículo lo volvería invisible en el listado sin que nada
@@ -588,7 +626,11 @@ class ImportTopic extends Command
             // Un enlace guarda su destino donde el documento guarda el suyo: es
             // el mismo campo, «dónde está esto de verdad». La API lo manda unas
             // veces como embedUrl y otras como embedURL.
-            $item->source_url = $kind === TopicItem::KIND_LINK
+            //
+            // Un trámite también: su ficha completa no vive en el portal sino en
+            // gov.co, y sin ese destino el listado sería diez nombres sin nada
+            // detrás.
+            $item->source_url = in_array($kind, [TopicItem::KIND_LINK, TopicItem::KIND_PROCEDURE], true)
                 ? ($detail['embedUrl'] ?? $detail['embedURL'] ?? null)
                 : null;
         }
@@ -652,13 +694,104 @@ class ImportTopic extends Command
     {
         foreach (['body', 'description'] as $field) {
             if (filled($detail[$field] ?? null)) {
-                return RichText::clean(RichText::normalizeLegacy((string) $detail[$field]));
+                return RichText::clean(RichText::normalizeLegacy(
+                    $this->withoutEmbeddedImages((string) $detail[$field])
+                ));
             }
         }
 
         return filled($detail['metaDescription'] ?? null)
             ? '<p>'.e(trim((string) $detail['metaDescription'])).'</p>'
             : null;
+    }
+
+    /**
+     * Cuánto texto se ha quedado por el camino al depurar el HTML.
+     *
+     * Hermana de `missingFiles()`, y por el mismo motivo: una importación tiene
+     * que poder demostrar que no ha perdido nada. Un cuerpo que entra con 3.485
+     * caracteres y sale con 1.071 se parece en la base a uno que de verdad
+     * tiene 1.071 —el texto que queda está bien formado, termina en un punto y
+     * no hay nada que delate el corte—, y así estuvo «Humanización»: sin sus
+     * tres líneas de acción, en silencio.
+     *
+     * Devuelve null cuando la merma es la normal. Que el saneador se lleve algo
+     * de texto es de esperar: descarta las etiquetas que no conoce junto con lo
+     * que envuelven, y ahí caen los pies de figura y las tablas de maquetar del
+     * editor anterior. Lo que no es normal es que se lleve una quinta parte.
+     *
+     * @param  array<string, mixed>  $detail
+     * @return string|null Cuánto se ha perdido, para decirlo en el resumen
+     */
+    private function lostText(array $detail, ?string $body): ?string
+    {
+        $origen = (string) ($detail['body'] ?? $detail['description'] ?? '');
+
+        if (blank($origen)) {
+            return null;
+        }
+
+        $antes = Str::length(RichText::toSingleLine($this->comparable($origen)));
+        $despues = Str::length(RichText::toSingleLine($body));
+
+        if ($antes === 0 || $despues >= $antes * 0.8) {
+            return null;
+        }
+
+        return $despues.' de '.$antes.' caracteres';
+    }
+
+    /**
+     * Etiquetas cuyo contenido no es texto del contenido.
+     *
+     * El saneador las descarta enteras, con lo que envuelven, y hace bien: una
+     * hoja de estilos no es lo que se lee. `strip_tags()`, en cambio, quita la
+     * etiqueta y deja dentro el CSS o el JavaScript.
+     */
+    private const NOT_TEXT = ['style', 'script', 'noscript', 'template', 'head', 'title', 'iframe', 'object'];
+
+    /**
+     * El cuerpo de origen medido con la misma vara que el de aquí.
+     *
+     * Sin esto, `lostText()` restaba peras de manzanas: contaba como «texto que
+     * había» el CSS de un bloque <style>, que el saneador tira por diseño. Los
+     * cuerpos pegados desde Word arrastran hojas de estilo de Mso más largas que
+     * el párrafo que acompañan, así que un contenido íntegro salía listado en
+     * rojo como «300 de 700 caracteres». Un aviso que grita en falso deja de
+     * mirarse, y este existe justo para que se mire.
+     */
+    private function comparable(string $body): string
+    {
+        $sinRuido = (string) preg_replace(
+            '~<('.implode('|', self::NOT_TEXT).')\b[^>]*>.*?</\1\s*>~is',
+            '',
+            $body
+        );
+
+        return $this->withoutEmbeddedImages($sinRuido);
+    }
+
+    /**
+     * El cuerpo sin las imágenes que lleva pegadas dentro.
+     *
+     * Se quitan antes de sanear, y no porque el saneador las descarte —eso ya
+     * lo hace—: es que se atraganta con ellas. Una imagen incrustada viaja como
+     * un atributo `src` de decenas de miles de caracteres, y al analizador de
+     * HTML5 eso le cuesta el resto del documento. En «Humanización», el
+     * diagrama de la Casa ocupa 67 KB en mitad del texto, y el cuerpo entraba
+     * con 3.485 caracteres y salía con 1.071: se perdían las tres líneas de
+     * acción enteras, en silencio, con el resto del contenido intacto y sin
+     * nada que delatara el corte.
+     *
+     * No se pierde nada al quitarlas: `embeddedImages()` las saca del mismo
+     * cuerpo original y las cuelga en la galería.
+     */
+    private function withoutEmbeddedImages(string $body): string
+    {
+        // Más ancha que EMBEDDED_IMAGE a propósito: aquí se trata de que no
+        // quede ningún atributo kilométrico, aunque no venga en base64 y no
+        // haya nada que rescatar.
+        return (string) preg_replace('~<img[^>]+src=(["\'])data:.*?\1[^>]*>~is', '', $body);
     }
 
     /**
@@ -843,6 +976,11 @@ class ImportTopic extends Command
             $seen[] = $media?->id;
         }
 
+        ['traidas' => $rescatadas, 'ids' => $incrustadas] = $this->embeddedImages($item, $detail, count($files) + 1);
+
+        $images += $rescatadas;
+        $seen = array_merge($seen, $incrustadas);
+
         // Podar con información incompleta borraría medios que sí siguen
         // publicados y solo se han quedado sin descargar esta vez.
         if ($failed === 0) {
@@ -853,20 +991,125 @@ class ImportTopic extends Command
     }
 
     /**
+     * Imágenes que el origen no adjunta, sino que lleva pegadas dentro del texto.
+     *
+     * El editor del portal deja soltar una imagen en el cuerpo, y entonces
+     * viaja incrustada en el propio HTML como base64 en lugar de como archivo.
+     * El saneador la descarta, y con razón: un `src` con los datos dentro es la
+     * vía habitual de colar un SVG con scripts, y además hincha la columna —el
+     * diagrama de la «Casa de la Humanización» ocupa 50 KB y el texto que lo
+     * rodea, tres—.
+     *
+     * Descartarla sin más perdía contenido que no está en ningún otro sitio:
+     * ese diagrama no es ninguna de las seis fotos adjuntas y no se puede
+     * recuperar de la galería. Así que se saca a disco y se cuelga como una
+     * foto más. Pierde el sitio exacto que ocupaba entre los párrafos —va al
+     * final de la galería—, pero se conserva y se puede ampliar.
+     *
+     * @param  array<string, mixed>  $detail
+     * @return array{traidas: int, ids: list<int>} Cuántas se han traído y cuáles siguen publicadas
+     */
+    private const EMBEDDED_IMAGE = '~<img[^>]+src=(["\'])data:([^;"\']+);base64,([^"\']*)\1[^>]*>~i';
+
+    /**
+     * Marca de las imágenes rescatadas del texto.
+     *
+     * Va en `source_url`, que es donde un medio importado guarda de dónde
+     * viene. Aquí no hay dirección de la que venga —los datos viajaban dentro
+     * del HTML—, así que se apunta el sha1 de su contenido: sirve de identidad
+     * para no duplicarlas y de señal para que la poda sepa que son suyas.
+     */
+    private const EMBEDDED_PREFIX = 'incrustada:';
+
+    private function embeddedImages(Model $item, array $detail, int $position): array
+    {
+        $body = (string) ($detail['body'] ?? $detail['description'] ?? '');
+
+        if (! preg_match_all(self::EMBEDDED_IMAGE, $body, $matches, PREG_SET_ORDER)) {
+            return ['traidas' => 0, 'ids' => []];
+        }
+
+        $traidas = 0;
+        $ids = [];
+
+        foreach ($matches as $match) {
+            $extension = self::EXTENSION_BY_MIME[strtolower(trim($match[2]))] ?? null;
+            $bytes = base64_decode((string) preg_replace('~\s~', '', $match[3]), true);
+
+            // Que el tipo declarado sea de imagen no basta: es texto que escribe
+            // quien publica. Se comprueba que los bytes lo sean de verdad, o
+            // esto se convierte en un sitio por donde subir al disco público
+            // cualquier cosa con solo llamarla `image/png`.
+            if ($extension === null || $bytes === false || getimagesizefromstring($bytes) === false) {
+                $this->newLine();
+                $this->components->warn(
+                    "Una imagen incrustada en el texto de «{$item->title}» no es una imagen que se admita: se descarta."
+                );
+
+                continue;
+            }
+
+            // El origen no le da identificador —no es un archivo suyo, es parte
+            // del texto—, así que la identidad es su contenido. Sin esto, cada
+            // reimportación colgaría otra copia de la misma imagen.
+            $key = self::EMBEDDED_PREFIX.sha1($bytes);
+
+            if ($media = $item->media()->firstWhere('source_url', $key)) {
+                // Ya estaba: se refresca el orden, que sí puede haber cambiado,
+                // y se apunta como vista para que la poda la respete.
+                $media->update(['position' => $position++]);
+                $ids[] = $media->id;
+
+                continue;
+            }
+
+            $path = $this->mediaDirectory($item).'/'.Str::random(8).'-incrustada.'.$extension;
+            Storage::disk('public')->put($path, $bytes);
+
+            $ids[] = $item->media()->create([
+                'type' => ContentMedia::TYPE_IMAGE,
+                'path' => $path,
+                'size' => Storage::disk('public')->size($path),
+                'source_url' => $key,
+                'position' => $position++,
+            ])->id;
+
+            $traidas++;
+        }
+
+        return ['traidas' => $traidas, 'ids' => $ids];
+    }
+
+    /** Dónde se guardan en disco los medios de este modelo. */
+    private function mediaDirectory(Model $item): string
+    {
+        return $item instanceof Content ? 'contenidos' : 'temas/'.$item->topic_id;
+    }
+
+    /**
      * Retira los medios importados que el origen ya no publica.
      *
      * Sin esto, sustituir una foto en el portal dejaba las dos aquí —ambas
      * marcadas como principal— y un adjunto retirado seguía descargable.
      *
-     * Los medios sin identificador de origen se respetan: son los que se
-     * añadieron a mano desde el editor y no le pertenecen a la importación.
+     * Se poda lo que trajo la importación, que es de dos clases: los archivos
+     * del origen, reconocibles por su identificador, y las imágenes rescatadas
+     * del texto, que no tienen ninguno y se reconocen por la marca de su
+     * `source_url`. Sin esa segunda mitad, retocar el diagrama de un artículo
+     * en el portal dejaba aquí los dos —el viejo y el nuevo— y quitarlo del
+     * cuerpo no lo quitaba de la galería, sin que reimportar lo arreglara nunca.
+     *
+     * Lo demás se respeta: son los medios que alguien añadió desde el editor y
+     * no le pertenecen a la importación.
      *
      * @param  list<int>  $seen
      */
     private function pruneMedia(Model $item, array $seen): void
     {
         $item->media()
-            ->whereNotNull('legacy_file_id')
+            ->where(fn ($query) => $query
+                ->whereNotNull('legacy_file_id')
+                ->orWhere('source_url', 'like', self::EMBEDDED_PREFIX.'%'))
             ->whereNotIn('id', $seen ?: [0])
             ->get()
             ->each->delete();
@@ -939,9 +1182,7 @@ class ImportTopic extends Command
             return $media;
         }
 
-        $directory = $item instanceof Content ? 'contenidos' : 'temas/'.$item->topic_id;
-
-        $stored = $this->fetchFile($url, $directory, $attributes['original_name'] ?? null);
+        $stored = $this->fetchFile($url, $this->mediaDirectory($item), $attributes['original_name'] ?? null);
 
         if (! $stored) {
             return $media;

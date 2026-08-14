@@ -651,4 +651,96 @@ class TopicArticleTest extends TestCase
             ->assertOk()
             ->assertSee('La Gerencia invita a la ciudadanía');
     }
+    /* ------------------------------------------------------------------ */
+    /* Trámites */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Un trámite publica su modalidad, su costo y lo que tarda.
+     *
+     * Son los tres datos que el portal enseña al lado del nombre y lo único
+     * que hay que saber antes de venir al hospital. Llegan en la misma lista de
+     * atributos que el lugar de un evento, aparte del cuerpo.
+     */
+    public function test_un_tramite_publica_modalidad_costo_y_duracion(): void
+    {
+        $topic = $this->tema([
+            'name' => 'Trámites y servicios',
+            'slug' => 'tramites-y-servicios',
+            'legacy_content_types' => ['Procedure'],
+        ]);
+
+        $tramite = $topic->items()->create([
+            'kind' => TopicItem::KIND_PROCEDURE,
+            'title' => 'Historia clínica',
+            'slug' => 'historia-clinica',
+            'body' => '<p>Obtener la historia clínica.</p>',
+            'source_url' => 'https://www.gov.co/ficha-tramites-y-servicios/T73911',
+            'procedure_type' => TopicItem::PROCEDURE_IN_PERSON,
+            'procedure_cost_type' => TopicItem::COST_FREE,
+            'procedure_time' => '10 Días Hábiles',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->assertTrue($tramite->isProcedure());
+        $this->assertSame('Trámite', $topic->itemNoun(TopicItem::KIND_PROCEDURE));
+        $this->assertSame('Trámite presencial', $tramite->procedureType());
+        $this->assertSame('Trámite sin costo', $tramite->procedureCost());
+
+        // La ficha completa vive en gov.co: el listado lleva allí y no a una
+        // página nuestra que solo repetiría el resumen.
+        $this->assertSame('https://www.gov.co/ficha-tramites-y-servicios/T73911', $tramite->url());
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        // En filas, como el portal, y no en tarjetas.
+        preg_match('~<li[^>]*border-b border-line py-5.*?</li>~s', $html, $m);
+
+        $this->assertNotEmpty($m, 'No se pintó la fila del trámite.');
+        $this->assertStringContainsString('Trámite presencial', $m[0]);
+        $this->assertStringContainsString('Trámite sin costo', $m[0]);
+        $this->assertStringContainsString('Duración 10 Días Hábiles', $m[0]);
+        $this->assertStringContainsString('Última modificación:', $m[0]);
+        $this->assertStringContainsString('Ver más', $m[0]);
+    }
+
+    /**
+     * «Con costo» y «costo exacto» no son lo mismo.
+     *
+     * Uno dice que cuesta; el otro, cuánto. Es la diferencia entre saber a qué
+     * atenerse y no saberlo, así que no se resumen en la misma frase.
+     */
+    public function test_un_tramite_con_costo_exacto_dice_cuanto(): void
+    {
+        $topic = $this->tema([
+            'name' => 'Trámites y servicios',
+            'slug' => 'tramites-y-servicios',
+            'legacy_content_types' => ['Procedure'],
+        ]);
+
+        $conCosto = $topic->items()->create([
+            'kind' => TopicItem::KIND_PROCEDURE,
+            'title' => 'Terapia',
+            'slug' => 'terapia',
+            'procedure_cost_type' => TopicItem::COST_PAID,
+            'published_at' => now(),
+        ]);
+
+        $exacto = $topic->items()->create([
+            'kind' => TopicItem::KIND_PROCEDURE,
+            'title' => 'Copia de historia clínica',
+            'slug' => 'copia-de-historia-clinica',
+            'procedure_cost_type' => TopicItem::COST_EXACT,
+            'procedure_cost' => '$12.000',
+            'published_at' => now(),
+        ]);
+
+        $this->assertSame('Trámite con costo', $conCosto->procedureCost());
+        $this->assertSame('Costo: $12.000', $exacto->procedureCost());
+
+        // Sin la cifra, «costo exacto» no puede prometer lo que no tiene.
+        $exacto->procedure_cost = null;
+
+        $this->assertSame('Trámite con costo', $exacto->procedureCost());
+    }
 }

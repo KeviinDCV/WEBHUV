@@ -129,6 +129,13 @@ class ContentController extends Controller
         // El cuerpo llega del editor como HTML: se depura antes de guardarlo.
         $content->body = RichText::clean($request->input('body'));
 
+        // La ficha muestra «Modificación: …», y no puede ser `updated_at`
+        // porque una reimportación lo sobreescribiría. Igual que en el editor
+        // de un tema: sin esta línea, corregir a mano una noticia importada
+        // dejaba en pantalla la fecha en que la tocó el portal, meses antes que
+        // el texto que se está leyendo.
+        $content->modified_at = now();
+
         // «Sin fecha de visualización»: se publica sin fecha visible, pero se
         // sigue ordenando por su fecha de creación. Una fecha futura lo deja
         // programado: no se muestra al público hasta que llega.

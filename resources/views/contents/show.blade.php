@@ -30,14 +30,23 @@
                 </nav>
 
                 <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
+                    {{--
+                        Las fechas del contenido, no las de su fila.
+
+                        `updated_at` es cuándo se escribió aquí, y la
+                        importación lo toca en cada pasada: la ficha de una
+                        noticia de agosto decía «Modificación: hoy» cada vez que
+                        se reimportaba Noticias. Se reserva para lo que se
+                        escribió aquí y nunca vino del portal.
+                    --}}
                     <p class="m-0 text-12 text-faint">
                         Modificación:
-                        <time datetime="{{ $content->updated_at->toIso8601String() }}">
-                            {{ $content->updated_at->translatedFormat('Y/m/d H:i:s') }}
+                        <time datetime="{{ ($content->modified_at ?? $content->updated_at)->toIso8601String() }}">
+                            {{ ($content->modified_at ?? $content->updated_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
                         · Creación:
-                        <time datetime="{{ $content->created_at->toIso8601String() }}">
-                            {{ $content->created_at->translatedFormat('Y/m/d H:i:s') }}
+                        <time datetime="{{ ($content->published_at ?? $content->created_at)->toIso8601String() }}">
+                            {{ ($content->published_at ?? $content->created_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
                     </p>
 

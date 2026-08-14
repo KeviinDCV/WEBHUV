@@ -69,6 +69,29 @@ class TopicItem extends Model
      */
     public const KIND_EVENT = 'evento';
 
+    /**
+     * Trámite: un servicio que se solicita, con su modalidad, su costo y lo
+     * que tarda.
+     *
+     * La ficha completa no vive aquí sino en gov.co —el portal enlaza a
+     * «gov.co/ficha-tramites-y-servicios/T78088»—, así que el listado es lo que
+     * hay: nombre, para qué sirve, y los tres datos que uno necesita antes de
+     * ir al hospital.
+     */
+    public const KIND_PROCEDURE = 'tramite';
+
+    /* Modalidad de un trámite, con los números del portal de origen. */
+    public const PROCEDURE_ONLINE = 1;
+
+    public const PROCEDURE_IN_PERSON = 2;
+
+    /* Y su costo. */
+    public const COST_FREE = 0;
+
+    public const COST_PAID = 1;
+
+    public const COST_EXACT = 2;
+
     protected $guarded = [];
 
     /**
@@ -196,6 +219,40 @@ class TopicItem extends Model
         return $this->kind === self::KIND_EVENT;
     }
 
+    public function isProcedure(): bool
+    {
+        return $this->kind === self::KIND_PROCEDURE;
+    }
+
+    /** Cómo se hace: «Trámite en línea» o «Trámite presencial». */
+    public function procedureType(): ?string
+    {
+        return match ($this->procedure_type) {
+            self::PROCEDURE_ONLINE => 'Trámite en línea',
+            self::PROCEDURE_IN_PERSON => 'Trámite presencial',
+            default => null,
+        };
+    }
+
+    /**
+     * Qué cuesta.
+     *
+     * Con «costo exacto» el portal enseña la cifra; con «con costo», que lo
+     * tiene pero no cuánto. Es la diferencia entre saber a qué atenerse y no
+     * saberlo, así que se dice tal cual y no se resume en «con costo».
+     */
+    public function procedureCost(): ?string
+    {
+        return match ($this->procedure_cost_type) {
+            self::COST_FREE => 'Trámite sin costo',
+            self::COST_PAID => 'Trámite con costo',
+            self::COST_EXACT => filled($this->procedure_cost)
+                ? 'Costo: '.$this->procedure_cost
+                : 'Trámite con costo',
+            default => null,
+        };
+    }
+
     /* ------------------------------------------------------------------ */
     /* Consultas */
     /* ------------------------------------------------------------------ */
@@ -295,6 +352,13 @@ class TopicItem extends Model
     {
         if ($this->isLink() && ! $this->topic->isCompactList() && filled($this->source_url)) {
             return LegacyLink::rewrite($this->source_url);
+        }
+
+        // La ficha de un trámite no vive en este portal ni en el anterior, sino
+        // en gov.co, que es la que manda: allí están los requisitos, los pasos y
+        // la normativa. Aquí solo se publica el resumen.
+        if ($this->isProcedure() && filled($this->source_url)) {
+            return $this->source_url;
         }
 
         return route('topics.items.show', [$this->topic, $this]);

@@ -405,6 +405,73 @@ class ContentTest extends TestCase
             ->assertSee('¿Encontraste lo que buscabas?', false);
     }
 
+    /**
+     * La ficha sella las fechas del contenido, no las de su fila.
+     *
+     * `updated_at` es cuándo se escribió aquí, y la importación lo toca en cada
+     * pasada: la ficha de una noticia de agosto decía «Modificación: hoy» cada
+     * vez que se reimportaba Noticias, con el texto de agosto delante. Es el
+     * dato que mira quien quiere saber si un comunicado ha cambiado.
+     */
+    public function test_la_ficha_sella_las_fechas_del_contenido_y_no_las_de_su_fila(): void
+    {
+        $content = $this->noticia([
+            'published_at' => '2026-08-05 07:58:03',
+            'modified_at' => '2026-08-05 08:27:32',
+        ]);
+
+        // Como la deja una reimportación de hoy: la fila se toca, el contenido
+        // no.
+        $content->forceFill(['updated_at' => now(), 'created_at' => now()])->saveQuietly();
+
+        $respuesta = $this->get("/contenidos/{$content->slug}")->assertOk();
+
+        $respuesta->assertSee('2026/08/05 08:27:32', false);
+        $respuesta->assertSee('2026/08/05 07:58:03', false);
+        $respuesta->assertDontSee(now()->format('Y/m/d H:i:s'), false);
+    }
+
+    /**
+     * Corregir a mano una noticia importada actualiza su fecha de modificación.
+     *
+     * La otra mitad del arreglo de arriba. Sellar `modified_at` en la ficha sin
+     * escribirlo al guardar cambia una mentira por otra: en vez de «modificado
+     * hoy» cuando solo se reimportó, diría «modificado hace un año» con el
+     * texto que se acaba de corregir delante. El editor de un tema ya lo hacía
+     * así.
+     */
+    public function test_editar_un_contenido_actualiza_su_fecha_de_modificacion(): void
+    {
+        $content = $this->noticia([
+            'published_at' => '2024-07-01 20:05:10',
+            'modified_at' => '2024-07-01 20:05:10',
+        ]);
+
+        $this->actingAs($this->editor())
+            ->put("/administracion/contenidos/{$content->id}", $this->datos([
+                'title' => $content->title,
+                'body' => '<p>Cuerpo con la errata ya corregida.</p>',
+            ]))
+            ->assertRedirect();
+
+        $this->assertTrue($content->fresh()->modified_at->isToday());
+
+        $this->get("/contenidos/{$content->fresh()->slug}")
+            ->assertOk()
+            ->assertDontSee('2024/07/01 20:05:10', false);
+    }
+
+    /** Sin fechas del portal, las de la fila son lo único que hay. */
+    public function test_sin_fechas_del_portal_la_ficha_recurre_a_las_de_la_fila(): void
+    {
+        $content = $this->noticia(['published_at' => null, 'modified_at' => null]);
+
+        $this->get("/contenidos/{$content->slug}")
+            ->assertOk()
+            ->assertSee($content->updated_at->format('Y/m/d H:i:s'), false)
+            ->assertSee($content->created_at->format('Y/m/d H:i:s'), false);
+    }
+
     public function test_un_contenido_sin_enlace_externo_apunta_a_su_propia_pagina(): void
     {
         $content = $this->noticia();

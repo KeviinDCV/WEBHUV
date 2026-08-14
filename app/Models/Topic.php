@@ -23,6 +23,7 @@ class Topic extends Model
         'Faq' => TopicItem::KIND_QUESTION,
         'Convocation' => TopicItem::KIND_CONVOCATION,
         'Event' => TopicItem::KIND_EVENT,
+        'Procedure' => TopicItem::KIND_PROCEDURE,
     ];
 
     /**
@@ -180,6 +181,7 @@ class Topic extends Model
             TopicItem::KIND_QUESTION => 'Pregunta',
             TopicItem::KIND_CONVOCATION => 'Convocatoria',
             TopicItem::KIND_EVENT => 'Evento',
+            TopicItem::KIND_PROCEDURE => 'Trámite',
             default => 'Noticia',
         };
     }
@@ -195,7 +197,7 @@ class Topic extends Model
      * son ochenta y cinco y va en tarjetas. Es una decisión suya tema por tema,
      * así que aquí se escribe igual de explícita, por nombre.
      */
-    private const ROW_TOPICS = ['contrataciones', 'normatividad'];
+    private const ROW_TOPICS = ['contrataciones', 'normatividad', 'tramites-y-servicios'];
 
     /**
      * De esos, los que además se paginan en el servidor.
