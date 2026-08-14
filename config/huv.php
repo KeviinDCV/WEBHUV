@@ -65,6 +65,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mecanismos de contacto
+    |--------------------------------------------------------------------------
+    |
+    | El portal enlaza el formulario a través de «acortar.link/OUtyCS». Aquí se
+    | guarda el destino final: un acortador esconde a dónde se va, deja el
+    | enlace a merced de un servicio de terceros y no se puede revisar.
+    |
+    */
+    'contact' => [
+        'request_form' => 'http://cross.huv.gov.co/cross/apps/CROSSHUV/ASAP/applications/cross300/'
+            .'index.php?action=FeCrCmdDefaultWebUser&username=webuser&context=2&lang=es',
+    ],
+
     'seo' => [
         'title' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
         'description' => 'Institución de salud pública de alta complejidad del suroccidente colombiano. '
@@ -629,37 +644,51 @@ return [
     */
     'footer' => [
 
-        // Datos de contacto tal como aparecen en el pie institucional.
+        /*
+         | Datos de contacto tal como aparecen en el pie institucional.
+         |
+         | Cada fila lleva `key` porque «Mecanismos de contacto» publica los
+         | mismos datos con otros rótulos y en otro orden. Con la clave, los
+         | números viven en un solo sitio: cambiar una extensión aquí la
+         | cambia en el pie y en esa página a la vez.
+         */
         'contact' => [
             [
+                'key' => 'direccion',
                 'label' => 'Dirección',
                 'value' => 'Cl. 5 # 36-08 Santiago de Cali. Valle del Cauca, Colombia',
             ],
             [
+                'key' => 'horario',
                 'label' => 'Horario de atención',
                 'value' => 'Lunes a Viernes de 7:00 A.M. a 12:00 M y 1:00 P.M. a 5:30 P.M.',
             ],
             [
+                'key' => 'conmutador',
                 'label' => 'Teléfono Conmutador',
                 'value' => '(57+2) 6206000 Ext. 1001',
                 'tel' => '+5726206000,1001',
             ],
             [
+                'key' => 'linea-gratuita',
                 'label' => 'Línea de atención gratuita',
                 'value' => '(57+2) 6206000 Ext: 1218 / 1216',
                 'tel' => '+5726206000,1218',
             ],
             [
+                'key' => 'anticorrupcion',
                 'label' => 'Línea anticorrupción',
                 'value' => '(57+2) 6206000 Ext: 1043',
                 'tel' => '+5726206000,1043',
             ],
             [
+                'key' => 'correo',
                 'label' => 'Correo institucional',
                 'value' => 'pqrsf@correohuv.gov.co',
                 'mailto' => 'pqrsf@correohuv.gov.co',
             ],
             [
+                'key' => 'correo-judicial',
                 'label' => 'Correo de notificaciones judiciales',
                 'value' => 'notificacionesjudiciales@correohuv.gov.co',
                 'mailto' => 'notificacionesjudiciales@correohuv.gov.co',

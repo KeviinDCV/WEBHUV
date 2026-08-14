@@ -756,3 +756,10 @@ html .leaflet-container {
 html[data-huv-contrast='on'] .leaflet-container .leaflet-tile-pane {
     filter: grayscale(1) contrast(1.35) brightness(0.9);
 }
+
+/* Los iconos de PQRDS son trazos negros sobre transparente, y llegan como
+   ficheros SVG, así que no heredan el color del tema. En alto contraste se
+   invierten para que no queden negro sobre negro. */
+html[data-huv-contrast='on'] .huv-pqrds-icono {
+    filter: invert(1);
+}

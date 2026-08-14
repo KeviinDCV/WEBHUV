@@ -249,11 +249,92 @@ class TopicShortcutTest extends TestCase
         );
     }
 
+    /**
+     * «PQRDS» es la tercera página propia.
+     *
+     * Diez trámites con su definición. El formulario que los recibe vive en la
+     * plataforma y su dirección se pide con una credencial que este portal no
+     * tiene, así que cada botón lleva a donde el trámite funciona hoy: no se
+     * pinta un formulario nuestro que no radicaría nada.
+     */
+    public function test_la_pagina_de_pqrds_lista_los_diez_tramites(): void
+    {
+        $this->assertSame(route('pqrds'), LegacyLink::rewrite('/peticiones-quejas-reclamos'));
+
+        $respuesta = $this->get(route('pqrds'))->assertOk();
+
+        foreach (['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación', 'Denuncia',
+            'Solicitud de información', 'Solicitud de datos personales', 'Agenda tu cita'] as $tramite) {
+            $respuesta->assertSee($tramite);
+        }
+
+        $respuesta->assertSee('Hacer seguimiento');
+
+        $html = $respuesta->getContent();
+
+        // Los diez botones —nueve trámites y el seguimiento— llevan a donde se
+        // radica de verdad, y avisan de que se abre fuera.
+        $this->assertSame(
+            10,
+            preg_match_all('~href="https://portal-anterior\.gov\.co/peticiones-quejas-reclamos"~', $html)
+        );
+
+        // Y los nueve iconos son decorativos: lo que dicen ya está en el título.
+        $this->assertSame(9, preg_match_all('~/img/pqrds/[a-z-]+\.svg" alt=""~', $html));
+    }
+
+    /**
+     * «Mecanismos de contacto» no repite los teléfonos: los toma del pie.
+     *
+     * Son los datos de contacto de una entidad pública. Escribirlos dos veces
+     * es garantizar que un día digan cosas distintas, y aquí las dos versiones
+     * aparecen en la misma pantalla.
+     */
+    public function test_la_pagina_de_contacto_toma_los_datos_del_pie(): void
+    {
+        $this->assertSame(route('contact'), LegacyLink::rewrite('/contactenos'));
+
+        $respuesta = $this->get(route('contact'))->assertOk();
+
+        // Sobre el bloque de la página, no sobre la página entera: el pie
+        // publica estos mismos datos justo debajo, así que buscarlos en todo el
+        // HTML no distinguiría entre los dos.
+        preg_match('~<address\b.*?</address>~s', $respuesta->getContent(), $m);
+
+        $this->assertNotEmpty($m, 'No se pintó el bloque de contacto.');
+
+        $mecanismos = [
+            'direccion' => 'Dirección',
+            'conmutador' => 'Teléfono',
+            'linea-gratuita' => 'Línea de atención gratuita',
+            'correo' => 'Email',
+            'correo-judicial' => 'Notificaciones Judiciales',
+            'horario' => 'Horario de atención',
+        ];
+
+        foreach ($mecanismos as $clave => $rotulo) {
+            $fila = collect(config('huv.footer.contact'))->firstWhere('key', $clave);
+
+            $this->assertNotNull($fila, "Falta la fila «{$clave}» en el pie.");
+
+            // El dato del pie, con el rótulo de esta página.
+            $this->assertStringContainsString($fila['value'], $m[0]);
+            $this->assertStringContainsString($rotulo.':', $m[0]);
+        }
+
+        $respuesta->assertSee('Formulario electrónico de solicitudes');
+
+        // La anticorrupción está en el pie y no aquí, como en el portal.
+        $anticorrupcion = collect(config('huv.footer.contact'))->firstWhere('key', 'anticorrupcion');
+
+        $this->assertStringNotContainsString($anticorrupcion['value'], $m[0]);
+    }
+
     /** Lo que todavía no existe aquí sigue sirviéndose del portal anterior. */
     public function test_una_pagina_sin_migrar_sigue_en_el_portal_anterior(): void
     {
         $this->assertSame('https://portal-anterior.gov.co/mapa-del-sitio', LegacyLink::rewrite('/mapa-del-sitio'));
-        $this->assertSame('https://portal-anterior.gov.co/contactenos', LegacyLink::rewrite('/contactenos'));
+        $this->assertSame('https://portal-anterior.gov.co/estadisticas', LegacyLink::rewrite('/estadisticas'));
     }
 
     /** El orden es el que colocó quien edita, no el de la fecha. */

@@ -25,6 +25,8 @@ Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('cont
 */
 Route::view('/sucursales', 'sucursales')->name('branches');
 Route::view('/politicas', 'politicas')->name('policies');
+Route::view('/peticiones-quejas-reclamos', 'pqrds')->name('pqrds');
+Route::view('/contactenos', 'contacto')->name('contact');
 
 /*
 | Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado
