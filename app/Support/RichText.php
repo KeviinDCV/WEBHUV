@@ -50,6 +50,21 @@ class RichText
 
         $clean = trim((new HtmlSanitizer($config))->sanitize($html));
 
+        // Enlaces sin rótulo. Los deja el editor del portal anterior al borrar
+        // el texto de un enlace sin borrar la etiqueta, y en «Denuncias por
+        // posibles actos de corrupción» hay uno justo encima del enlace bueno,
+        // apuntando al mismo formulario. No se ve, pero se anuncia: un lector
+        // de pantalla lo lista como un enlace más y lo lee sin nombre —o
+        // deletreando la dirección— (WCAG 2.4.4), y el tabulador se para en él.
+        //
+        // Antes que los encabezados, porque un enlace vacío dentro de un <h3>
+        // deja el encabezado vacío y entonces se lo lleva la regla siguiente.
+        $clean = (string) preg_replace(
+            '~<a\b[^>]*>(?:\s|&nbsp;|<(?:br|strong|em|span|u|s|sub|sup|code)\b[^>]*>|</(?:br|strong|em|span|u|s|sub|sup|code)>)*</a>~i',
+            '',
+            $clean
+        );
+
         // Encabezados sin texto. El editor del portal anterior los deja a
         // pares —«<h3><b><br></b></h3>»— y no son inocuos: quien navega con
         // lector de pantalla salta de encabezado en encabezado y aterriza en
@@ -100,7 +115,15 @@ class RichText
         //
         // Se desenvuelven en vez de convertirse a <p> porque llevan párrafos
         // dentro, y un <p> dentro de otro <p> no es HTML válido.
-        $unwrap = ['article', 'section', 'main', 'header', 'footer', 'aside'];
+        //
+        // `label` no es de la misma familia, pero se comporta igual: el editor
+        // del portal lo usa para colgarle una clase a un enlace, sin formulario
+        // ninguno al que etiquetar. En «Plan Anual de Adquisiciones V3 -2024»
+        // envolvía el único enlace útil del contenido —el plan en SECOP II— y
+        // se lo llevaba por delante, dejando un título suelto y cuatro saltos
+        // de línea. Barriendo los 2.358 contenidos del portal, es el único
+        // envoltorio de este tipo que queda por desenvolver.
+        $unwrap = ['article', 'section', 'main', 'header', 'footer', 'aside', 'label'];
 
         foreach ($unwrap as $tag) {
             $html = preg_replace('~<\s*/?\s*'.$tag.'(\s[^>]*)?>~i', '', (string) $html);

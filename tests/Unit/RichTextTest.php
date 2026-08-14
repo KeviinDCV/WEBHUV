@@ -52,6 +52,36 @@ class RichTextTest extends TestCase
         $this->assertStringContainsString('<h2>Visión</h2>', $clean);
     }
 
+    /**
+     * Enlaces sin rótulo.
+     *
+     * Los deja el editor del portal anterior al borrar el texto de un enlace
+     * sin borrar la etiqueta. En «Denuncias por posibles actos de corrupción»
+     * hay uno justo encima del enlace bueno y apuntando al mismo formulario: no
+     * se ve, pero un lector de pantalla lo lista y lo lee sin nombre, y el
+     * tabulador se para en él.
+     */
+    public function test_los_enlaces_sin_rotulo_se_retiran(): void
+    {
+        $clean = RichText::clean(
+            '<p><a href="https://acortar.link/OUtyCS" target=""></a></p>'
+            .'<h3><a href="https://acortar.link/OUtyCS" target=""><u>Formulario Denuncias</u></a></h3>'
+        );
+
+        $this->assertStringNotContainsString('</a></p>', $clean);
+        $this->assertStringContainsString('<u>Formulario Denuncias</u></a></h3>', $clean);
+
+        // Uno con un <br> dentro tampoco es un rótulo, y el encabezado que se
+        // queda sin nada se va detrás.
+        $this->assertNull(RichText::clean('<h3><a href="https://x.test"><strong><br></strong></a></h3>'));
+
+        // Un espacio en blanco no cuenta como texto; una palabra sí.
+        $this->assertSame(
+            '<p>y <a href="https://y.test">este sí</a></p>',
+            RichText::clean('<p><a href="https://x.test"> </a>y <a href="https://y.test">este sí</a></p>')
+        );
+    }
+
     public function test_un_cuerpo_vacio_no_es_contenido(): void
     {
         $this->assertNull(RichText::clean('<p><br></p>'));
@@ -165,7 +195,7 @@ class RichTextTest extends TestCase
      */
     public function test_un_cuerpo_envuelto_en_un_bloque_desconocido_sobrevive(): void
     {
-        $envoltorios = ['article', 'section', 'main', 'header', 'footer', 'aside'];
+        $envoltorios = ['article', 'section', 'main', 'header', 'footer', 'aside', 'label'];
 
         foreach ($envoltorios as $tag) {
             $html = '<'.$tag.' class="content-descri"><p>Señor usuario, la respuesta está disponible.</p></'.$tag.'>';
@@ -182,5 +212,27 @@ class RichTextTest extends TestCase
             // HTML válido y el saneador lo partiría.
             $this->assertStringNotContainsString('<'.$tag, (string) $limpio);
         }
+    }
+
+    /**
+     * El caso real del <label>, con el enlace dentro.
+     *
+     * El editor del portal lo usa para colgarle una clase a un enlace, sin
+     * formulario ninguno al que etiquetar. En «Plan Anual de Adquisiciones V3
+     * -2024» envolvía el único enlace útil del contenido y se lo llevaba por
+     * delante: quedaba el título suelto y cuatro saltos de línea.
+     */
+    public function test_un_enlace_envuelto_en_label_no_se_pierde(): void
+    {
+        $html = '<p>Plan Anual de Adquisiciones V3 -2024</p><p><br>'
+            .'<label class="BreadCrumbLabel" data-translated="true">'
+            .'<a href="https://community.secop.gov.co/Public/App/AnnualPurchasingPlanEditPublic/View?id=417273" target="">'
+            .'Ver plan anual de adquisiciones</a><b>-SECOP II</b><br></label></p>';
+
+        $limpio = (string) RichText::clean(RichText::normalizeLegacy($html));
+
+        $this->assertStringContainsString('Ver plan anual de adquisiciones', $limpio);
+        $this->assertStringContainsString('community.secop.gov.co', $limpio);
+        $this->assertStringContainsString('<strong>-SECOP II</strong>', $limpio);
     }
 }
