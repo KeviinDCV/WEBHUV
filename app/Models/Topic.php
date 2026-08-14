@@ -22,6 +22,7 @@ class Topic extends Model
         'Link' => TopicItem::KIND_LINK,
         'Faq' => TopicItem::KIND_QUESTION,
         'Convocation' => TopicItem::KIND_CONVOCATION,
+        'Event' => TopicItem::KIND_EVENT,
     ];
 
     /**
@@ -178,6 +179,7 @@ class Topic extends Model
             TopicItem::KIND_LINK => 'Link',
             TopicItem::KIND_QUESTION => 'Pregunta',
             TopicItem::KIND_CONVOCATION => 'Convocatoria',
+            TopicItem::KIND_EVENT => 'Evento',
             default => 'Noticia',
         };
     }

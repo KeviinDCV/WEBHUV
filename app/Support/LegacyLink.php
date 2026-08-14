@@ -34,6 +34,7 @@ class LegacyLink
      */
     private const MIGRATED_PAGES = [
         '/sucursales' => 'branches',
+        '/politicas' => 'policies',
     ];
 
     /**

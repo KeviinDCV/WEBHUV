@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ContentMedia;
 use App\Models\Topic;
 use App\Models\TopicItem;
 use App\Models\User;
@@ -103,13 +104,13 @@ class TopicConvocationTest extends TestCase
 
         $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
 
-        // Sobre la propia tarjeta, no en cualquier parte de la página: el azul
-        // del buscador y el de los botones también contienen «bg-azure».
-        preg_match_all('/<article[^>]*class="([^"]*)"/', $html, $articulos);
+        // Dentro de la propia tarjeta, no en cualquier parte de la página: el
+        // azul del buscador y el de los botones también contienen «bg-azure».
+        preg_match_all('~<article\b.*?</article>~s', $html, $articulos);
 
         $enColor = array_filter(
-            $articulos[1] ?? [],
-            fn (string $clases) => str_contains($clases, 'bg-azure') && str_contains($clases, 'text-on-accent')
+            $articulos[0] ?? [],
+            fn (string $tarjeta) => str_contains($tarjeta, 'bg-azure') && str_contains($tarjeta, 'text-on-accent')
         );
 
         $this->assertCount(1, $enColor, 'La tarjeta de la convocatoria no va en color.');
@@ -192,5 +193,44 @@ class TopicConvocationTest extends TestCase
             ->assertSee('cdp.pdf')
             ->assertSee('aviso.pdf')
             ->assertSee('estudios-previos.pdf');
+    }
+
+    /**
+     * Y si trae cartel, va encima del azul y sin recortar.
+     *
+     * Las convocatorias de «Rendición de cuentas» son invitaciones diseñadas:
+     * la fecha, la hora, el auditorio y los códigos QR están dentro de la
+     * propia imagen. Ajustarla a una proporción fija recortaría justo eso, y
+     * meterla dentro del bloque azul la teñiría.
+     */
+    public function test_el_cartel_de_una_convocatoria_va_encima_del_azul(): void
+    {
+        $topic = $this->tema();
+        $item = $this->convocatoria($topic);
+
+        $item->media()->create([
+            'type' => ContentMedia::TYPE_IMAGE,
+            'is_main' => true,
+            'position' => 0,
+            'path' => 'temas/1/cartel.jpg',
+        ]);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        preg_match('~<article\b.*?</article>~s', $html, $m);
+
+        $this->assertNotEmpty($m, 'No se pintó la tarjeta.');
+
+        $cartel = $item->fresh()->imageUrl();
+
+        $this->assertStringContainsString('<img src="'.e($cartel), $m[0]);
+        $this->assertStringNotContainsString('aspect-[16/9]', $m[0]);
+
+        // El azul empieza después del cartel, no alrededor.
+        $this->assertLessThan(
+            mb_strpos($m[0], 'bg-azure'),
+            mb_strpos($m[0], e($cartel)),
+            'El cartel tiene que ir antes del bloque de color.'
+        );
     }
 }

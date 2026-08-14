@@ -54,10 +54,27 @@
         contraste lo siga cambiando: un hexadecimal escrito aquí se quedaría
         igual y dejaría la tarjeta ilegible con ese modo puesto.
     --}}
-    <article class="flex w-full flex-col overflow-hidden rounded-[4px] bg-azure text-on-accent
-                    transition hover:bg-azure-dark
-                    hover:shadow-[0_10px_26px_rgba(23,32,64,0.18)]">
-        <div class="flex flex-1 flex-col gap-[6px] p-5">
+    <article class="group flex w-full flex-col overflow-hidden rounded-[4px]
+                    transition hover:shadow-[0_10px_26px_rgba(23,32,64,0.18)]">
+
+        {{--
+            El cartel va encima del azul y sin recortar.
+
+            Las dos convocatorias de «Rendición de cuentas» son invitaciones
+            diseñadas: fecha, hora, auditorio y códigos QR dentro de la propia
+            imagen. Recortarlas a una proporción fija se comería justo eso, así
+            que se publican enteras, como en el portal.
+        --}}
+        @if ($item->imageUrl())
+            <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true" class="block">
+                <img src="{{ $item->imageUrl() }}" alt=""
+                     loading="lazy" decoding="async"
+                     class="h-auto w-full">
+            </a>
+        @endif
+
+        <div class="flex flex-1 flex-col gap-[6px] bg-azure p-5 text-on-accent transition-colors
+                    group-hover:bg-azure-dark">
             <x-topic-item-meta :item="$item" tone="accent" />
         </div>
     </article>

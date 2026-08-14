@@ -43,10 +43,12 @@
           get isArticle() { return this.kind === @js(TopicItem::KIND_ARTICLE) },
           get isLink() { return this.kind === @js(TopicItem::KIND_LINK) },
           get isConvocation() { return this.kind === @js(TopicItem::KIND_CONVOCATION) },
+          get isEvent() { return this.kind === @js(TopicItem::KIND_EVENT) },
           // Quién lleva fotos, vídeo y archivos. El documento entra aquí desde
           // que el editor admite varios: el portal publica hasta veinticinco
-          // en uno solo.
-          get hasMedia() { return this.isArticle || this.isDocument || this.isConvocation },
+          // en uno solo. El evento va con el artículo: se publica igual, con su
+          // cartel y su texto.
+          get hasMedia() { return this.isArticle || this.isDocument || this.isConvocation || this.isEvent },
           get isFuture() {
               return this.scheduling && this.publishedAt && new Date(this.publishedAt) > new Date();
           },
@@ -263,16 +265,21 @@
     --}}
     @if (array_intersect([TopicItem::KIND_ARTICLE, TopicItem::KIND_CONVOCATION, TopicItem::KIND_DOCUMENT], $kinds))
         <fieldset class="border-0 p-0" x-show="hasMedia" :disabled="! hasMedia" x-cloak>
+            @php
+                // Fotos y vídeo solo donde la ficha los pinta. La de un
+                // documento y la de una convocatoria son texto y archivos; la
+                // de un evento es la de un artículo, con su cartel.
+                $conGaleria = array_intersect([TopicItem::KIND_ARTICLE, TopicItem::KIND_EVENT], $kinds) !== [];
+            @endphp
+
             @include('admin.contents.partials.media', [
                 'content' => $item,
-                // Fotos y vídeo solo donde la ficha los pinta. La de un
-                // documento y la de una convocatoria son texto y archivos.
-                'gallery' => in_array(TopicItem::KIND_ARTICLE, $kinds, true),
-                'galleryWhen' => 'isArticle',
+                'gallery' => $conGaleria,
+                'galleryWhen' => 'isArticle || isEvent',
             ])
 
-            @if (in_array(TopicItem::KIND_ARTICLE, $kinds, true))
-                <div x-show="isArticle" x-cloak>
+            @if ($conGaleria)
+                <div x-show="isArticle || isEvent" x-cloak>
                     @include('admin.contents.partials.library', ['content' => $item])
                 </div>
             @endif

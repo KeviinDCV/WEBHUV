@@ -216,7 +216,7 @@ class TopicItemController extends Controller
         if ($item->isArticle() || $item->isConvocation() || $item->isDocument()) {
             // Sin galería salvo en el artículo: la ficha de un documento y la
             // de una convocatoria son texto y archivos, sin imagen ni vídeo.
-            (new MediaSync($item, 'temas/'.$topic->id, gallery: $item->isArticle()))->apply($request);
+            (new MediaSync($item, 'temas/'.$topic->id, gallery: $item->isArticle() || $item->isEvent()))->apply($request);
         }
 
         if (! $item->isDocument()) {

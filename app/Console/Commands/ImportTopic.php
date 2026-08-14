@@ -526,9 +526,15 @@ class ImportTopic extends Command
         // va a una columna propia y NO a `expires_at`, que aquí significa «deja
         // de verse»: habría escondido cuarenta y siete de las cincuenta y dos.
         $convocation = $kind === TopicItem::KIND_CONVOCATION;
+        $event = $kind === TopicItem::KIND_EVENT;
 
-        $item->opens_at = $convocation ? $this->date($detail['startingDate'] ?? null) : null;
+        // Un evento comparte columna con la apertura de una convocatoria: las
+        // dos responden a «desde cuándo». Lugar y organizador llegan en una
+        // lista de atributos aparte del cuerpo.
+        $item->opens_at = $convocation || $event ? $this->date($detail['startingDate'] ?? null) : null;
         $item->closes_at = $convocation ? $this->date($detail['closingDate'] ?? null) : null;
+        $item->event_location = $event ? $this->attribute($detail, 'EventLocation') : null;
+        $item->event_host = $event ? $this->attribute($detail, 'EventHost') : null;
 
         // Los dos bloques se escriben SIEMPRE, aunque uno quede en nulo. Un
         // contenido puede cambiar de tipo en el origen, y dejar la caducidad de
@@ -653,6 +659,25 @@ class ImportTopic extends Command
         return filled($detail['metaDescription'] ?? null)
             ? '<p>'.e(trim((string) $detail['metaDescription'])).'</p>'
             : null;
+    }
+
+    /**
+     * Un atributo suelto del contenido.
+     *
+     * El origen los publica como una lista de pares —«EventLocation»,
+     * «EventHost»— en vez de como campos propios, así que hay que buscarlos.
+     *
+     * @param  array<string, mixed>  $detail
+     */
+    private function attribute(array $detail, string $name): ?string
+    {
+        foreach ($detail['attributes'] ?? [] as $attribute) {
+            if (($attribute['attribute'] ?? null) === $name) {
+                return filled($attribute['value'] ?? null) ? trim((string) $attribute['value']) : null;
+            }
+        }
+
+        return null;
     }
 
     private function date(?string $value): ?Carbon
@@ -949,6 +974,25 @@ class ImportTopic extends Command
     private const ALLOWED_EXTENSIONS = [
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt', 'zip',
         'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp',
+        // El portal adjunta la grabación de la audiencia pública de
+        // rendición de cuentas como un MP4 más de la lista de descargas.
+        'mp4',
+    ];
+
+    /**
+     * Con qué extensión se guarda un archivo cuyo nombre no la trae.
+     *
+     * Solo tipos de la lista de arriba: esto sirve para reconocer lo que ya se
+     * admite, no para colar formatos nuevos por la puerta del `Content-Type`.
+     */
+    private const EXTENSION_BY_MIME = [
+        'application/pdf' => 'pdf',
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/bmp' => 'bmp',
+        'image/webp' => 'webp',
+        'video/mp4' => 'mp4',
     ];
 
     /**
@@ -983,10 +1027,22 @@ class ImportTopic extends Command
 
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
+        // Sin extensión utilizable, se pregunta por el tipo que declara el
+        // servidor. Las imágenes que el portal enlaza desde Google Fotos vienen
+        // con nombres como «Iomj-45CjnDS6…=w1200-h630-p», sin punto ni nada
+        // parecido a un formato; guardarlas como .bin las servía luego como
+        // «application/octet-stream» y el navegador se las descargaba en vez de
+        // pintarlas.
         if (! in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            $extension = self::EXTENSION_BY_MIME[strtolower(trim(
+                Str::before((string) $response->header('Content-Type'), ';')
+            ))] ?? null;
+        }
+
+        if ($extension === null) {
             $this->newLine();
             $this->components->warn(
-                "«{$name}» llega con una extensión que no se admite: se guarda como .bin."
+                "«{$name}» llega sin una extensión que se admita y sin tipo declarado: se guarda como .bin."
             );
 
             $extension = 'bin';

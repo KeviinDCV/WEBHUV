@@ -454,4 +454,107 @@ class ImportDocumentFilesTest extends TestCase
 
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'minsalud'));
     }
+
+    /**
+     * Un evento del origen se importa como evento, con sus datos.
+     *
+     * «Rendición de cuentas» trae uno entre veintidós contenidos, y sin el tipo
+     * la importación lo saltaba en silencio: el listado quedaba con veintiuno.
+     * El origen publica el lugar y el organizador en una lista de atributos
+     * aparte del cuerpo, y la fecha del acto en `startingDate`.
+     */
+    public function test_un_evento_se_importa_con_su_fecha_lugar_y_organizador(): void
+    {
+        $this->fakePortal([[
+            'contentID' => 7300,
+            'friendlyName' => 'audiencia-publica-de-rendicion-de-cuentas-vigencia-2022',
+            'name' => 'Invitación Audiencia Pública de Rendición de Cuentas Vigencia 2022',
+            'contentType' => 'Event',
+            'body' => '<p>La Gerencia invita a la ciudadanía.</p>',
+            'creationDate' => '2023/05/19 12:52:30',
+            'modifiedDate' => '2023/08/18 16:06:50',
+            'startingDate' => '2023/03/28 08:00:00',
+            'published' => true,
+            'labels' => [],
+            'files' => [],
+            'attributes' => [
+                ['attribute' => 'EventLocation', 'value' => 'Auditorio Carlos Manzano'],
+                ['attribute' => 'EventHost', 'value' => 'Hospital Universitario del Valle'],
+            ],
+        ]]);
+
+        $this->importar();
+
+        $item = TopicItem::sole();
+
+        $this->assertSame(TopicItem::KIND_EVENT, $item->kind);
+        $this->assertSame('2023-03-28 08:00:00', $item->opens_at->format('Y-m-d H:i:s'));
+        $this->assertSame('Auditorio Carlos Manzano', $item->event_location);
+        $this->assertSame('Hospital Universitario del Valle', $item->event_host);
+
+        // No es un documento: ni fecha de expedición ni archivo.
+        $this->assertNull($item->issued_at);
+        $this->assertFalse($item->isDownloaded());
+    }
+
+    /**
+     * Sin extensión en el nombre, se pregunta por el tipo declarado.
+     *
+     * El portal enlaza imágenes desde Google Fotos con nombres como
+     * «Iomj-45CjnDS6…=w1200-h630-p», sin punto ni nada parecido a un formato.
+     * Guardarlas como .bin las servía después como «application/octet-stream»,
+     * y el navegador se las descargaba en vez de pintarlas.
+     */
+    public function test_un_archivo_sin_extension_la_toma_del_tipo_declarado(): void
+    {
+        Http::fake([
+            self::BASE.'/api/v1/tags/rendicion-de-cuentas' => fn () => Http::response([
+                'defaultContentTemplate' => null,
+            ]),
+
+            self::BASE.'/api/v1/tags/*' => fn () => Http::response([
+                'results' => [[
+                    'tagID' => 5,
+                    'name' => 'Rendición de cuentas',
+                    'friendlyName' => 'rendicion-de-cuentas',
+                    'validContentTypes' => ['Article'],
+                    'templateType' => 'Default',
+                ]],
+                'meta' => ['hasNextPage' => false],
+            ]),
+
+            self::BASE.'/api/v1/contents?*' => fn () => Http::response([
+                'results' => [['friendlyName' => 'inscripcion-capacitaciones']],
+                'meta' => ['hasNextPage' => false, 'totalCount' => 1],
+            ]),
+
+            self::BASE.'/api/v1/contents/*' => fn () => Http::response([
+                'contentID' => 7400,
+                'friendlyName' => 'inscripcion-capacitaciones',
+                'name' => 'Inscripción Capacitaciones',
+                'contentType' => 'Article',
+                'body' => '<p>Cronograma.</p>',
+                'creationDate' => '2025/07/07 11:00:00',
+                'modifiedDate' => '2025/07/07 11:00:00',
+                'published' => true,
+                'labels' => [],
+                'files' => [],
+                'defaultImage' => 'https://lh3.googleusercontent.com/Iomj-45CjnDS6UY9uq8=w1200-h630-p',
+            ]),
+
+            'https://lh3.googleusercontent.com/*' => fn () => Http::response(
+                'datos de la imagen',
+                200,
+                ['Content-Type' => 'image/png; charset=binary']
+            ),
+        ]);
+
+        $this->artisan('huv:importar rendicion-de-cuentas')->assertSuccessful();
+
+        $imagen = TopicItem::sole()->mainImage();
+
+        $this->assertNotNull($imagen, 'La imagen no llegó.');
+        $this->assertStringEndsWith('.png', $imagen->path);
+        $this->assertStringNotContainsString('.bin', $imagen->path);
+    }
 }

@@ -224,11 +224,36 @@ class TopicShortcutTest extends TestCase
             ->assertSee('Ruta de navegación');
     }
 
+    /**
+     * «Políticas» es la otra página propia migrada.
+     *
+     * Su texto no sale de la API de contenidos sino de «policiesterms», que
+     * devuelve dos bloques: el del hospital y el de la plataforma.
+     */
+    public function test_la_pagina_de_politicas_existe_y_recoge_sus_enlaces(): void
+    {
+        $this->assertSame(route('policies'), LegacyLink::rewrite('/politicas'));
+
+        $respuesta = $this->get(route('policies'))->assertOk();
+
+        $respuesta->assertSee('Política de derechos de autor y autorización de uso de contenidos');
+        $respuesta->assertSee('Mi Colombia Digital');
+
+        // Los nueve enlaces de soporte de la plataforma, y salen fuera.
+        $this->assertSame(
+            9,
+            preg_match_all(
+                '~href="https://micolombiadigital\.gov\.co/soporte/~',
+                $respuesta->getContent()
+            )
+        );
+    }
+
     /** Lo que todavía no existe aquí sigue sirviéndose del portal anterior. */
     public function test_una_pagina_sin_migrar_sigue_en_el_portal_anterior(): void
     {
-        $this->assertSame('https://portal-anterior.gov.co/politicas', LegacyLink::rewrite('/politicas'));
         $this->assertSame('https://portal-anterior.gov.co/mapa-del-sitio', LegacyLink::rewrite('/mapa-del-sitio'));
+        $this->assertSame('https://portal-anterior.gov.co/contactenos', LegacyLink::rewrite('/contactenos'));
     }
 
     /** El orden es el que colocó quien edita, no el de la fecha. */

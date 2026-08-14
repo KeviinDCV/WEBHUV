@@ -7,10 +7,11 @@ use App\Models\ContentMedia;
 use App\Models\Topic;
 use App\Models\TopicCategory;
 use App\Models\TopicItem;
-use App\Support\CommentWall;
 use App\Models\User;
+use App\Support\CommentWall;
 use App\Support\LegacyLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -70,7 +71,7 @@ class TopicArticleTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Listado                                                             */
+    /* Listado */
     /* ------------------------------------------------------------------ */
 
     public function test_el_listado_de_articulos_conserva_la_forma_del_tema(): void
@@ -267,20 +268,51 @@ class TopicArticleTest extends TestCase
     }
 
     /** Donde se mezclan tipos, el listado deja filtrar por cuál. */
-    public function test_un_tema_mixto_ofrece_filtrar_por_tipo(): void
+    /**
+     * El filtro ofrece los tipos que hay, no los que el tema admite.
+     *
+     * «Planeación y presupuesto participativo» declara doce tipos en el origen
+     * y publica tres. Ofrecer los otros nueve sería prometer filtros que
+     * siempre devuelven la lista vacía.
+     */
+    public function test_un_tema_mixto_ofrece_filtrar_por_los_tipos_que_tiene(): void
     {
         $mixto = $this->tema([
             'name' => 'Otros',
             'slug' => 'otros',
-            'legacy_content_types' => ['Document', 'Ad'],
+            // Admite tres; solo se publicarán dos.
+            'legacy_content_types' => ['Document', 'Ad', 'Convocation'],
         ]);
 
-        $this->get(route('topics.show', $mixto))
-            ->assertOk()
-            ->assertSee('Todos los contenidos');
+        $mixto->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Tarifas vigentes',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $mixto->items()->create([
+            'kind' => TopicItem::KIND_NOTICE,
+            'title' => 'Aviso de subasta',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $respuesta = $this->get(route('topics.show', $mixto))->assertOk();
+
+        $respuesta->assertSee('Todos los contenidos');
+        $respuesta->assertSee('>Documento</option>', false);
+        $respuesta->assertSee('>Clasificado</option>', false);
+
+        // Admitida pero sin publicar: no se ofrece.
+        $respuesta->assertDontSee('>Convocatoria</option>', false);
 
         // Con un solo tipo no hay nada que elegir.
         $simple = $this->tema(['legacy_content_types' => ['Document']]);
+
+        $simple->items()->create([
+            'kind' => TopicItem::KIND_DOCUMENT,
+            'title' => 'Ejecución presupuestal',
+            'published_at' => now()->subDay(),
+        ]);
 
         $this->get(route('topics.show', $simple))
             ->assertOk()
@@ -410,7 +442,7 @@ class TopicArticleTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Participación                                                       */
+    /* Participación */
     /* ------------------------------------------------------------------ */
 
     public function test_participa_sale_con_muro_publico_o_privado_y_lo_ve_cualquiera(): void
@@ -435,7 +467,7 @@ class TopicArticleTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Visibilidad y fronteras                                             */
+    /* Visibilidad y fronteras */
     /* ------------------------------------------------------------------ */
 
     public function test_el_visitante_no_ve_lo_inactivo_lo_oculto_lo_programado_ni_lo_caducado(): void
@@ -513,7 +545,7 @@ class TopicArticleTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* Ficha                                                               */
+    /* Ficha */
     /* ------------------------------------------------------------------ */
 
     public function test_la_ficha_del_articulo_muestra_imagen_cuerpo_y_fechas(): void
@@ -573,5 +605,50 @@ class TopicArticleTest extends TestCase
 
         $this->assertTrue($item->fresh()->is_featured);
         $this->assertTrue($noticia->fresh()->is_featured);
+    }
+    /* ------------------------------------------------------------------ */
+    /* Eventos */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Un evento es un tipo propio, no una noticia.
+     *
+     * El portal lo publica exactamente como un artículo —título, texto y nada
+     * más—, pero guarda aparte su fecha, su lugar y su organizador. Se traen
+     * los tres: «Calendario de actividades» son ciento cuarenta y un eventos y
+     * ahí harán falta.
+     */
+    public function test_un_evento_conserva_su_fecha_lugar_y_organizador(): void
+    {
+        $topic = $this->tema([
+            'name' => 'Rendición de cuentas',
+            'slug' => 'rendicion-de-cuentas',
+            'legacy_content_types' => ['Event', 'Document'],
+        ]);
+
+        $evento = $topic->items()->create([
+            'kind' => TopicItem::KIND_EVENT,
+            'title' => 'Invitación Audiencia Pública de Rendición de Cuentas Vigencia 2022',
+            'slug' => 'audiencia-publica-de-rendicion-de-cuentas-vigencia-2022',
+            'body' => '<p>La Gerencia invita a la ciudadanía.</p>',
+            'opens_at' => Carbon::parse('2023-03-28 08:00:00'),
+            'event_location' => 'Auditorio Carlos Manzano',
+            'event_host' => 'Hospital Universitario del Valle',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->assertTrue($evento->isEvent());
+        $this->assertFalse($evento->isArticle());
+        $this->assertSame('Evento', $topic->itemNoun(TopicItem::KIND_EVENT));
+
+        // Y se publica: sin el tipo, la importación lo saltaba y el listado se
+        // quedaba con un contenido de menos sin decirlo.
+        $this->get(route('topics.show', $topic))
+            ->assertOk()
+            ->assertSee('Invitación Audiencia Pública de Rendición de Cuentas Vigencia 2022');
+
+        $this->get(route('topics.items.show', [$topic, $evento]))
+            ->assertOk()
+            ->assertSee('La Gerencia invita a la ciudadanía');
     }
 }

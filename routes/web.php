@@ -24,6 +24,7 @@ Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('cont
 | resolverse contra el portal anterior.
 */
 Route::view('/sucursales', 'sucursales')->name('branches');
+Route::view('/politicas', 'politicas')->name('policies');
 
 /*
 | Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado

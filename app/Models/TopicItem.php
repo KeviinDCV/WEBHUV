@@ -57,6 +57,18 @@ class TopicItem extends Model
      */
     public const KIND_CONVOCATION = 'convocatoria';
 
+    /**
+     * Evento: una convocatoria a un acto con fecha, lugar y organizador.
+     *
+     * Se lee como un artículo, que es exactamente lo que hace el portal con la
+     * «Invitación Audiencia Pública de Rendición de Cuentas Vigencia 2022»:
+     * título, texto y nada más —el auditorio y la hora los repitió a mano quien
+     * la escribió—. Aun así se guarda aparte y con sus datos propios, porque
+     * «Calendario de actividades» son ciento cuarenta y un eventos y ahí sí
+     * harán falta.
+     */
+    public const KIND_EVENT = 'evento';
+
     protected $guarded = [];
 
     /**
@@ -177,6 +189,11 @@ class TopicItem extends Model
     public function isConvocation(): bool
     {
         return $this->kind === self::KIND_CONVOCATION;
+    }
+
+    public function isEvent(): bool
+    {
+        return $this->kind === self::KIND_EVENT;
     }
 
     /* ------------------------------------------------------------------ */
