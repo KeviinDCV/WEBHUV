@@ -878,7 +878,7 @@ class ImportTopic extends Command
         }
 
         $stored = $this->fetchFile(
-            $item->source_url,
+            $this->absolute($item->source_url),
             'documentos/'.$item->topic_id,
             $item->file_name
         );
@@ -1080,6 +1080,24 @@ class ImportTopic extends Command
         return ['traidas' => $traidas, 'ids' => $ids];
     }
 
+    /**
+     * La direccion de un medio del origen, completa.
+     *
+     * El portal las publica absolutas casi siempre, pero no siempre: la portada
+     * de «HUV e-Learn» llega como «/sites/hospital-universitario-.../422_huv_
+     * learn_200x200.jpg», sin esquema ni servidor, y el cliente HTTP la rechaza
+     * —«URI must include a scheme and host»—. El contenido entraba, pero se
+     * quedaba sin su imagen y la importacion terminaba con «1 con problemas».
+     */
+    private function absolute(?string $url): ?string
+    {
+        if (blank($url) || ! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        return rtrim((string) config('huv.legacy_base'), '/').$url;
+    }
+
     /** Dónde se guardan en disco los medios de este modelo. */
     private function mediaDirectory(Model $item): string
     {
@@ -1147,6 +1165,8 @@ class ImportTopic extends Command
      */
     private function attach(Model $item, array $attributes, ?string $url): ?ContentMedia
     {
+        $url = $this->absolute($url);
+
         // Solo se busca el que ya existía cuando el origen da identificador.
         // Buscar por «legacy_file_id = null» emparejaría entre sí todos los
         // medios sin identificador y los colapsaría en uno solo.

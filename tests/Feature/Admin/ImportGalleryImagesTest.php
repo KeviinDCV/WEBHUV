@@ -554,6 +554,34 @@ class ImportGalleryImagesTest extends TestCase
     }
 
     /**
+     * Una portada en ruta relativa tambien se trae.
+     *
+     * El portal las publica absolutas casi siempre, pero la de «HUV e-Learn»
+     * llega como «/sites/hospital-universitario-.../422_huv_learn_200x200.jpg»,
+     * sin esquema ni servidor. El cliente HTTP la rechazaba —«URI must include
+     * a scheme and host»—, el contenido entraba sin imagen y la importacion
+     * terminaba con «1 con problemas». Barriendo los 2.369 contenidos del
+     * portal es el unico caso, pero es el unico que hay que atender.
+     */
+    public function test_una_portada_en_ruta_relativa_tambien_se_trae(): void
+    {
+        $this->fakePortal([$this->articulo([], portada: '/archivos/portada-relativa.jpg')]);
+
+        $this->artisan('huv:importar entidad')
+            ->doesntExpectOutputToContain('con problemas')
+            ->assertSuccessful();
+
+        $portada = TopicItem::sole()->images()->sole();
+
+        $this->assertTrue((bool) $portada->is_main);
+        $this->assertTrue(Storage::disk('public')->exists($portada->path));
+
+        // Y se guarda de donde vino, ya completa: si quedara relativa, la
+        // siguiente pasada no sabria reconocer que es la misma.
+        $this->assertSame(self::BASE.'/archivos/portada-relativa.jpg', $portada->source_url);
+    }
+
+    /**
      * El tipo declarado no basta: se miran los bytes.
      *
      * Lo que va entre `data:` y `;base64` lo escribe quien publica en el portal

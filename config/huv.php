@@ -100,7 +100,7 @@ return [
         ],
         [
             'label' => 'Transparencia y acceso a la información pública',
-            'url' => '#transparencia',
+            'path' => '/transparencia',
             'narrow' => true,
         ],
         [
@@ -639,6 +639,64 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Índice de Transparencia
+    |--------------------------------------------------------------------------
+    |
+    | El árbol que publica «/transparencia»: doce grupos numerados con sus
+    | entradas, tal como los exige la Resolución 1519 de 2020. En el portal
+    | anterior sale de «menuoptions?section=Transparency» y se edita desde el
+    | panel; aquí vive en configuración, como el menú principal, porque es lo
+    | mismo que el menú: rótulos y destinos, sin contenido propio.
+    |
+    | Los destinos NO se escriben resueltos. Van como los publica el portal
+    | —«/tema/entidad», «/entidad/mision-y-vision»— y LegacyLink decide en cada
+    | petición si el tema ya está migrado, y entonces enlaza aquí dentro, o
+    | todavía no, y entonces enlaza al portal anterior. Así el índice se muda
+    | solo según avanza la migración, sin tocar este fichero.
+    |
+    | Se traslada grupo a grupo. Los que faltan no se declaran vacíos: un grupo
+    | sin entradas se leería como que la entidad no publica esa información.
+    |
+    | El `active` del origen no se mira: allí es falso en cuatro entradas de
+    | este primer grupo —Organigrama, Directorio de entidades…— y aun así el
+    | portal las lista. Es una marca del menú de cabecera, no de este índice.
+    */
+    'transparency_index' => [
+        'title' => 'Transparencia',
+
+        'groups' => [
+            [
+                'label' => 'Información de la entidad',
+                'items' => [
+                [
+                    'label' => 'Misión, visión, funciones y deberes',
+                    'path' => '/tema/entidad',
+                    'children' => [
+                        ['label' => 'Misión y Visión', 'path' => '/entidad/mision-y-vision'],
+                        ['label' => 'Funciones y deberes', 'path' => '/entidad/funciones-y-deberes'],
+                    ],
+                ],
+                ['label' => 'Organigrama', 'path' => '/entidad/organigrama'],
+                ['label' => 'Mapas y cartas descriptivas de los procesos', 'path' => '/entidad/nuestra-entidad'],
+                ['label' => 'Directorio Institucional incluyendo sedes, oficinas, sucursales, o regionales, y dependencias', 'path' => '/tema/directorio-institucional'],
+                ['label' => 'Directorio de servidores públicos, empleados o contratistas', 'path' => '/directorio-de-funcionarios/conoce-a-nuestros-funcionarios'],
+                ['label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
+                ['label' => 'Directorio de asociaciones, agremiaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
+                ['label' => 'Servicio al público, normas, formularios y protocolos de atención', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
+                ['label' => 'Procedimientos que se siguen para tomar decisiones en las diferentes áreas', 'path' => '/tema/procesos-y-procedimientos'],
+                ['label' => 'Mecanismo de presentación directa de solicitudes, quejas y reclamos', 'url' => 'https://acortar.link/OUtyCS'],
+                ['label' => 'Calendario de actividades', 'path' => '/tema/calendario-de-actividades'],
+                ['label' => 'Información sobre decisiones que pueden afectar al público', 'path' => '/tema/noticias'],
+                ['label' => 'Entes y autoridades que lo vigilan', 'path' => '/tema/directorio-de-entidades'],
+                ['label' => 'Publicación hojas de vida', 'path' => '/tema/ofertas-de-empleo'],
+                ['label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
+                ],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pie de página
     |--------------------------------------------------------------------------
     */
@@ -738,7 +796,7 @@ return [
 
         'legal_links' => [
             ['label' => 'Políticas', 'path' => '/politicas'],
-            ['label' => 'Transparencia', 'url' => '#transparencia'],
+            ['label' => 'Transparencia', 'path' => '/transparencia'],
             ['label' => 'Mapa del sitio', 'path' => '/mapa-del-sitio'],
             ['label' => 'Estadísticas', 'path' => '/estadisticas'],
         ],

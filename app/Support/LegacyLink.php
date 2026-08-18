@@ -37,6 +37,7 @@ class LegacyLink
         '/politicas' => 'policies',
         '/peticiones-quejas-reclamos' => 'pqrds',
         '/contactenos' => 'contact',
+        '/transparencia' => 'transparency',
     ];
 
     /**

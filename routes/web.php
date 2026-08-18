@@ -27,6 +27,7 @@ Route::view('/sucursales', 'sucursales')->name('branches');
 Route::view('/politicas', 'politicas')->name('policies');
 Route::view('/peticiones-quejas-reclamos', 'pqrds')->name('pqrds');
 Route::view('/contactenos', 'contacto')->name('contact');
+Route::view('/transparencia', 'transparencia')->name('transparency');
 
 /*
 | Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado

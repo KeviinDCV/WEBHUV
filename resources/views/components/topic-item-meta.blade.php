@@ -17,9 +17,18 @@
     </p>
 @endif
 
-{{-- El nombre del tema, donde el muro de la portada pone la categoría. --}}
+{{--
+    El nombre del tema, donde el muro de la portada pone la categoría.
+
+    Siempre el tema, aunque el contenido tenga categorías. El portal hace justo
+    eso: en «Centro Integral de Atención al Usuario - CIAU», donde cada
+    documento lleva una o dos —«2026», «Informes Trimestrales PQRSFD»—, las seis
+    tarjetas rotulan igual, con el nombre del tema. Las categorías tienen su
+    sitio: los botones de filtro de arriba, y en los temas que se publican en
+    filas, encima del título.
+--}}
 <p @class(['m-0 text-12-5', 'text-on-accent/85' => $sobreColor, 'text-link' => ! $sobreColor])>
-    {{ $item->categories->isNotEmpty() ? $item->categories->pluck('name')->join(', ') : $item->topic->name }}
+    {{ $item->topic->name }}
 </p>
 
 <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">

@@ -8,10 +8,14 @@
         </h2>
         <p class="m-0 mb-[30px] text-15 text-on-brand-muted">{{ $transparency['subtitle'] }}</p>
 
+        {{-- Las diez llevan al índice, no cada una a su grupo: el índice se
+             está trasladando por partes y un ancla a un grupo que todavía no
+             está dejaría al visitante en una página donde no encuentra lo que
+             el mosaico le prometió. --}}
         <ol class="grid grid-cols-1 gap-px bg-brand-hairline sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             @foreach ($transparency['items'] as $index => $item)
                 <li class="flex">
-                    <a href="#"
+                    <a href="{{ route('transparency') }}"
                        class="flex w-full flex-col gap-2 bg-navy-deep px-[18px] pt-[22px] pb-6 text-on-brand
                               no-underline transition-colors hover:bg-navy-soft hover:text-on-brand hover:no-underline">
                         <span aria-hidden="true" class="font-display text-12 font-bold text-azure-pale">

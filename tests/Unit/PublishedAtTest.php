@@ -51,6 +51,11 @@ class PublishedAtTest extends TestCase
             'tres meses' => ['2026-08-12 12:00:00', '2026-05-07 09:37:00', 'Hace 3 meses'],
             // Rendición de cuentas.
             'cinco meses' => ['2026-08-12 12:00:00', '2026-03-05 16:37:00', 'Hace 5 meses'],
+            // 137,24 días. Dividiendo por el mes medio salen 4,5085 y el
+            // redondeo los sube a cinco; contando por el calendario son cuatro
+            // meses justos más quince días, o sea 4,49. Encuestas de
+            // satisfacción, 14 de agosto de 2026.
+            'cuatro meses y medio' => ['2026-08-14 15:22:26', '2026-03-30 09:43:17', 'Hace 4 meses'],
         ];
     }
 
@@ -60,6 +65,24 @@ class PublishedAtTest extends TestCase
         Carbon::setTestNow($hoy);
 
         $this->assertSame($esperado, $this->render($fecha));
+    }
+
+    /**
+     * Al sumar meses no se desborda el mes corto.
+     *
+     * Al 30 de agosto le siguen el 28 de febrero y el 30 de marzo, no el 2 de
+     * marzo. Es lo que hace la biblioteca del portal, y no es un detalle: un
+     * contenido del 30 de agosto de 2023 visto el 1 de marzo de 2026 son 2,503
+     * años sin desbordar y 2,497 desbordando, así que el redondeo cae a un lado
+     * o al otro y el rótulo cambia en un año entero. Barriendo cinco años de
+     * publicaciones vistas desde cuatro fechas distintas salen 54 días en que
+     * pasa justo esto.
+     */
+    public function test_al_sumar_meses_no_se_desborda_el_mes_corto(): void
+    {
+        Carbon::setTestNow('2026-03-01 09:00:00');
+
+        $this->assertSame('Hace 3 años', $this->render('2023-08-30 09:00:00'));
     }
 
     /**

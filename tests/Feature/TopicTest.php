@@ -10,6 +10,7 @@ use App\Support\LegacyLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class TopicTest extends TestCase
@@ -95,6 +96,56 @@ class TopicTest extends TestCase
                 'categories',
                 fn ($categories) => $categories->firstWhere('name', 'Ejecución Presupuestal 2026')['count'] === 2
             );
+    }
+
+    /**
+     * La tarjeta rotula con el nombre del tema, no con las categorías.
+     *
+     * Es lo que hace el portal: en «Centro Integral de Atención al Usuario -
+     * CIAU», donde cada documento lleva una o dos categorías —«2026»,
+     * «Informes Trimestrales PQRSFD»—, las seis tarjetas ponen encima del
+     * título el nombre del tema, el mismo en todas. Las categorías tienen su
+     * sitio: los botones de filtro de arriba, y en los temas que se publican en
+     * filas, encima del título.
+     */
+    public function test_la_tarjeta_rotula_con_el_tema_y_no_con_la_categoria(): void
+    {
+        $topic = $this->tema(['name' => 'Centro Integral de Atención al Usuario - CIAU']);
+
+        $category = TopicCategory::create([
+            'topic_id' => $topic->id,
+            'name' => 'Informes Trimestrales PQRSFD',
+            'slug' => 'informes-trimestrales-pqrsfd',
+        ]);
+
+        $item = $this->documento($topic, ['title' => 'INFORME PQRSF SEGUNDO TRIMESTRE 2026']);
+        $item->categories()->attach($category);
+
+        $html = $this->get(route('topics.show', $topic))->assertOk()->getContent();
+
+        // El rótulo es el último párrafo de su clase antes del título, así que
+        // se mira ahí y no en la página entera: la categoría sí sale más
+        // arriba, en los botones de filtro, y buscarla en todo el HTML no
+        // distinguiría un sitio del otro.
+        //
+        // Y se corta por la ÚLTIMA aparición del título: la primera está en el
+        // JSON que la lista le pasa a Alpine, mucho antes de la tarjeta.
+        preg_match_all(
+            '~<p class="m-0 text-12-5[^"]*">\s*(.+?)\s*</p>~s',
+            Str::beforeLast($html, 'INFORME PQRSF SEGUNDO TRIMESTRE 2026'),
+            $parrafos
+        );
+
+        $rotulo = (string) end($parrafos[1]);
+
+        $this->assertNotSame('', $rotulo, 'La tarjeta no llegó a pintar su rótulo.');
+
+        $this->assertStringContainsString('Centro Integral de Atención al Usuario - CIAU', $rotulo);
+        $this->assertStringNotContainsString('Informes Trimestrales PQRSFD', $rotulo);
+
+        // Y la categoría no desaparece de la página: sigue estando donde le
+        // toca, en el filtro.
+        $this->assertStringContainsString('Informes Trimestrales PQRSFD', $html);
     }
 
     public function test_una_categoria_sin_documentos_visibles_no_aparece(): void
