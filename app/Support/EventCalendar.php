@@ -12,6 +12,12 @@ use Illuminate\Support\Collection;
  * los eventos por día. La navegación viaja en la URL (?vista=&periodo=), de
  * modo que el calendario funciona sin JavaScript y cada semana o mes tiene su
  * propia dirección que se puede compartir o enlazar.
+ *
+ * Los eventos son elementos de un tema, no una tabla aparte: en el portal la
+ * agenda ES el tema «Calendario de actividades», y sus ciento cuarenta y un
+ * eventos se editan con el mismo formulario que cualquier otro contenido. Aquí
+ * se hacía con una tabla propia, y eso dejaba dos agendas que no se veían entre
+ * sí y dos formularios distintos para lo mismo.
  */
 class EventCalendar
 {
@@ -19,7 +25,7 @@ class EventCalendar
     private const MAX_OFFSET = 52;
 
     /**
-     * @param  iterable<\App\Models\Event>  $events
+     * @param  iterable<\App\Models\TopicItem>  $events
      */
     private function __construct(
         public readonly string $view,
@@ -32,7 +38,7 @@ class EventCalendar
      * array si alguien escribe ?vista[]=x. Se normalizan a un valor seguro en
      * lugar de confiar en el tipado.
      *
-     * @param  iterable<\App\Models\Event>  $events
+     * @param  iterable<\App\Models\TopicItem>  $events
      */
     public static function make(iterable $events, mixed $view = null, mixed $offset = 0): self
     {
@@ -120,16 +126,16 @@ class EventCalendar
      *
      * Un evento de varios días aparece en todos ellos, no solo en el primero.
      *
-     * @return list<\App\Models\Event>
+     * @return list<\App\Models\TopicItem>
      */
     private function eventsOn(Carbon $date): array
     {
         return collect($this->events)
-            ->filter(fn ($event): bool => $date->betweenIncluded(
-                $event->starts_at->copy()->startOfDay(),
+            ->filter(fn ($event): bool => $event->startsAt() !== null && $date->betweenIncluded(
+                $event->startsAt()->copy()->startOfDay(),
                 $event->endsAt()->copy()->endOfDay(),
             ))
-            ->sortBy(fn ($event) => $event->starts_at)
+            ->sortBy(fn ($event) => $event->startsAt())
             ->values()
             ->all();
     }

@@ -654,8 +654,8 @@ return [
     | todavía no, y entonces enlaza al portal anterior. Así el índice se muda
     | solo según avanza la migración, sin tocar este fichero.
     |
-    | Se traslada grupo a grupo. Los que faltan no se declaran vacíos: un grupo
-    | sin entradas se leería como que la entidad no publica esa información.
+    | Están los doce, con sus 69 enlaces. El orden y la numeración son los del
+    | origen: así es como se cita cada apartado en una auditoría.
     |
     | El `active` del origen no se mira: allí es falso en cuatro entradas de
     | este primer grupo —Organigrama, Directorio de entidades…— y aun así el
@@ -690,6 +690,128 @@ return [
                 ['label' => 'Entes y autoridades que lo vigilan', 'path' => '/tema/directorio-de-entidades'],
                 ['label' => 'Publicación hojas de vida', 'path' => '/tema/ofertas-de-empleo'],
                 ['label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
+                ],
+            ],
+            [
+                'label' => 'Normatividad',
+                'items' => [
+                    [
+                        'label' => 'Normatividad',
+                        'path' => '/tema/normatividad',
+                        'children' => [
+                            ['label' => 'Leyes', 'path' => '/normatividad/normograma-institucional'],
+                            ['label' => 'Decreto Único Reglamentario', 'path' => '/normatividad/decreto-unico-reglamentario-del-sector-salud-y-proteccion'],
+                            ['label' => 'Normativa aplicable', 'path' => '/tema/normatividad'],
+                            ['label' => 'Gaceta Oficial', 'url' => 'https://impretics.gov.co/GACETA-DEPARTAMENTAL/'],
+                            ['label' => 'Políticas, lineamientos y manuales', 'path' => '/tema/politicas-y-lineamientos'],
+                        ],
+                    ],
+                    ['label' => 'Busqueda de normas', 'url' => 'https://www.suin-juriscol.gov.co/'],
+                ],
+            ],
+            [
+                'label' => 'Contratación',
+                'items' => [
+                    ['label' => 'Publicación del plan anual de adquisiciones', 'path' => '/tema/planes/2024-526540'],
+                    ['label' => 'Publicación de la información contractual', 'path' => '/tema/contrataciones/2024-600324'],
+                    ['label' => 'Publicación de la ejecución de contratos', 'path' => '/tema/contrataciones/2024-600324'],
+                    ['label' => 'Manual de contratación, adquisición y/o compras', 'path' => '/procesos-y-procedimientos/manual-de-contratacion-402456'],
+                ],
+            ],
+            [
+                'label' => 'Planeación',
+                'items' => [
+                    ['label' => 'Presupuesto general de ingresos, gastos e inversión', 'path' => '/presupuesto/acuerdo-no023-presupuesto-2024'],
+                    ['label' => 'Ejecución presupuestal', 'path' => '/tema/presupuesto/ejecucion-presupuestal-2024'],
+                    ['label' => 'Planes de Acción', 'path' => '/tema/planes/2024-445229'],
+                    ['label' => 'Proyectos de Inversión', 'path' => '/metas-objetivos-e-indicadores/proyectos-de-inversion-vigencia-2024'],
+                    ['label' => 'Informes de empalme', 'path' => '/tema/control/informes-de-empalme'],
+                    ['label' => 'Información pública y/o relevante', 'path' => '/planes/plan-de-desarrollo-institucional-20242027'],
+                    [
+                        'label' => 'Informes de gestión, evaluación y auditoría',
+                        'path' => '/tema/control/informes-de-gestion-evaluacion-y-auditoria',
+                        'children' => [
+                            ['label' => 'Informe de Gestión', 'path' => '/control/informe-al-entidad'],
+                            ['label' => 'Informe de rendición de cuentas ante la Contraloría General de la República', 'path' => '/control/informe-de-rendicion-de-cuenta-fiscal'],
+                            ['label' => 'Informe de rendición de cuentas a la ciudadanía', 'path' => '/control/informe-de-rendicion-de-cuentas-a-la-ciudadania'],
+                            ['label' => 'Informes a organismos de inspección, vigilancia y control', 'path' => '/control/informes-a-organismos-de-inspeccion-vigilancia-y-control'],
+                            ['label' => 'Planes de mejoramiento', 'path' => '/tema/planes/plan-de-mejoramiento'],
+                            ['label' => 'Enlace al organismo de control', 'url' => 'https://www.contraloriavalledelcauca.gov.co/publicaciones/32725/informes-de-las-auditorias-realizadas-por-la-cdvc/'],
+                        ],
+                    ],
+                    ['label' => 'Informes de la Oficina de Control Interno', 'path' => '/tema/control-interno/2024-995206'],
+                    ['label' => 'Informe sobre Defensa Pública y Prevención del Daño Antijurídico -https://ekogui.defensajuridica.gov.co/Pages/NEW/index.aspx', 'url' => 'https://ekogui.defensajuridica.gov.co/Pages/inicio_bop.aspx'],
+                    ['label' => 'Informes trimestrales sobre acceso a información, quejas y reclamos', 'path' => '/tema/control/informes-trimestrales-pqrsfd-2023/2024-483422'],
+                ],
+            ],
+            [
+                'label' => 'Trámites',
+                'items' => [
+                    ['label' => 'Trámites', 'path' => '/tema/tramites-y-servicios'],
+                ],
+            ],
+            [
+                'label' => 'Participa',
+                'items' => [
+                    ['label' => 'Descripción Menu Participa', 'path' => '/tema/descripcion-participa'],
+                    ['label' => 'Diagnóstico e identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
+                    ['label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo/ita'],
+                    ['label' => 'Consulta Ciudadana', 'path' => '/tema/consulta-ciudadana'],
+                    ['label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
+                    ['label' => 'Rendición de cuentas - control', 'path' => '/tema/rendicion-de-cuentas/apcr-2024'],
+                    ['label' => 'Control social', 'path' => '/control-ciudadano/modalidades-control-social'],
+                ],
+            ],
+            [
+                'label' => 'Datos abiertos',
+                'items' => [
+                    [
+                        'label' => 'Instrumentos de gestión de la información',
+                        'path' => '/tema/tablas-de-retencion-documental',
+                        'children' => [
+                            ['label' => 'Registros de activos de información', 'url' => 'https://www.datos.gov.co/Salud-y-Protecci-n-Social/REGISTRO-DE-ACTIVOS-DE-INFORMACION/naix-b9bv'],
+                            ['label' => 'Índice de información clasificada y reservada', 'path' => '/control/indice-de-informacion-clasificada-y-reservada'],
+                            ['label' => 'Esquema de publicación de la información', 'path' => '/control/esquema-de-publicacion-de-informacion'],
+                            ['label' => 'Programa de gestión documental', 'path' => '/programas/programa-de-gestion-documental-755714'],
+                            ['label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
+                        ],
+                    ],
+                    ['label' => 'Sección de Datos Abiertos', 'url' => 'https://www.datos.gov.co/d/naix-b9bv'],
+                    ['label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
+                ],
+            ],
+            [
+                'label' => 'Información específica para grupos de interés',
+                'items' => [
+                    ['label' => 'Información para niños, niñas y adolescentes', 'path' => '/politicas-y-lineamientos/derechos-del-nino-hospitalizado-872252'],
+                    ['label' => 'Información para Mujeres', 'path' => '/politicas-y-lineamientos/politica-institucion-amiga-de-la-mujer-y-de-la-infancia'],
+                    ['label' => 'Otros de grupos de interés', 'path' => '/tema/politicas-y-lineamientos/poblacion-vulnerable-31962'],
+                ],
+            ],
+            [
+                'label' => 'Obligación de reporte de información específica',
+                'items' => [
+                    ['label' => 'Normatividad especial', 'path' => '/otros/normatividad-especial'],
+                ],
+            ],
+            [
+                'label' => 'Atención y servicio a la ciudadanía',
+                'items' => [
+                    ['label' => 'Trámites, Otros Procedimientos Administrativos y consultas de acceso a información pública', 'path' => '/tema/tramites-y-servicios'],
+                    ['label' => 'Canales de atención y pida una cita', 'path' => '/contactenos/'],
+                    ['label' => 'PQRSFD', 'url' => 'https://acortar.link/OUtyCS'],
+                ],
+            ],
+            [
+                'label' => 'Noticias',
+                'items' => [
+                    ['label' => 'Sección de Noticias', 'path' => '/tema/noticias'],
+                ],
+            ],
+            [
+                'label' => 'Condiciones técnicas y de seguridad digital',
+                'items' => [
+                    ['label' => 'Condiciones técnicas y de seguridad digital', 'path' => '/politicas-y-lineamientos/politica-de-seguridad-digital'],
                 ],
             ],
         ],

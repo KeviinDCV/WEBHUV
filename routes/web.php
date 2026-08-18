@@ -91,13 +91,7 @@ Route::middleware('auth')
         // Agenda de eventos.
         Route::get('eventos/bloque', [EventController::class, 'editBlock'])->name('events.block.edit');
         Route::put('eventos/bloque', [EventController::class, 'updateBlock'])->name('events.block.update');
-        Route::post('eventos/categorias', [EventController::class, 'storeCategory'])->name('events.categories.store');
 
-        Route::get('eventos/nuevo', [EventController::class, 'create'])->name('events.create');
-        Route::post('eventos', [EventController::class, 'store'])->name('events.store');
-        Route::get('eventos/{event}/editar', [EventController::class, 'edit'])->name('events.edit');
-        Route::put('eventos/{event}', [EventController::class, 'update'])->name('events.update');
-        Route::delete('eventos/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 
         // Barras de accesos directos.
         Route::get('accesos/{block}', [ShortcutController::class, 'edit'])->name('shortcuts.edit');

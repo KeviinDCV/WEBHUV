@@ -16,9 +16,22 @@
         todavía al portal anterior.
 
         La numeración es la del texto legal, no un adorno: es como se cita cada
-        apartado en las auditorías. Por eso va escrita en el rótulo del enlace y
+        apartado en una auditoría. Por eso va escrita en el rótulo del enlace y
         sale del orden de la lista, para que no pueda descuadrarse al añadir una
         entrada en medio.
+
+        Los grupos se pliegan, y ahí NO se copia al portal: allí los doce salen
+        abiertos de golpe: más de cien enlaces seguidos en los que no se
+        distingue dónde empieza uno y acaba otro, y una barra de desplazamiento
+        que no termina. Cerrados, la página cabe en una pantalla y se ve el
+        índice entero, que es justo para lo que sirve.
+
+        Con <details> y no con un desplegable a mano: funciona con JavaScript
+        desactivado, el teclado lo abre con Enter sin que haya que programarlo,
+        y el navegador anuncia solo si está abierto o cerrado. Lo que va dentro
+        está en el HTML aunque el grupo esté plegado, así que lo encuentran los
+        buscadores; que además el Ctrl+F del navegador lo despliegue solo, eso
+        depende del navegador y no se da por hecho.
     --}}
     @php $indice = config('huv.transparency_index'); @endphp
 
@@ -38,27 +51,41 @@
                     {{ $indice['title'] }}
                 </h1>
 
-                <div class="mt-8 flex flex-col gap-6">
+                <div class="mt-8 flex flex-col gap-3">
                     @foreach ($indice['groups'] as $indiceGrupo => $grupo)
                         @php $numero = $indiceGrupo + 1; @endphp
 
-                        <section aria-labelledby="huv-transparencia-{{ $numero }}"
-                                 class="overflow-hidden rounded-[3px] border border-stroke bg-card">
-                            <h2 id="huv-transparencia-{{ $numero }}"
-                                class="m-0 flex items-center gap-3 border-b border-stroke px-4 py-[14px]
-                                       font-display text-16-5 font-bold text-heading lg:px-6">
-                                {{-- El número va aparte del título y oculto a la voz: el
-                                     rótulo de cada entrada ya lo lleva delante, y
-                                     repetirlo haría que se leyera dos veces. --}}
+                        <details id="huv-transparencia-{{ $numero }}"
+                                 class="group overflow-hidden rounded-[3px] border border-stroke bg-card">
+                            <summary class="flex cursor-pointer list-none items-center gap-3 px-4 py-[14px]
+                                            text-heading hover:bg-tint lg:px-6
+                                            [&::-webkit-details-marker]:hidden">
+                                {{-- El número va oculto a la voz: el rótulo de cada entrada
+                                     ya lo lleva delante, y repetirlo lo leería dos veces. --}}
                                 <span aria-hidden="true"
                                       class="flex size-7 shrink-0 items-center justify-center rounded-full
                                              bg-navy font-display text-13 font-bold text-on-brand">
                                     {{ $numero }}
                                 </span>
-                                {{ $grupo['label'] }}
-                            </h2>
 
-                            <ol class="m-0 list-none p-0">
+                                {{-- Encabezado de verdad, dentro del <summary>: el modelo de
+                                     contenido de <summary> admite uno, y sin él la página se
+                                     quedaba con un solo encabezado —el <h1>—. Quien navega con
+                                     lector de pantalla salta de encabezado en encabezado para
+                                     recorrer un índice como este, y al convertir los grupos en
+                                     desplegables se perdieron los doce de golpe. --}}
+                                <h2 class="m-0 flex-1 font-display text-16-5 font-bold">{{ $grupo['label'] }}</h2>
+
+                                {{-- La flecha gira al abrir. Decorativa: quien no la ve ya
+                                     tiene el estado en el propio <summary>. --}}
+                                <svg class="size-4 shrink-0 text-muted transition-transform group-open:rotate-180"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="m6 9 6 6 6-6" />
+                                </svg>
+                            </summary>
+
+                            <ol class="m-0 list-none border-t border-stroke p-0">
                                 @foreach ($grupo['items'] as $indiceEntrada => $entrada)
                                     @php $orden = $numero.'.'.($indiceEntrada + 1); @endphp
 
@@ -66,7 +93,11 @@
                                         <x-transparency-link :link="$entrada" :order="$orden" />
 
                                         @if (! empty($entrada['children']))
-                                            <ol class="m-0 list-none border-t border-rule bg-tint p-0">
+                                            {{-- Sin fondo gris: el azul del enlace sobre «tint» se
+                                                 queda en 4,17:1 y el mínimo para texto es 4,5:1.
+                                                 El tercer nivel ya se distingue por el sangrado y
+                                                 por la raya de arriba. --}}
+                                            <ol class="m-0 list-none border-t border-rule p-0">
                                                 @foreach ($entrada['children'] as $indiceHija => $hija)
                                                     <li class="border-b border-rule last:border-b-0">
                                                         <x-transparency-link :link="$hija"
@@ -79,7 +110,7 @@
                                     </li>
                                 @endforeach
                             </ol>
-                        </section>
+                        </details>
                     @endforeach
                 </div>
             </div>

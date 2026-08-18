@@ -23,10 +23,21 @@
 
                     <a href="{{ App\Support\LegacyLink::resolve($item)['href'] }}"
                        @if ($aqui) aria-current="page" @endif
+                       {{-- Al marcar la página abierta solo cambian los colores.
+
+                            Ni el tamaño, ni el grosor, ni el relleno: el rótulo
+                            ocupa lo mismo esté marcado o no. Es lo que hace el
+                            portal —sus seis enlaces miden 169 px y pesan 400,
+                            marcados o sin marcar— y no es un capricho suyo: con
+                            el ancho tope de 210 px, subir la letra de 13,5 a 14,5
+                            partía «Transparencia y acceso a la información
+                            pública» en tres renglones y la barra daba un salto
+                            al entrar en esa página. --}}
                        class="{{ $aqui
-                           ? 'bg-azure px-[34px] font-semibold text-14-5 text-on-accent hover:bg-azure-dark hover:text-on-accent'
-                           : 'px-[22px] font-medium text-13-5 text-heading hover:bg-tint-hover' }}
-                              flex min-h-[58px] items-center font-display leading-[1.3] no-underline hover:no-underline
+                           ? 'bg-azure text-on-accent hover:bg-azure-dark hover:text-on-accent'
+                           : 'text-heading hover:bg-tint-hover' }}
+                              flex min-h-[58px] items-center px-[22px] font-display text-13-5 font-medium
+                              leading-[1.3] no-underline hover:no-underline
                               {{ ! empty($item['narrow']) ? 'max-w-[210px]' : '' }}">
                         {{ $item['label'] }}
                     </a>
@@ -55,11 +66,13 @@
                                 @if ($aqui) aria-current="true" @endif
                                 :aria-expanded="isOpen('{{ $item['key'] }}') ? 'true' : 'false'"
                                 aria-controls="huv-menu-{{ $item['key'] }}"
+                                {{-- Igual que los enlaces sueltos: marcado o sin
+                                     marcar, el rótulo ocupa lo mismo. --}}
                                 class="{{ $aqui
-                                    ? 'bg-azure font-semibold text-on-accent hover:bg-azure-dark'
-                                    : 'bg-transparent font-medium text-heading hover:bg-tint-hover' }}
+                                    ? 'bg-azure text-on-accent hover:bg-azure-dark'
+                                    : 'bg-transparent text-heading hover:bg-tint-hover' }}
                                        flex min-h-[58px] items-center gap-2 border-0 px-[22px]
-                                       text-left font-display text-13-5 leading-[1.3]
+                                       text-left font-display text-13-5 font-medium leading-[1.3]
                                        {{ ! empty($item['narrow']) ? 'max-w-[210px]' : '' }}">
                             {{ $item['label'] }}
                             <svg class="size-[9px] shrink-0 transition-transform duration-150"

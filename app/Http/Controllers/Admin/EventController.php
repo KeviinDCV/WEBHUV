@@ -4,66 +4,34 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContentBlock;
-use App\Models\Event;
-use App\Models\EventCategory;
+use App\Models\Topic;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Agenda institucional: los eventos y la configuración de su bloque.
+ * Configuración del bloque de la agenda.
+ *
+ * Los eventos ya no viven aquí: la agenda es un tema —«Calendario de
+ * actividades»—, igual que en el portal, y sus eventos se crean y se editan con
+ * el mismo formulario que cualquier otro contenido. Este controlador solo
+ * decide qué enseña el bloque de la portada: cómo se titula, de qué tema salen
+ * los eventos y qué categorías de ese tema se dejan pasar.
  */
 class EventController extends Controller
 {
-    public function create(): View
-    {
-        return view('admin.events.form', [
-            'event' => new Event(['starts_at' => now()->addDay()->setTime(8, 0)]),
-            'categories' => EventCategory::orderBy('name')->get(),
-        ]);
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $event = Event::create($this->validated($request));
-        $event->categories()->sync($request->input('categories', []));
-
-        return redirect()->route('home')->with('status', 'Evento creado.');
-    }
-
-    public function edit(Event $event): View
-    {
-        return view('admin.events.form', [
-            'event' => $event->load('categories'),
-            'categories' => EventCategory::orderBy('name')->get(),
-        ]);
-    }
-
-    public function update(Request $request, Event $event): RedirectResponse
-    {
-        $event->update($this->validated($request));
-        $event->categories()->sync($request->input('categories', []));
-
-        return redirect()->route('home')->with('status', 'Evento actualizado.');
-    }
-
-    public function destroy(Event $event): RedirectResponse
-    {
-        $event->delete();
-
-        return redirect()->route('home')->with('status', 'Evento eliminado.');
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Configuración del bloque                                            */
-    /* ------------------------------------------------------------------ */
-
     public function editBlock(): View
     {
+        $block = ContentBlock::events();
+
         return view('admin.events.block', [
-            'block' => ContentBlock::events(),
-            'categories' => EventCategory::orderBy('name')->get(),
+            'block' => $block,
+            // Las del tema elegido, no una lista propia: son las mismas que se
+            // ven en el listado del tema y las que la importación mantiene al
+            // día. Sin tema todavía importado no hay ninguna, y el bloque se
+            // configura igual.
+            'categories' => $this->topicFor($block->option('source'))?->categories ?? collect(),
         ]);
     }
 
@@ -73,7 +41,7 @@ class EventController extends Controller
             'name' => ['required', 'string', 'max:30'],
             'source' => ['required', Rule::in(ContentBlock::EVENT_SOURCES)],
             'categories' => ['array'],
-            'categories.*' => ['integer', 'exists:event_categories,id'],
+            'categories.*' => ['integer', 'exists:topic_categories,id'],
         ], [
             'source.required' => 'Elija la sección que alimenta el calendario.',
         ], [
@@ -81,55 +49,33 @@ class EventController extends Controller
             'source' => 'sección',
         ]);
 
-        ContentBlock::events()->update([
+        $block = ContentBlock::events();
+        $topic = $this->topicFor($validated['source']);
+
+        // Las categorías pertenecen a un tema. Al cambiar de tema, las que
+        // hubiera elegidas son de otro sitio: filtrarían por identificadores
+        // que en el tema nuevo no existen y el calendario saldría siempre
+        // vacío, sin que nada explicara por qué.
+        $elegidas = array_map('intval', $validated['categories'] ?? []);
+
+        $suyas = $topic
+            ? $topic->categories->pluck('id')->all()
+            : [];
+
+        $block->update([
             'name' => $validated['name'],
             'options' => [
                 'source' => $validated['source'],
-                'categories' => array_map('intval', $validated['categories'] ?? []),
+                'categories' => array_values(array_intersect($elegidas, $suyas)),
             ],
         ]);
 
         return redirect()->route('home')->with('status', 'Bloque de eventos guardado.');
     }
 
-    public function storeCategory(Request $request): RedirectResponse
+    /** El tema que alimenta el calendario, si ya está migrado. */
+    private function topicFor(?string $source): ?Topic
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:60', Rule::unique('event_categories', 'name')],
-        ], [
-            'name.unique' => 'Ya existe una categoría con ese nombre.',
-        ], ['name' => 'nombre de la categoría']);
-
-        EventCategory::create($validated);
-
-        return back()->with('status', 'Categoría creada.');
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function validated(Request $request): array
-    {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:150'],
-            'starts_at' => ['required', 'date'],
-            // Un evento que termina antes de empezar no se pintaría en ningún
-            // día del calendario.
-            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
-            'place' => ['nullable', 'string', 'max:200'],
-            'url' => ['nullable', 'url:http,https', 'max:2048'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'is_active' => ['boolean'],
-        ], [
-            'ends_at.after_or_equal' => 'La fecha de fin no puede ser anterior a la de inicio.',
-            'url.url' => 'El enlace debe empezar por http:// o https://',
-        ], [
-            'title' => 'título',
-            'starts_at' => 'fecha de inicio',
-            'ends_at' => 'fecha de fin',
-            'place' => 'lugar',
-            'url' => 'enlace',
-            'description' => 'descripción',
-        ]) + ['is_active' => $request->boolean('is_active', true)];
+        return $source === null ? null : Topic::with('categories')->firstWhere('name', $source);
     }
 }

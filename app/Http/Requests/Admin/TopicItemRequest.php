@@ -57,6 +57,9 @@ class TopicItemRequest extends FormRequest
         $isArticle = $this->kind() === TopicItem::KIND_ARTICLE;
         // Un enlace se define por su destino: sin él no lleva a ninguna parte.
         $isLink = $this->kind() === TopicItem::KIND_LINK;
+        // Un evento lleva dónde, quién lo convoca y cuándo empieza.
+        $isEvent = $this->kind() === TopicItem::KIND_EVENT;
+
         // Una convocatoria abre y cierra, y lleva sus pliegos adjuntos.
         $isConvocation = $this->kind() === TopicItem::KIND_CONVOCATION;
 
@@ -75,6 +78,14 @@ class TopicItemRequest extends FormRequest
 
             /* --- Propio del documento --- */
             'issued_at' => [Rule::excludeIf(! $isDocument), 'nullable', 'date'],
+
+            /* --- Propio del evento --- */
+            // Setenta caracteres, los mismos que pide el portal: los dos datos
+            // se pintan en una línea bajo el título y no caben más.
+            'event_host' => [Rule::excludeIf(! $isEvent), 'nullable', 'string', 'max:70'],
+            'event_location' => [Rule::excludeIf(! $isEvent), 'nullable', 'string', 'max:70'],
+            'event_date' => [Rule::excludeIf(! $isEvent), 'nullable', 'date'],
+            'event_time' => [Rule::excludeIf(! $isEvent), 'nullable', 'date_format:H:i'],
 
             /* --- Propio de la convocatoria --- */
             'opens_at' => [Rule::excludeIf(! $isConvocation), 'nullable', 'date'],
@@ -177,6 +188,10 @@ class TopicItemRequest extends FormRequest
             'body' => 'descripción',
             'link' => 'enlace',
             'issued_at' => 'fecha de expedición',
+            'event_host' => 'organizador',
+            'event_location' => 'lugar',
+            'event_date' => 'fecha de inicio',
+            'event_time' => 'hora de inicio',
             'opens_at' => 'fecha de inicio',
             'closes_at' => 'fecha de cierre',
             'expires_at' => 'fecha final de visualización',

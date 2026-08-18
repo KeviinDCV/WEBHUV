@@ -10,6 +10,7 @@ use App\Support\CommentWall;
 use App\Support\MediaSync;
 use App\Support\RichText;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -152,6 +153,23 @@ class TopicItemController extends Controller
         // mismo dato, «dónde está esto de verdad».
         if ($item->isLink()) {
             $item->source_url = $request->input('link');
+        }
+
+        // Un evento guarda dónde y quién lo convoca, y cuándo empieza. La fecha
+        // y la hora llegan por separado, como en el formulario del portal, y se
+        // juntan en `opens_at`, que es donde la importación deja «startingDate».
+        if ($item->isEvent()) {
+            $item->event_host = $request->input('event_host');
+            $item->event_location = $request->input('event_location');
+
+            $item->opens_at = $request->filled('event_date')
+                ? Carbon::parse($request->input('event_date').' '.$request->input('event_time', '00:00'))
+                : null;
+
+            $item->expires_at = $request->boolean('no_end_date') ? null : $request->date('expires_at');
+            $item->comment_wall = $this->commentWall($request);
+
+            return;
         }
 
         // La convocatoria abre y cierra, y cerrada se sigue leyendo: sus fechas

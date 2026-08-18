@@ -136,6 +136,56 @@
         </p>
     </fieldset>
 
+    {{-- ---------------- Evento ---------------- --}}
+    {{--
+        Organizador, lugar y cuándo empieza: los tres datos que el portal pide
+        para un evento, con sus mismos topes de setenta caracteres.
+
+        La importación ya los traía —llegan como «EventHost» y «EventLocation»
+        entre los atributos del contenido— pero no había dónde escribirlos: un
+        evento creado aquí salía sin lugar ni organizador, y uno importado los
+        perdía en cuanto alguien lo editaba.
+
+        La fecha y la hora, en dos campos como allí. El de la convocatoria usa
+        un «datetime-local» porque son dos momentos con minutos exactos; una
+        agenda se escribe en día y hora redonda.
+    --}}
+    <fieldset class="mb-5 border-0 p-0" x-show="isEvent" :disabled="! isEvent" x-cloak>
+        <div class="mb-4">
+            <label for="event_host{{ $uid }}" class="text-13-5 text-link">
+                Organizador <span class="text-muted">(70 caracteres)</span>
+            </label>
+            <input id="event_host{{ $uid }}" name="event_host" type="text" maxlength="70"
+                   value="{{ old('event_host', $item->event_host) }}"
+                   class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+        </div>
+
+        <div class="mb-4">
+            <label for="event_location{{ $uid }}" class="text-13-5 text-link">
+                Lugar <span class="text-muted">(70 caracteres)</span>
+            </label>
+            <input id="event_location{{ $uid }}" name="event_location" type="text" maxlength="70"
+                   value="{{ old('event_location', $item->event_location) }}"
+                   class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="event_date{{ $uid }}" class="text-13-5 text-link">Fecha inicio</label>
+                <input id="event_date{{ $uid }}" name="event_date" type="date"
+                       value="{{ old('event_date', $item->opens_at?->format('Y-m-d')) }}"
+                       class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+            </div>
+
+            <div>
+                <label for="event_time{{ $uid }}" class="text-13-5 text-link">Hora inicio</label>
+                <input id="event_time{{ $uid }}" name="event_time" type="time"
+                       value="{{ old('event_time', $item->opens_at?->format('H:i')) }}"
+                       class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
+            </div>
+        </div>
+    </fieldset>
+
     {{-- ---------------- Apertura y cierre (convocatoria) ---------------- --}}
     <fieldset class="mb-5 border-0 p-0" x-show="isConvocation" :disabled="! isConvocation" x-cloak>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

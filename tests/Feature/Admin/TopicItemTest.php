@@ -556,4 +556,85 @@ class TopicItemTest extends TestCase
             'path' => 'temas/1/foto.jpg',
         ]);
     }
+
+    /* ------------------------------------------------------------------ */
+    /* Eventos                                                             */
+    /* ------------------------------------------------------------------ */
+
+    private function agenda(): Topic
+    {
+        return Topic::create([
+            'name' => 'Calendario de actividades',
+            'slug' => 'calendario-de-actividades',
+            'legacy_content_types' => ['Event'],
+            'imported_at' => now(),
+        ]);
+    }
+
+    /**
+     * Un evento se crea con lugar, organizador y hora.
+     *
+     * La importación ya traía los tres —«EventHost» y «EventLocation» llegan
+     * entre los atributos del contenido, y «startingDate» como fecha de inicio—
+     * pero no había dónde escribirlos: un evento creado aquí salía sin lugar ni
+     * organizador, y uno importado los perdía en cuanto alguien lo editaba.
+     */
+    public function test_un_evento_guarda_lugar_organizador_y_hora(): void
+    {
+        $topic = $this->agenda();
+
+        $this->actingAs($this->editor())
+            ->post(route('admin.topics.items.store', $topic), [
+                'kind' => TopicItem::KIND_EVENT,
+                'title' => 'Jornada de donación de sangre',
+                'body' => '<p>Ven a donar.</p>',
+                'event_host' => 'Banco de Sangre',
+                'event_location' => 'Auditorio principal',
+                'event_date' => '2026-09-15',
+                'event_time' => '14:30',
+                'published_at' => now()->format('Y-m-d\TH:i'),
+            ])
+            ->assertRedirect();
+
+        $item = TopicItem::sole();
+
+        $this->assertSame('Banco de Sangre', $item->event_host);
+        $this->assertSame('Auditorio principal', $item->event_location);
+        $this->assertSame('2026-09-15 14:30', $item->opens_at->format('Y-m-d H:i'));
+    }
+
+    /** Los dos datos se pintan en una línea: setenta caracteres y ni uno más. */
+    public function test_el_lugar_y_el_organizador_no_pasan_de_setenta(): void
+    {
+        $topic = $this->agenda();
+
+        foreach (['event_host', 'event_location'] as $campo) {
+            $this->actingAs($this->editor())
+                ->post(route('admin.topics.items.store', $topic), [
+                    'kind' => TopicItem::KIND_EVENT,
+                    'title' => 'Evento',
+                    $campo => str_repeat('a', 71),
+                    'published_at' => now()->format('Y-m-d\TH:i'),
+                ])
+                ->assertSessionHasErrors($campo);
+        }
+
+        $this->assertDatabaseCount('topic_items', 0);
+    }
+
+    /** El editor enseña los campos del evento, y solo para un evento. */
+    public function test_el_editor_ofrece_los_campos_del_evento(): void
+    {
+        $html = $this->actingAs($this->editor())
+            ->get(route('topics.show', $this->agenda()))
+            ->assertOk()
+            ->getContent();
+
+        foreach (['event_host', 'event_location', 'event_date', 'event_time'] as $campo) {
+            $this->assertStringContainsString('name="'.$campo.'"', $html, "Falta «{$campo}» en el editor.");
+        }
+
+        // Y solo se habilitan cuando el tipo es evento.
+        $this->assertStringContainsString('x-show="isEvent"', $html);
+    }
 }

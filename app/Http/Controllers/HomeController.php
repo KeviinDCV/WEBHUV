@@ -7,9 +7,10 @@ use App\Models\Banner;
 use App\Models\Content;
 use App\Models\ContentBlock;
 use App\Models\ContentBlockSection;
-use App\Models\Event;
 use App\Models\Setting;
 use App\Models\ShortcutBlock;
+use App\Models\Topic;
+use App\Models\TopicItem;
 use App\Support\EventCalendar;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -99,18 +100,37 @@ class HomeController extends Controller
     }
 
     /**
-     * Agenda, filtrada por las categorías que tenga elegidas el bloque.
+     * Agenda: los eventos del tema que el bloque tenga elegido.
      *
-     * @return \Illuminate\Support\Collection<int, Event>
+     * La agenda no es una tabla aparte, es un tema —«Calendario de actividades»,
+     * con sus ciento cuarenta y un eventos—, igual que en el portal. Así se
+     * editan con el mismo formulario que cualquier otro contenido y no hay dos
+     * agendas que no se vean entre sí.
+     *
+     * Sin ese tema no hay agenda que pintar, y el calendario sale vacío en vez
+     * de reventar: un sitio recién instalado todavía no ha importado nada.
+     *
+     * @return \Illuminate\Support\Collection<int, TopicItem>
      */
     private function events(): \Illuminate\Support\Collection
     {
         $block = ContentBlock::events();
+        $topic = Topic::firstWhere('name', $block->option('source', ContentBlock::EVENT_SOURCES[0]));
 
-        return Event::query()
-            ->when(! Auth::check(), fn (Builder $q) => $q->active())
-            ->inCategories($block->option('categories', []))
-            ->orderBy('starts_at')
+        if (! $topic) {
+            return collect();
+        }
+
+        $categories = array_filter((array) $block->option('categories', []));
+
+        return $topic->items()
+            ->where('kind', TopicItem::KIND_EVENT)
+            ->when(! Auth::check(), fn (Builder $q) => $q->visible())
+            ->when($categories !== [], fn (Builder $q) => $q->whereHas(
+                'categories',
+                fn (Builder $c) => $c->whereIn('topic_categories.id', $categories)
+            ))
+            ->orderBy('opens_at')
             ->get();
     }
 

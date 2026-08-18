@@ -70,6 +70,64 @@ class EventTest extends TestCase
         $this->assertSame('Congreso de neurociencias', Event::sole()->title);
     }
 
+    /**
+     * El formulario pide lo mismo que el del portal, y con sus topes.
+     *
+     * Quien publica la agenda viene de allí: si aquí falta «Organizador» o el
+     * lugar admite el triple de caracteres, el mismo evento se escribe distinto
+     * según por dónde se cree.
+     */
+    public function test_el_formulario_pide_los_mismos_campos_que_el_portal(): void
+    {
+        $html = $this->actingAs($this->editor())
+            ->get('/administracion/eventos/nuevo')
+            ->assertOk()
+            ->getContent();
+
+        foreach (['Título', 'Organizador', 'Lugar', 'Fecha inicio', 'Hora inicio'] as $rotulo) {
+            $this->assertStringContainsString($rotulo, $html, "Falta el campo «{$rotulo}».");
+        }
+
+        // Los topes del portal: 150 el título, 70 el organizador y 70 el lugar.
+        $this->assertMatchesRegularExpression('~name="title"[^>]*maxlength="150"~', $html);
+        $this->assertMatchesRegularExpression('~name="host"[^>]*maxlength="70"~', $html);
+        $this->assertMatchesRegularExpression('~name="place"[^>]*maxlength="70"~', $html);
+
+        // Fecha y hora en dos controles, no en un «datetime-local».
+        $this->assertMatchesRegularExpression('~name="starts_date"[^>]*type="date"~', $html);
+        $this->assertMatchesRegularExpression('~name="starts_time"[^>]*type="time"~', $html);
+    }
+
+    /** La fecha y la hora llegan por separado y se guardan en una sola columna. */
+    public function test_la_fecha_y_la_hora_separadas_se_juntan_al_guardar(): void
+    {
+        $this->actingAs($this->editor())
+            ->post('/administracion/eventos', [
+                'title' => 'Jornada de donación de sangre',
+                'host' => 'Banco de Sangre',
+                'place' => 'Auditorio principal',
+                'starts_date' => '2026-09-15',
+                'starts_time' => '14:30',
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('home'));
+
+        $event = Event::sole();
+
+        $this->assertSame('Banco de Sangre', $event->host);
+        $this->assertSame('2026-09-15 14:30', $event->starts_at->format('Y-m-d H:i'));
+    }
+
+    /** Un organizador más largo de lo que cabe en la tarjeta se rechaza. */
+    public function test_el_organizador_no_pasa_de_setenta_caracteres(): void
+    {
+        $this->actingAs($this->editor())
+            ->post('/administracion/eventos', $this->datos(['host' => str_repeat('a', 71)]))
+            ->assertSessionHasErrors('host');
+
+        $this->assertDatabaseCount('events', 0);
+    }
+
     public function test_la_fecha_de_fin_no_puede_ser_anterior_a_la_de_inicio(): void
     {
         // Un evento así no se pintaría en ningún día del calendario.

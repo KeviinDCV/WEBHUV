@@ -168,14 +168,18 @@ class LegacyLink
         }
 
         // El portal admite «/tema/{tema}/{categoría}» para abrir un tema ya
-        // filtrado. Más de dos tramos no significan nada allí.
+        // filtrado.
+        //
+        // Con más de dos tramos no se abandona: se abre el tema sin filtrar,
+        // que es exactamente lo que hace el portal. El índice de Transparencia
+        // enlaza así en «Informes trimestrales sobre acceso a información,
+        // quejas y reclamos» —«/tema/control/informes-trimestrales-pqrsfd-2023/
+        // 2024-483422»—, y allí abre «Rendición de cuentas» con «Todas las
+        // categorías» marcado. Devolviendo null, ese enlace se iba al portal
+        // anterior teniendo el tema aquí.
         $parts = explode('/', trim(Str::after($path, '/tema/'), '/'));
 
-        if (count($parts) > 2) {
-            return null;
-        }
-
-        [$slug, $category] = [$parts[0], $parts[1] ?? null];
+        [$slug, $category] = [$parts[0], count($parts) === 2 ? $parts[1] : null];
 
         if (! in_array($slug, self::migratedTopics(), true)) {
             return null;

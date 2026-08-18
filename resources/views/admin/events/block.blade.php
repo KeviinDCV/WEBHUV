@@ -47,9 +47,13 @@
                 Sin ninguna marcada, el calendario muestra toda la agenda.
             </p>
 
+            {{-- Son las del tema que alimenta el calendario, no una lista
+                 aparte: las mismas que se ven en su listado y las que la
+                 importación mantiene al día. Por eso no se crean aquí. --}}
             @if ($categories->isEmpty())
                 <p class="m-0 text-13-5 text-muted">
-                    Todavía no hay categorías. Cree la primera más abajo.
+                    La sección elegida todavía no tiene categorías. Se crean al editar
+                    sus contenidos.
                 </p>
             @else
                 <div class="flex flex-col gap-2">
@@ -79,24 +83,4 @@
         </div>
     </form>
 
-    {{-- Fuera del formulario principal: un formulario no puede anidarse. --}}
-    <details class="mt-8 max-w-[720px] rounded-[3px] border border-line bg-card">
-        <summary class="cursor-pointer px-4 py-3 text-13-5 font-semibold text-link">
-            Agregar una categoría
-        </summary>
-        <form method="POST" action="{{ route('admin.events.categories.store') }}"
-              class="flex flex-wrap items-end gap-3 border-t border-line px-4 py-4">
-            @csrf
-            <div class="min-w-[220px] flex-1">
-                <label for="category_name" class="text-12-5 text-body">Nombre</label>
-                <input id="category_name" name="name" type="text" maxlength="60" required
-                       placeholder="Por ejemplo: Educación"
-                       class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[8px] text-14">
-            </div>
-            <button type="submit"
-                    class="rounded-full border-0 bg-azure px-5 py-[9px] text-13-5 font-semibold text-on-accent">
-                Crear categoría
-            </button>
-        </form>
-    </details>
 @endsection

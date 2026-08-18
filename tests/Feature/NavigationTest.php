@@ -132,4 +132,38 @@ class NavigationTest extends TestCase
         // Y «Inicio» sigue sin marcarse: no es donde estás.
         $this->assertNotContains('Inicio', $this->marcadas($html));
     }
+    /**
+     * Marcar la página abierta no mueve la barra.
+     *
+     * Solo cambian los colores: ni el tamaño de letra, ni el grosor, ni el
+     * relleno. Subiendo la letra de 13,5 a 14,5 y el relleno de 22 a 34, el
+     * rótulo más largo —«Transparencia y acceso a la información pública», con
+     * su ancho tope de 210 px— pasaba de dos renglones a tres y la barra daba
+     * un salto justo al entrar en esa página. El portal no lo hace: sus seis
+     * enlaces miden 169 px y pesan 400, marcados o sin marcar.
+     */
+    public function test_marcar_la_pagina_abierta_no_cambia_el_tamano_del_rotulo(): void
+    {
+        $clases = function (string $html): string {
+            preg_match('~<a[^>]*href="[^"]*/transparencia"[^>]*class="([^"]+)"~', $html, $m);
+
+            return (string) preg_replace('~\s+~', ' ', $m[1] ?? '');
+        };
+
+        $marcado = $clases($this->get(route('transparency'))->assertOk()->getContent());
+        $sinMarcar = $clases($this->get(route('home'))->assertOk()->getContent());
+
+        $this->assertNotSame('', $marcado, 'No se encontró el enlace de Transparencia.');
+        $this->assertStringContainsString('bg-azure', $marcado);
+        $this->assertStringNotContainsString('bg-azure', $sinMarcar);
+
+        // Lo que no puede cambiar: lo que ocupa.
+        foreach (['text-13-5', 'font-medium', 'px-[22px]'] as $geometria) {
+            $this->assertStringContainsString($geometria, $marcado, "Marcado perdió «{$geometria}».");
+            $this->assertStringContainsString($geometria, $sinMarcar, "Sin marcar perdió «{$geometria}».");
+        }
+
+        $this->assertStringNotContainsString('text-14-5', $marcado);
+        $this->assertStringNotContainsString('font-semibold', $marcado);
+    }
 }

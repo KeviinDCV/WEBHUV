@@ -1,4 +1,10 @@
-@php $days = $calendar->days(); @endphp
+@php
+    $days = $calendar->days();
+
+    // La agenda es un tema, no una tabla aparte: crear y editar un evento
+    // se hace con el editor de ese tema, el mismo que cualquier contenido.
+    $agenda = App\Models\Topic::firstWhere('name', $eventsBlock->option('source'));
+@endphp
 
 <section id="eventos" aria-labelledby="huv-eventos" class="relative bg-page">
     <x-edit-chip section="eventos" label="el bloque de eventos"
@@ -14,7 +20,7 @@
 
             <div class="flex flex-wrap items-center gap-4">
                 @auth
-                    <a href="{{ route('admin.events.create') }}"
+                    <a href="{{ $agenda ? route('topics.show', $agenda).'#huv-editor-tema' : route('admin.events.block.edit') }}"
                        x-show="$store.huvUi.editMode" x-cloak
                        class="inline-flex items-center rounded-full border-0 bg-azure px-5 py-[8px]
                               font-display text-12-5 font-bold tracking-[0.06em] text-on-accent uppercase
@@ -108,10 +114,11 @@
                         @foreach ($day['events'] as $event)
                             @php
                                 // Con sesión iniciada el evento lleva a su
-                                // edición; para el visitante, a su enlace.
-                                $target = auth()->check()
-                                    ? route('admin.events.edit', $event)
-                                    : $event->link();
+                                // edición dentro del tema; para el visitante, a
+                                // su ficha.
+                                $target = auth()->check() && $agenda
+                                    ? route('topics.show', $agenda).'?editar='.$event->id.'#huv-editor-tema'
+                                    : $event->url();
                                 $tag = $target ? 'a' : 'div';
                             @endphp
                             <{{ $tag }} @if ($target) href="{{ $target }}" @endif
@@ -119,7 +126,7 @@
                                       font-semibold text-on-accent no-underline
                                       hover:text-on-accent hover:no-underline
                                       {{ $event->is_active ? 'bg-azure hover:bg-azure-dark' : 'bg-faint' }}">
-                                <span class="block">{{ $event->starts_at->format('H:i') }}</span>
+                                <span class="block">{{ $event->startsAt()?->format('H:i') }}</span>
                                 <span class="block">{{ $event->title }}</span>
                                 @unless ($event->is_active)
                                     <span class="block text-10-5 uppercase">Inactivo</span>

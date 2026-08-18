@@ -214,6 +214,32 @@ class TopicItem extends Model
         return $this->kind === self::KIND_CONVOCATION;
     }
 
+    /**
+     * Cuándo empieza el evento.
+     *
+     * En `opens_at`, que es donde la importación deja «startingDate». Se da
+     * nombre al dato en vez de leer la columna desde el calendario porque para
+     * una convocatoria esa misma columna significa otra cosa —cuándo se abre el
+     * proceso—, y quien lea el calendario no tiene por qué saberlo.
+     */
+    public function startsAt(): ?Carbon
+    {
+        return $this->opens_at;
+    }
+
+    /**
+     * Cuándo termina.
+     *
+     * Los eventos del portal no traen cierre —los ciento cuarenta y uno vienen
+     * con «closingDate» vacío—, así que empiezan y acaban el mismo día. La
+     * columna existe para el que sí lo tenga: un congreso de tres días se pinta
+     * en los tres.
+     */
+    public function endsAt(): ?Carbon
+    {
+        return $this->closes_at ?? $this->opens_at;
+    }
+
     public function isEvent(): bool
     {
         return $this->kind === self::KIND_EVENT;
