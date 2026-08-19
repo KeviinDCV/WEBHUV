@@ -231,7 +231,7 @@ class TopicItemController extends Controller
      */
     private function syncMedia(TopicItem $item, TopicItemRequest $request, Topic $topic): void
     {
-        if ($item->isArticle() || $item->isConvocation() || $item->isDocument()) {
+        if ($item->isArticle() || $item->isConvocation() || $item->isDocument() || $item->isEvent()) {
             // Sin galería salvo en el artículo: la ficha de un documento y la
             // de una convocatoria son texto y archivos, sin imagen ni vídeo.
             (new MediaSync($item, 'temas/'.$topic->id, gallery: $item->isArticle() || $item->isEvent()))->apply($request);

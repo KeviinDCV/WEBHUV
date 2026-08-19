@@ -17,16 +17,29 @@ class ContentBlock extends Model
     /**
      * Secciones de origen que ofrece el bloque de eventos, tal como el portal
      * actual: el calendario de actividades y las etapas de participación.
+     *
+     * La clave es el tema y el valor su rótulo. Se guarda la clave, no el
+     * rótulo: hay DOS temas llamados «Rendición de cuentas» —el de slug
+     * «control», que solo admite documentos, y el de slug
+     * «rendicion-de-cuentas», que es el bueno— y buscar por nombre devolvía el
+     * primero que apareciera. El bloque quedaba leyendo un tema sin eventos y
+     * el calendario salía vacío para siempre, sin que nada lo explicara.
+     *
+     * Además el nombre lo reescribe la importación en cada pasada: si el portal
+     * lo cambia, un bloque configurado por nombre se queda sin tema.
      */
     public const EVENT_SOURCES = [
-        'Calendario de actividades',
-        'Colaboración e innovación',
-        'Consulta ciudadana',
-        'Control ciudadano',
-        'Oficina Coordinadora Académica',
-        'Planeación y presupuesto participativo',
-        'Rendición de cuentas',
+        'calendario-de-actividades' => 'Calendario de actividades',
+        'colaboracion-e-innovacion' => 'Colaboración e innovación',
+        'consulta-ciudadana' => 'Consulta ciudadana',
+        'control-ciudadano' => 'Control ciudadano',
+        'diplomados-y-cursos' => 'Oficina Coordinadora Académica',
+        'planeacion-presupuesto-participativo' => 'Planeación y presupuesto participativo',
+        'rendicion-de-cuentas' => 'Rendición de cuentas',
     ];
+
+    /** El tema que alimenta la agenda por omisión. */
+    public const DEFAULT_EVENT_SOURCE = 'calendario-de-actividades';
 
     /** Secciones que puede combinar un bloque. */
     public const MAX_SECTIONS = 3;
@@ -63,7 +76,7 @@ class ContentBlock extends Model
                 'show_title' => true,
                 'theme' => 'navy',
                 'position' => 2,
-                'options' => ['source' => self::EVENT_SOURCES[0], 'categories' => []],
+                'options' => ['source' => self::DEFAULT_EVENT_SOURCE, 'categories' => []],
             ]
         );
     }

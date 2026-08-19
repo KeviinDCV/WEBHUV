@@ -40,7 +40,7 @@ class EventTest extends TestCase
         return Topic::firstOrCreate(
             ['slug' => 'calendario-de-actividades'],
             [
-                'name' => ContentBlock::EVENT_SOURCES[0],
+                'name' => 'Calendario de actividades',
                 'legacy_content_types' => ['Event'],
                 'imported_at' => now(),
             ]
@@ -137,7 +137,7 @@ class EventTest extends TestCase
             ->get('/administracion/eventos/bloque')
             ->assertOk()
             ->assertSee('Educación', false)
-            ->assertSee(ContentBlock::EVENT_SOURCES[0], false);
+            ->assertSee('Calendario de actividades', false);
     }
 
     public function test_se_puede_renombrar_el_bloque(): void
@@ -145,7 +145,7 @@ class EventTest extends TestCase
         $this->actingAs($this->editor())
             ->put('/administracion/eventos/bloque', [
                 'name' => 'Agenda',
-                'source' => ContentBlock::EVENT_SOURCES[0],
+                'source' => ContentBlock::DEFAULT_EVENT_SOURCE,
             ])
             ->assertRedirect(route('home'));
 
@@ -164,7 +164,7 @@ class EventTest extends TestCase
         $this->actingAs($this->editor())
             ->put('/administracion/eventos/bloque', [
                 'name' => 'Eventos',
-                'source' => ContentBlock::EVENT_SOURCES[0],
+                'source' => ContentBlock::DEFAULT_EVENT_SOURCE,
                 'categories' => [$educacion->id],
             ])
             ->assertRedirect(route('home'));
@@ -190,11 +190,102 @@ class EventTest extends TestCase
         $this->actingAs($this->editor())
             ->put('/administracion/eventos/bloque', [
                 'name' => 'Eventos',
-                'source' => ContentBlock::EVENT_SOURCES[1],
+                'source' => 'consulta-ciudadana',
                 'categories' => [$educacion->id],
             ])
             ->assertRedirect(route('home'));
 
         $this->assertSame([], ContentBlock::events()->option('categories'));
+    }
+
+    /**
+     * La sección se guarda por tema, no por nombre.
+     *
+     * Hay DOS temas llamados «Rendición de cuentas»: el de slug «control», que
+     * solo admite documentos, y el de slug «rendicion-de-cuentas», que es el que
+     * tiene eventos. Buscando por nombre salía el primero que apareciera, y el
+     * calendario se quedaba leyendo un tema sin eventos —vacío para siempre— sin
+     * que nada lo explicara.
+     */
+    public function test_la_seccion_se_engancha_al_tema_y_no_a_su_nombre(): void
+    {
+        // El homónimo que no tiene eventos, creado primero a propósito.
+        Topic::create([
+            'name' => 'Rendición de cuentas',
+            'slug' => 'control',
+            'legacy_content_types' => ['Document'],
+            'imported_at' => now(),
+        ]);
+
+        $bueno = Topic::create([
+            'name' => 'Rendición de cuentas',
+            'slug' => 'rendicion-de-cuentas',
+            'legacy_content_types' => ['Event'],
+            'imported_at' => now(),
+        ]);
+
+        $bueno->items()->create([
+            'kind' => TopicItem::KIND_EVENT,
+            'title' => 'Audiencia pública de rendición de cuentas',
+            'slug' => 'audiencia-publica',
+            'opens_at' => now()->startOfWeek()->addDays(2)->setTime(9, 0),
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->editor())
+            ->put('/administracion/eventos/bloque', [
+                'name' => 'Eventos',
+                'source' => 'rendicion-de-cuentas',
+            ])
+            ->assertRedirect(route('home'));
+
+        $this->get('/')->assertOk()->assertSee('Audiencia pública de rendición de cuentas', false);
+    }
+
+    /**
+     * La ficha del evento dice cuándo, dónde y quién lo organiza.
+     *
+     * Los ciento cuarenta y un eventos del portal traen lugar y organizador, la
+     * importación los guarda y el editor los pide, pero no llegaban a ninguna
+     * pantalla: quien pulsaba un evento en el calendario aterrizaba en una
+     * página que no decía ni cuándo ni dónde era.
+     */
+    public function test_la_ficha_del_evento_dice_cuando_donde_y_quien(): void
+    {
+        $topic = $this->agenda();
+
+        $evento = $this->evento([
+            'title' => 'Audiencia pública',
+            'event_location' => 'Hospital sede Cali',
+            'event_host' => 'Oficina de Control Interno',
+            'opens_at' => now()->startOfWeek()->addDays(2)->setTime(14, 0),
+        ]);
+
+        $this->get(route('topics.items.show', [$topic, $evento]))
+            ->assertOk()
+            ->assertSee('Hospital sede Cali', false)
+            ->assertSee('Oficina de Control Interno', false)
+            ->assertSee($evento->startsAt()->toIso8601String(), false);
+    }
+
+    /**
+     * Un evento sin fecha no se puede guardar.
+     *
+     * Sin ella desaparece del calendario y no queda ni un sitio donde se note:
+     * el listado del tema lo sigue enseñando como si nada.
+     */
+    public function test_un_evento_exige_fecha_y_hora(): void
+    {
+        $topic = $this->agenda();
+
+        $this->actingAs($this->editor())
+            ->post(route('admin.topics.items.store', $topic), [
+                'kind' => TopicItem::KIND_EVENT,
+                'title' => 'Evento sin fecha',
+                'published_at' => now()->format('Y-m-d\TH:i'),
+            ])
+            ->assertSessionHasErrors(['event_date', 'event_time']);
+
+        $this->assertDatabaseCount('topic_items', 0);
     }
 }

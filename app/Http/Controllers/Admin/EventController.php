@@ -39,7 +39,7 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:30'],
-            'source' => ['required', Rule::in(ContentBlock::EVENT_SOURCES)],
+            'source' => ['required', Rule::in(array_keys(ContentBlock::EVENT_SOURCES))],
             'categories' => ['array'],
             'categories.*' => ['integer', 'exists:topic_categories,id'],
         ], [
@@ -73,9 +73,14 @@ class EventController extends Controller
         return redirect()->route('home')->with('status', 'Bloque de eventos guardado.');
     }
 
-    /** El tema que alimenta el calendario, si ya está migrado. */
+    /**
+     * El tema que alimenta el calendario, si ya está migrado.
+     *
+     * Por slug y no por nombre: hay dos temas llamados «Rendición de cuentas»
+     * y el nombre lo reescribe la importación en cada pasada.
+     */
     private function topicFor(?string $source): ?Topic
     {
-        return $source === null ? null : Topic::with('categories')->firstWhere('name', $source);
+        return $source === null ? null : Topic::with('categories')->firstWhere('slug', $source);
     }
 }

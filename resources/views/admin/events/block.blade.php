@@ -31,9 +31,9 @@
             </label>
             <select id="source" name="source" required
                     class="mt-1 w-full max-w-[420px] rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
-                @foreach (ContentBlock::EVENT_SOURCES as $source)
-                    <option value="{{ $source }}" @selected(old('source', $block->option('source')) === $source)>
-                        {{ $source }}
+                @foreach (ContentBlock::EVENT_SOURCES as $slug => $rotulo)
+                    <option value="{{ $slug }}" @selected($block->option('source') === $slug)>
+                        {{ $rotulo }}
                     </option>
                 @endforeach
             </select>

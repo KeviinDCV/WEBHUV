@@ -313,7 +313,7 @@
         único que su ficha pinta. Ofrecerlas en un documento sería guardar en
         disco algo que no se ve en ninguna parte.
     --}}
-    @if (array_intersect([TopicItem::KIND_ARTICLE, TopicItem::KIND_CONVOCATION, TopicItem::KIND_DOCUMENT], $kinds))
+    @if (array_intersect([TopicItem::KIND_ARTICLE, TopicItem::KIND_CONVOCATION, TopicItem::KIND_DOCUMENT, TopicItem::KIND_EVENT], $kinds))
         <fieldset class="border-0 p-0" x-show="hasMedia" :disabled="! hasMedia" x-cloak>
             @php
                 // Fotos y vídeo solo donde la ficha los pinta. La de un

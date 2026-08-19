@@ -115,7 +115,7 @@ class HomeController extends Controller
     private function events(): \Illuminate\Support\Collection
     {
         $block = ContentBlock::events();
-        $topic = Topic::firstWhere('name', $block->option('source', ContentBlock::EVENT_SOURCES[0]));
+        $topic = Topic::firstWhere('slug', $block->option('source', ContentBlock::DEFAULT_EVENT_SOURCE));
 
         if (! $topic) {
             return collect();
@@ -131,6 +131,16 @@ class HomeController extends Controller
                 fn (Builder $c) => $c->whereIn('topic_categories.id', $categories)
             ))
             ->orderBy('opens_at')
+            // Dos eventos a la misma hora se ordenan por el orden en que los
+            // publicó el portal, que es el de su identificador: el 19 de agosto
+            // de 2026 coinciden dos a las 14:00 y allí sale primero «Derechos y
+            // Deberes de los Pacientes», el más antiguo de los dos.
+            //
+            // Sin este desempate el orden lo decide la base y no está definido.
+            // Va sin prueba a propósito: con dos filas MySQL las devuelve en
+            // orden de identificador de todas formas, así que una comprobación
+            // pasaría igual sin esta línea y solo daría confianza falsa.
+            ->orderBy('id')
             ->get();
     }
 

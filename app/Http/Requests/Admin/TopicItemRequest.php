@@ -67,8 +67,13 @@ class TopicItemRequest extends FormRequest
         // documento y la convocatoria —el portal publica hasta veinticinco en
         // uno solo—, pero sus fichas no pintan ni fotos ni vídeo: admitirlos
         // sería guardar en disco algo que no se ve en ninguna parte.
-        $hasFiles = $isArticle || $isDocument || $isConvocation;
-        $hasGallery = $isArticle;
+        // El evento se publica como un artículo —con su cartel y su texto—, así
+        // que lleva galería y adjuntos. Decía que sí el editor y que no la
+        // validación, y en esa discordancia el cartel de un evento se subía, se
+        // descartaba en silencio y la pantalla contestaba «publicado
+        // correctamente».
+        $hasFiles = $isArticle || $isDocument || $isConvocation || $isEvent;
+        $hasGallery = $isArticle || $isEvent;
 
         return [
             'kind' => ['nullable', Rule::in($this->topic()->supportedKinds())],
@@ -84,8 +89,11 @@ class TopicItemRequest extends FormRequest
             // se pintan en una línea bajo el título y no caben más.
             'event_host' => [Rule::excludeIf(! $isEvent), 'nullable', 'string', 'max:70'],
             'event_location' => [Rule::excludeIf(! $isEvent), 'nullable', 'string', 'max:70'],
-            'event_date' => [Rule::excludeIf(! $isEvent), 'nullable', 'date'],
-            'event_time' => [Rule::excludeIf(! $isEvent), 'nullable', 'date_format:H:i'],
+            // Obligatorias: sin fecha, el evento desaparece del calendario y no
+            // queda ni un sitio donde se note que le falta. El formulario del
+            // portal también las pide.
+            'event_date' => [Rule::excludeIf(! $isEvent), Rule::requiredIf($isEvent), 'date'],
+            'event_time' => [Rule::excludeIf(! $isEvent), Rule::requiredIf($isEvent), 'date_format:H:i'],
 
             /* --- Propio de la convocatoria --- */
             'opens_at' => [Rule::excludeIf(! $isConvocation), 'nullable', 'date'],

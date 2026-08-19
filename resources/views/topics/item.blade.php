@@ -184,6 +184,44 @@
                         </p>
                     @endif
                 @else
+                    {{--
+                        Cuándo y dónde, antes del texto.
+
+                        Los ciento cuarenta y un eventos del portal traen su lugar y
+                        su organizador, y la importación los guarda, pero hasta aquí
+                        no se publicaban en ninguna pantalla: quien pulsaba un evento
+                        en el calendario aterrizaba en una página que no decía ni
+                        cuándo ni dónde era.
+                    --}}
+                    @if ($item->isEvent() && ($item->startsAt() || filled($item->event_location) || filled($item->event_host)))
+                        <dl class="m-0 mb-6 flex flex-col gap-2 rounded-[3px] border border-stroke bg-tint px-4 py-3">
+                            @if ($item->startsAt())
+                                <div class="flex flex-wrap gap-x-2 text-14">
+                                    <dt class="font-semibold text-heading">Cuándo</dt>
+                                    <dd class="m-0 text-body">
+                                        <time datetime="{{ $item->startsAt()->toIso8601String() }}">
+                                            {{ $item->startsAt()->translatedFormat('l j \d\e F \d\e Y, H:i') }}
+                                        </time>
+                                    </dd>
+                                </div>
+                            @endif
+
+                            @if (filled($item->event_location))
+                                <div class="flex flex-wrap gap-x-2 text-14">
+                                    <dt class="font-semibold text-heading">Dónde</dt>
+                                    <dd class="m-0 text-body">{{ $item->event_location }}</dd>
+                                </div>
+                            @endif
+
+                            @if (filled($item->event_host))
+                                <div class="flex flex-wrap gap-x-2 text-14">
+                                    <dt class="font-semibold text-heading">Organiza</dt>
+                                    <dd class="m-0 text-body">{{ $item->event_host }}</dd>
+                                </div>
+                            @endif
+                        </dl>
+                    @endif
+
                     @include('partials.ficha-medios', [
                         'item' => $item,
                         'body' => $item->body,

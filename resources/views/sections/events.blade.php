@@ -3,7 +3,7 @@
 
     // La agenda es un tema, no una tabla aparte: crear y editar un evento
     // se hace con el editor de ese tema, el mismo que cualquier contenido.
-    $agenda = App\Models\Topic::firstWhere('name', $eventsBlock->option('source'));
+    $agenda = App\Models\Topic::firstWhere('slug', $eventsBlock->option('source'));
 @endphp
 
 <section id="eventos" aria-labelledby="huv-eventos" class="relative bg-page">
