@@ -68,6 +68,40 @@ class LayoutTest extends TestCase
             ->assertSee('class="grid grid-cols-1 items-start gap-5"', false);
     }
 
+    /**
+     * Los recuadros de «también en…» al pie de una ficha.
+     *
+     * Llevaban `h-full`, que con la rejilla estirando la fila dejaba el borde
+     * del titular corto bajando hasta donde acababa el largo.
+     */
+    public function test_los_contenidos_relacionados_no_estiran_sus_recuadros(): void
+    {
+        foreach (['Jornada de donación de sangre', 'Un titular bastante más largo que el anterior para que la fila no cuadre', 'Corto'] as $i => $titulo) {
+            Content::create([
+                'title' => $titulo,
+                'category' => Content::NEWS_CATEGORY,
+                'is_active' => true,
+                'show_in_feed' => true,
+                'published_at' => now()->subDays($i + 1),
+            ]);
+        }
+
+        $ficha = Content::create([
+            'title' => 'La ficha que se está mirando',
+            'category' => Content::NEWS_CATEGORY,
+            'is_active' => true,
+            'show_in_feed' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $html = $this->get($ficha->url())->assertOk()->getContent();
+
+        $this->assertStringContainsString('class="grid grid-cols-1 items-start gap-4 sm:grid-cols-3"', $html);
+        // `h-full` igualaba las alturas por su cuenta, así que quitar el
+        // estirón de la rejilla sin quitarlo a él no habría servido de nada.
+        $this->assertStringNotContainsString('block h-full rounded-[4px]', $html);
+    }
+
     /** Y el del tema que publica contenidos, que es otra plantilla. */
     public function test_el_listado_de_contenidos_de_un_tema_no_estira_las_tarjetas(): void
     {

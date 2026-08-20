@@ -97,11 +97,15 @@
                         <h2 id="huv-relacionados" class="m-0 mb-4 font-display text-17 font-bold text-heading">
                             {{ __('paginas.ficha.relacionados', ['contexto' => App\Models\Content::categoryLabel($content->category)]) }}
                         </h2>
-                        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        {{-- Cada recuadro mide lo que mide su titular, como en el
+                             resto de listados: `h-full` con la rejilla estirando
+                             la fila dejaba el borde del más corto bajando hasta
+                             donde acababa el más largo, con el blanco dentro. --}}
+                        <ul class="grid grid-cols-1 items-start gap-4 sm:grid-cols-3">
                             @foreach ($related as $item)
                                 <li>
                                     <a href="{{ $item->url() }}"
-                                       class="block h-full rounded-[4px] border border-line bg-card p-4 text-14
+                                       class="block rounded-[4px] border border-line bg-card p-4 text-14
                                               leading-[1.45] font-semibold text-heading no-underline
                                               hover:bg-tint hover:no-underline">
                                         <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
