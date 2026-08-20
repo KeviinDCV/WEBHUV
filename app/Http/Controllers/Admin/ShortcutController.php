@@ -31,8 +31,8 @@ class ShortcutController extends Controller
             'order' => ['array'],
             'order.*' => ['integer', Rule::exists('shortcuts', 'id')->where('shortcut_block_id', $block->id)],
         ], [], [
-            'name' => 'nombre del bloque',
-            'theme' => 'tema',
+            'name' => __('mensajes.campo.nombre_bloque'),
+            'theme' => __('mensajes.campo.tema'),
         ]);
 
         $block->update(['name' => $validated['name'], 'theme' => $validated['theme']]);
@@ -41,7 +41,7 @@ class ShortcutController extends Controller
             Shortcut::whereKey($id)->update(['position' => $position + 1]);
         }
 
-        return redirect()->route('home')->with('status', 'Barra de accesos guardada.');
+        return redirect()->route('home')->with('status', __('mensajes.accesos.barra_guardada'));
     }
 
     /* ------------------------------------------------------------------ */
@@ -68,7 +68,7 @@ class ShortcutController extends Controller
 
         return redirect()
             ->route('admin.shortcuts.edit', $block)
-            ->with('status', 'Acceso directo agregado.');
+            ->with('status', __('mensajes.accesos.agregado'));
     }
 
     public function editShortcut(ShortcutBlock $block, Shortcut $shortcut): View
@@ -82,7 +82,7 @@ class ShortcutController extends Controller
 
         return redirect()
             ->route('admin.shortcuts.edit', $block)
-            ->with('status', 'Acceso directo actualizado.');
+            ->with('status', __('mensajes.accesos.actualizado'));
     }
 
     public function destroyShortcut(ShortcutBlock $block, Shortcut $shortcut): RedirectResponse
@@ -91,7 +91,7 @@ class ShortcutController extends Controller
 
         return redirect()
             ->route('admin.shortcuts.edit', $block)
-            ->with('status', 'Acceso directo eliminado.');
+            ->with('status', __('mensajes.accesos.eliminado'));
     }
 
     /**
@@ -107,12 +107,11 @@ class ShortcutController extends Controller
             // exista aquí.
             'url' => ['required', 'string', 'max:2048', 'regex:~^(https?://|/)~'],
         ], [
-            'url.regex' => 'Escriba una dirección completa (con http:// o https://) o una ruta '
-                .'del portal que empiece por «/».',
+            'url.regex' => __('mensajes.validacion.url_portal'),
         ], [
-            'label' => 'nombre',
-            'icon' => 'icono',
-            'url' => 'enlace',
+            'label' => __('mensajes.campo.nombre'),
+            'icon' => __('mensajes.campo.icono'),
+            'url' => __('mensajes.campo.enlace'),
         ]);
     }
 
@@ -123,8 +122,7 @@ class ShortcutController extends Controller
     {
         if (! $block->hasRoom()) {
             throw ValidationException::withMessages([
-                'shortcut' => 'Esta barra ya tiene '.ShortcutBlock::MAX_SHORTCUTS
-                    .' accesos, el máximo permitido.',
+                'shortcut' => __('mensajes.accesos.sin_sitio', ['maximo' => ShortcutBlock::MAX_SHORTCUTS]),
             ]);
         }
     }

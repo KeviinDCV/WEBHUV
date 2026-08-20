@@ -27,7 +27,7 @@
          get visible() { return this.$refs.grid?.children ?? [] },
      }">
 
-    <p class="m-0 mb-3 text-13-5 font-semibold text-heading">Elige una imagen de la biblioteca</p>
+    <p class="m-0 mb-3 text-13-5 font-semibold text-heading">{{ __('admin-contenidos.biblioteca.elegir') }}</p>
 
     {{-- Los identificadores elegidos viajan con el formulario del contenido. --}}
     <template x-for="id in picked" :key="id">
@@ -39,14 +39,14 @@
         <button type="button" @click="category = 'todas'"
                 :class="category === 'todas' ? 'bg-azure text-on-accent' : 'bg-tint text-heading'"
                 class="rounded-[3px] border-0 px-3 py-[5px] text-12-5 font-semibold">
-            Todas
+            {{ __('admin-contenidos.biblioteca.todas') }}
         </button>
 
         @foreach ($categories as $categoryOption)
             <button type="button" @click="category = '{{ $categoryOption->slug }}'"
                     :class="category === '{{ $categoryOption->slug }}' ? 'bg-azure text-on-accent' : 'bg-tint text-heading'"
                     class="rounded-[3px] border-0 px-3 py-[5px] text-12-5 font-semibold">
-                {{ $categoryOption->name }}
+                <x-texto-del-portal>{{ $categoryOption->name }}</x-texto-del-portal>
             </button>
         @endforeach
 
@@ -55,7 +55,7 @@
              contenido. --}}
         <a href="#huv-biblioteca-gestion{{ $uid }}"
            class="rounded-full border border-rule-accent bg-card px-3 py-[5px] text-12-5 font-semibold text-link no-underline">
-            Agregar categoría +
+            {{ __('admin-contenidos.biblioteca.agregar_categoria') }}
         </a>
     </div>
 
@@ -63,7 +63,7 @@
     @if ($libraryImages->isEmpty())
         <p class="m-0 rounded-[3px] border border-dashed border-stroke-strong bg-card px-4 py-8 text-center
                   text-14 text-muted">
-            No hay imágenes en la biblioteca todavía.
+            {{ __('admin-contenidos.biblioteca.vacia') }}
         </p>
     @else
         <ul x-ref="grid" class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
@@ -73,25 +73,28 @@
                         <input type="checkbox" class="sr-only"
                                :checked="isPicked({{ $image->id }})"
                                @change="toggle({{ $image->id }})">
-                        <img src="{{ $image->fileUrl() }}" alt="{{ $image->alt }}"
+                        <img src="{{ $image->fileUrl() }}" alt="{{ $image->alt }}"{!! App\Support\PortalLang::attribute() !!}
                              loading="lazy" decoding="async"
                              class="aspect-[4/3] w-full rounded-[3px] border-2 object-cover transition"
                              :class="isPicked({{ $image->id }}) ? 'border-azure' : 'border-line'">
-                        <span class="mt-1 block truncate text-11-5 text-muted">{{ $image->alt }}</span>
-                        <span class="sr-only" x-text="isPicked({{ $image->id }}) ? 'Seleccionada' : 'Sin seleccionar'"></span>
+                        <x-texto-del-portal class="mt-1 block truncate text-11-5 text-muted">{{ $image->alt }}</x-texto-del-portal>
+                        <span class="sr-only"
+                              x-text="isPicked({{ $image->id }})
+                                  ? @js(__('admin-contenidos.biblioteca.seleccionada'))
+                                  : @js(__('admin-contenidos.biblioteca.sin_seleccionar'))"></span>
                     </label>
                 </li>
             @endforeach
         </ul>
 
-        <p class="m-0 mt-2 text-12-5 text-muted">
-            <span x-text="picked.length"></span> imagen(es) de la biblioteca en este contenido.
-        </p>
+        {{-- El recuento se arma en el navegador: el texto llega con :n y
+             Alpine lo sustituye por las imágenes marcadas. --}}
+        <p class="m-0 mt-2 text-12-5 text-muted"
+           x-text="@js(__('admin-contenidos.biblioteca.elegidas')).replace(':n', picked.length)"></p>
     @endif
 
     <p class="m-0 mt-3 text-12 text-faint">
-        Estas imágenes se comparten entre contenidos: al quitarlas de aquí no se borran de la
-        biblioteca.
+        {{ __('admin-contenidos.biblioteca.compartidas') }}
     </p>
 </div>
 
@@ -102,68 +105,67 @@
 @push('after-form')
     <section id="huv-biblioteca-gestion{{ $uid }}" aria-labelledby="huv-biblioteca-titulo{{ $uid }}" class="mt-10">
         <h2 id="huv-biblioteca-titulo{{ $uid }}" class="m-0 mb-3 font-display text-15 font-bold text-heading">
-            Gestionar la biblioteca de imágenes
+            {{ __('admin-contenidos.biblioteca.gestion.titulo') }}
         </h2>
 
         {{-- <details> en lugar de mostrar/ocultar con JavaScript: es plegable
              de forma nativa y accesible sin una línea de código. --}}
         <details class="rounded-[3px] border border-line bg-card">
             <summary class="cursor-pointer px-4 py-3 text-13-5 font-semibold text-link">
-                Subir una imagen a la biblioteca
+                {{ __('admin-contenidos.biblioteca.gestion.subir') }}
             </summary>
             <form method="POST" action="{{ route('admin.library.images.store') }}"
                   enctype="multipart/form-data" class="border-t border-line px-4 py-4">
                 @csrf
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
-                        <label for="library_image{{ $uid }}" class="text-12-5 text-body">Archivo</label>
+                        <label for="library_image{{ $uid }}" class="text-12-5 text-body">{{ __('admin-contenidos.biblioteca.gestion.archivo') }}</label>
                         <input id="library_image{{ $uid }}" name="image" type="file" required
                                accept="image/jpeg,image/png,image/gif,image/bmp,image/webp"
                                class="mt-1 w-full text-12-5">
                     </div>
                     <div>
-                        <label for="library_alt{{ $uid }}" class="text-12-5 text-body">Descripción</label>
+                        <label for="library_alt{{ $uid }}" class="text-12-5 text-body">{{ __('admin-contenidos.biblioteca.gestion.descripcion') }}</label>
                         <input id="library_alt{{ $uid }}" name="alt" type="text" maxlength="250" required
                                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
                     </div>
                     <div>
-                        <label for="library_category{{ $uid }}" class="text-12-5 text-body">Categoría</label>
+                        <label for="library_category{{ $uid }}" class="text-12-5 text-body">{{ __('admin-contenidos.biblioteca.gestion.categoria') }}</label>
                         <select id="library_category{{ $uid }}" name="media_category_id"
                                 class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
-                            <option value="">Sin categoría</option>
+                            <option value="">{{ __('admin-contenidos.biblioteca.gestion.sin_categoria') }}</option>
                             @foreach ($categories as $categoryOption)
-                                <option value="{{ $categoryOption->id }}">{{ $categoryOption->name }}</option>
+                                <option value="{{ $categoryOption->id }}"{!! App\Support\PortalLang::attribute() !!}>{{ $categoryOption->name }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
                 <p class="m-0 mt-2 text-12 text-faint">
-                    La descripción es obligatoria: acompañará a la imagen en todos los contenidos
-                    donde se use.
+                    {{ __('admin-contenidos.biblioteca.gestion.descripcion_ayuda') }}
                 </p>
                 <button type="submit"
                         class="mt-3 rounded-full border-0 bg-azure px-5 py-[9px] text-13-5 font-semibold text-on-accent">
-                    Subir imagen
+                    {{ __('admin-contenidos.biblioteca.gestion.subir_boton') }}
                 </button>
             </form>
         </details>
 
         <details class="mt-3 rounded-[3px] border border-line bg-card">
             <summary class="cursor-pointer px-4 py-3 text-13-5 font-semibold text-link">
-                Agregar una categoría
+                {{ __('admin-contenidos.biblioteca.gestion.nueva_categoria') }}
             </summary>
             <form method="POST" action="{{ route('admin.library.categories.store') }}"
                   class="flex flex-wrap items-end gap-3 border-t border-line px-4 py-4">
                 @csrf
                 <div class="min-w-[220px] flex-1">
-                    <label for="category_name{{ $uid }}" class="text-12-5 text-body">Nombre</label>
+                    <label for="category_name{{ $uid }}" class="text-12-5 text-body">{{ __('admin-contenidos.biblioteca.gestion.nombre') }}</label>
                     <input id="category_name{{ $uid }}" name="name" type="text" maxlength="60" required
-                           placeholder="Por ejemplo: Fachadas"
+                           placeholder="{{ __('admin-contenidos.biblioteca.gestion.nombre_ejemplo') }}"
                            class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[8px] text-14">
                 </div>
                 <button type="submit"
                         class="rounded-full border-0 bg-azure px-5 py-[9px] text-13-5 font-semibold text-on-accent">
-                    Crear categoría
+                    {{ __('admin-contenidos.biblioteca.gestion.crear_categoria') }}
                 </button>
             </form>
         </details>

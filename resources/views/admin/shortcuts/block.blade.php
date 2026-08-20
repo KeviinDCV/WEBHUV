@@ -7,11 +7,11 @@
 
 @extends('layouts.admin')
 
-@section('title', 'Barra de accesos directos')
-@section('heading', 'Barra de accesos directos')
+@section('title', __('admin-bloques.barra.titulo'))
+@section('heading', __('admin-bloques.barra.titulo'))
 
 @section('content')
-    <div x-data="huvBannerOrder(@js($block->shortcuts->pluck('id')))">
+    <div x-data="huvBannerOrder(@js($block->shortcuts->pluck('id')), @js(__('admin-bloques.orden_movido')))">
 
         <form method="POST" action="{{ route('admin.shortcuts.update', $block) }}">
             @csrf
@@ -24,21 +24,23 @@
             {{-- ---------------- Nombre ---------------- --}}
             <div class="mb-8 max-w-[560px]">
                 <label for="name" class="text-13-5 font-semibold text-heading">
-                    Nombre del bloque <span class="font-normal text-muted">(30 caracteres)</span>
+                    {{ __('admin-bloques.comun.nombre_bloque') }}
+                    <span class="font-normal text-muted">{{ __('admin-bloques.comun.limite_30') }}</span>
                 </label>
                 <input id="name" name="name" type="text" maxlength="30" required
                        value="{{ old('name', $block->name) }}"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
                 <p class="m-0 mt-1 text-12-5 text-faint">
-                    Es un rótulo interno para distinguir las barras; no se muestra en la portada.
+                    {{ __('admin-bloques.barra.nombre_ayuda') }}
                 </p>
             </div>
 
             {{-- ---------------- Accesos ---------------- --}}
-            <h2 class="m-0 font-display text-15 font-bold text-heading">Accesos directos</h2>
+            <h2 class="m-0 font-display text-15 font-bold text-heading">
+                {{ __('admin-bloques.barra.accesos') }}
+            </h2>
             <p class="m-0 mt-1 mb-4 text-13-5 text-muted">
-                Debes configurar por lo menos {{ ShortcutBlock::MIN_TO_PUBLISH }} accesos directos
-                para que este control se publique a los usuarios.
+                {{ __('admin-bloques.barra.minimo', ['minimo' => ShortcutBlock::MIN_TO_PUBLISH]) }}
             </p>
 
             @if ($block->hasRoom())
@@ -50,25 +52,27 @@
                          stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
                         <path d="M12 5v14M5 12h14" />
                     </svg>
-                    Agregar
+                    {{ __('admin-bloques.acciones.agregar') }}
                 </a>
             @else
                 <p class="mb-6 rounded-[3px] border border-line bg-card px-4 py-3 text-13-5 text-muted">
-                    Esta barra ya tiene {{ ShortcutBlock::MAX_SHORTCUTS }} accesos, el máximo permitido.
+                    {{ __('admin-bloques.barra.completo', ['maximo' => ShortcutBlock::MAX_SHORTCUTS]) }}
                 </p>
             @endif
 
             @if ($block->shortcuts->isEmpty())
                 <p class="rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-10
                           text-center text-14 text-muted">
-                    Esta barra todavía no tiene accesos directos.
+                    {{ __('admin-bloques.barra.vacio') }}
                 </p>
             @else
                 @if (! $block->isPublishable())
                     <p class="mb-4 rounded-[3px] border border-line border-l-4 border-l-warning bg-card px-4 py-3
                               text-13-5 text-body">
-                        Con {{ $block->shortcuts->count() }} acceso(s) la barra no se publica todavía.
-                        Faltan {{ ShortcutBlock::MIN_TO_PUBLISH - $block->shortcuts->count() }}.
+                        {{ __('admin-bloques.barra.pendiente', [
+                            'actuales' => $block->shortcuts->count(),
+                            'faltan' => ShortcutBlock::MIN_TO_PUBLISH - $block->shortcuts->count(),
+                        ]) }}
                     </p>
                 @endif
 
@@ -80,7 +84,7 @@
                             <div class="flex shrink-0 flex-col">
                                 <button type="button" @click="move({{ $shortcut->id }}, -1)"
                                         x-show="! isFirst({{ $shortcut->id }})"
-                                        aria-label="Subir «{{ $shortcut->label }}»"
+                                        aria-label="{{ __('admin-bloques.barra.subir', ['texto' => $shortcut->label]) }}"
                                         class="flex size-6 items-center justify-center border-0 bg-transparent text-link hover:text-heading">
                                     <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -89,7 +93,7 @@
                                 </button>
                                 <button type="button" @click="move({{ $shortcut->id }}, 1)"
                                         x-show="! isLast({{ $shortcut->id }})"
-                                        aria-label="Bajar «{{ $shortcut->label }}»"
+                                        aria-label="{{ __('admin-bloques.barra.bajar', ['texto' => $shortcut->label]) }}"
                                         class="flex size-6 items-center justify-center border-0 bg-transparent text-link hover:text-heading">
                                     <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -110,7 +114,8 @@
 
                             <a href="{{ route('admin.shortcuts.item.edit', [$block, $shortcut]) }}"
                                class="shrink-0 text-13-5 font-semibold text-link underline underline-offset-4">
-                                Editar<span class="sr-only"> «{{ $shortcut->label }}»</span>
+                                {{ __('admin-bloques.acciones.editar') }}<span class="sr-only">
+                                    {{ __('admin-bloques.barra.editar_detalle', ['texto' => $shortcut->label]) }}</span>
                             </a>
                         </li>
                     @endforeach
@@ -120,11 +125,11 @@
             @endif
 
             {{-- ---------------- Tema ---------------- --}}
-            <h2 class="mt-9 mb-1 font-display text-15 font-bold text-heading">Seleccionar un tema</h2>
+            <h2 class="mt-9 mb-1 font-display text-15 font-bold text-heading">
+                {{ __('admin-bloques.barra.tema.titulo') }}
+            </h2>
             <p class="m-0 mb-4 text-13-5 text-muted">
-                El color se aplica al icono. El rótulo conserva el azul institucional: varios de estos
-                tonos no alcanzan el contraste mínimo sobre fondo blanco, y el texto es lo que hay
-                que poder leer.
+                {{ __('admin-bloques.barra.tema.descripcion') }}
             </p>
 
             <div x-data="{ theme: @js(old('theme', $block->theme)) }" class="flex flex-wrap items-start gap-8">
@@ -139,11 +144,13 @@
                             <path d="M12 7.6h.01" />
                         </svg>
                     </template>
-                    <span class="text-center font-display text-12-5 font-bold text-heading">Nombre de acceso</span>
+                    <span class="text-center font-display text-12-5 font-bold text-heading">
+                        {{ __('admin-bloques.comun.nombre_acceso') }}
+                    </span>
                 </div>
 
                 <fieldset class="border-0 p-0">
-                    <legend class="sr-only">Tema de color de la barra</legend>
+                    <legend class="sr-only">{{ __('admin-bloques.barra.tema.etiqueta') }}</legend>
                     <div class="flex flex-wrap gap-3">
                         @foreach (ShortcutBlock::THEMES as $key => $color)
                             <label class="flex cursor-pointer items-center gap-2">
@@ -163,12 +170,12 @@
                 <a href="{{ route('home') }}"
                    class="rounded-full border border-stroke bg-card px-6 py-[10px] font-display text-14
                           font-semibold text-heading no-underline hover:bg-tint hover:no-underline">
-                    Cancelar
+                    {{ __('admin-bloques.acciones.cancelar') }}
                 </a>
                 <button type="submit"
                         class="rounded-full border-0 bg-azure px-7 py-[10px] font-display text-14 font-semibold
                                text-on-accent transition-colors hover:bg-azure-dark">
-                    Guardar
+                    {{ __('admin-bloques.acciones.guardar') }}
                 </button>
             </div>
         </form>

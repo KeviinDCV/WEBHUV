@@ -1,5 +1,9 @@
 @php
+    use App\Support\ConfigLabel;
+
     $institution = config('huv.institution');
+    $seo = config('huv.seo');
+    $services = config('huv.services');
 
     /** Datos estructurados schema.org para buscadores (rich results). */
     $structuredData = [
@@ -10,12 +14,14 @@
         'url' => url('/'),
         'logo' => asset('img/logo-huv.png'),
         'image' => asset('img/og-huv.png'),
-        'description' => config('huv.seo.description'),
+        'description' => ConfigLabel::of($seo, 'description', 'descripcion'),
         'taxID' => $institution['nit'],
         'foundingDate' => (string) $institution['founded_year'],
         'email' => $institution['email'],
         'telephone' => $institution['switchboard_tel'],
-        'medicalSpecialty' => config('huv.services.items'),
+        'medicalSpecialty' => collect($services['items'])
+            ->map(fn ($especialidad, $posicion) => ConfigLabel::item($services, 'items', $posicion, $especialidad))
+            ->all(),
         'parentOrganization' => [
             '@type' => 'GovernmentOrganization',
             'name' => $institution['oversight'],
@@ -32,7 +38,7 @@
             [
                 '@type' => 'ContactPoint',
                 'contactType' => 'customer service',
-                'name' => 'Atención al usuario',
+                'name' => __('menu.lineas.atencion.rotulo'),
                 'telephone' => $institution['user_service_tel'],
                 'email' => $institution['email'],
                 'availableLanguage' => ['es'],
@@ -40,7 +46,7 @@
             [
                 '@type' => 'ContactPoint',
                 'contactType' => 'emergency',
-                'name' => 'Urgencias',
+                'name' => __('menu.lineas.urgencias.rotulo'),
                 'telephone' => $institution['switchboard_tel'],
             ],
         ],

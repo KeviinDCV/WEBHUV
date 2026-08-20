@@ -27,25 +27,25 @@
 
     <div x-show="! answered" class="flex flex-wrap items-center justify-between gap-4">
         <p class="m-0 text-14-5 leading-[1.5]">
-            <span class="block font-semibold">¿Encontraste lo que buscabas?</span>
-            <span class="block">¿Te pareció útil este contenido?</span>
+            <span class="block font-semibold">{{ __('estructura.utilidad.encontraste') }}</span>
+            <span class="block">{{ __('estructura.utilidad.util') }}</span>
         </p>
 
         <div class="flex gap-2">
             <button type="button" @click="answer(true)"
                     class="rounded-[3px] border border-on-brand/60 bg-transparent px-5 py-2 text-14
                            font-semibold text-on-brand transition-colors hover:bg-white/15">
-                Sí
+                {{ __('estructura.utilidad.si') }}
             </button>
             <button type="button" @click="answer(false)"
                     class="rounded-[3px] border border-on-brand/60 bg-transparent px-5 py-2 text-14
                            font-semibold text-on-brand transition-colors hover:bg-white/15">
-                No
+                {{ __('estructura.utilidad.no') }}
             </button>
         </div>
     </div>
 
     <p x-show="answered" x-cloak class="m-0 text-14-5" role="status">
-        Gracias por su respuesta.
+        {{ __('estructura.utilidad.gracias') }}
     </p>
 </div>

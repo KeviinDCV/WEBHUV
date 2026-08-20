@@ -6,9 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use App\Models\Concerns\Translatable;
 
 class TopicCategory extends Model
 {
+    use Translatable;
+
+    /** Campos con texto de lectura que se sirven traducidos. */
+    protected array $translatable = ['name'];
+
     protected $guarded = [];
 
     protected static function booted(): void

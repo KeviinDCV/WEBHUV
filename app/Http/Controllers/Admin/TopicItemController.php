@@ -31,7 +31,7 @@ class TopicItemController extends Controller
         $this->syncCategories($item, $request, $topic);
         $this->syncMedia($item, $request, $topic);
 
-        return $this->backToTopic($topic, 'Contenido publicado correctamente.');
+        return $this->backToTopic($topic, __('mensajes.contenido.publicado'));
     }
 
     public function update(TopicItemRequest $request, Topic $topic, TopicItem $item): RedirectResponse
@@ -42,14 +42,14 @@ class TopicItemController extends Controller
         $this->syncCategories($item, $request, $topic);
         $this->syncMedia($item, $request, $topic);
 
-        return $this->backToTopic($topic, 'Contenido actualizado correctamente.');
+        return $this->backToTopic($topic, __('mensajes.contenido.actualizado'));
     }
 
     public function destroy(Topic $topic, TopicItem $item): RedirectResponse
     {
         $item->delete();
 
-        return $this->backToTopic($topic, 'Contenido eliminado.');
+        return $this->backToTopic($topic, __('mensajes.contenido.eliminado'));
     }
 
     /** Categoría nueva creada desde «Agregar categoría». */
@@ -57,14 +57,14 @@ class TopicItemController extends Controller
     {
         $data = request()->validate([
             'name' => ['required', 'string', 'max:120'],
-        ], [], ['name' => 'nombre de la categoría']);
+        ], [], ['name' => __('mensajes.campo.nombre_categoria')]);
 
         $topic->categories()->firstOrCreate(
             ['slug' => Str::slug($data['name'])],
             ['name' => $data['name']]
         );
 
-        return back()->with('status', 'Categoría creada.');
+        return back()->with('status', __('mensajes.categoria.creada'));
     }
 
     /* ------------------------------------------------------------------ */
@@ -83,7 +83,7 @@ class TopicItemController extends Controller
 
         $topic->items()->whereKeyNot($item->getKey())->update(['is_featured' => false]);
 
-        return back()->with('status', 'Contenido destacado.');
+        return back()->with('status', __('mensajes.contenido.destacado'));
     }
 
     public function toggleActive(Topic $topic, TopicItem $item): RedirectResponse
@@ -92,7 +92,7 @@ class TopicItemController extends Controller
 
         return back()->with(
             'status',
-            $item->is_active ? 'Contenido activado.' : 'Contenido inactivado.'
+            $item->is_active ? __('mensajes.contenido.activado') : __('mensajes.contenido.inactivado')
         );
     }
 
@@ -102,7 +102,9 @@ class TopicItemController extends Controller
 
         return back()->with(
             'status',
-            $item->is_hidden ? 'Contenido oculto en el listado.' : 'Contenido visible en el listado.'
+            $item->is_hidden
+                ? __('mensajes.contenido.oculto_listado')
+                : __('mensajes.contenido.visible_listado')
         );
     }
 

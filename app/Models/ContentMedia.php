@@ -122,6 +122,9 @@ class ContentMedia extends Model
 
     public function extension(): string
     {
-        return strtoupper(pathinfo((string) $this->original_name, PATHINFO_EXTENSION)) ?: 'Archivo';
+        // Sin extensión reconocible se rotula con una palabra, no con un
+        // hueco: el distintivo tiene un recuadro y vacío se vería roto.
+        return strtoupper(pathinfo((string) $this->original_name, PATHINFO_EXTENSION))
+            ?: __('estructura.medios.sin_extension');
     }
 }

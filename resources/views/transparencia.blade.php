@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Transparencia — '.config('huv.institution.short_name'))
-@section('description', 'Índice de transparencia y acceso a la información pública del '
-    .config('huv.institution.name_plain').', según la Resolución 1519 de 2020.')
+@section('title', __('paginas.transparencia.titulo').' — '.config('huv.institution.short_name'))
+@section('description', __('paginas.transparencia.descripcion', [
+    'entidad' => config('huv.institution.name_plain'),
+]))
 
 @section('content')
     {{--
@@ -33,22 +34,26 @@
         buscadores; que además el Ctrl+F del navegador lo despliegue solo, eso
         depende del navegador y no se da por hecho.
     --}}
-    @php $indice = config('huv.transparency_index'); @endphp
+    @php
+        use App\Support\ConfigLabel;
+
+        $indice = config('huv.transparency_index');
+    @endphp
 
     <div class="bg-page">
         <x-container class="py-8 lg:py-10">
             <div class="mx-auto max-w-[900px]">
 
-                <nav aria-label="Ruta de navegación" class="mb-4">
+                <nav aria-label="{{ __('paginas.ruta.etiqueta') }}" class="mb-4">
                     <ol class="flex flex-wrap items-center gap-2 text-13 text-muted">
-                        <li><a href="{{ route('home') }}" class="text-link">Inicio</a></li>
+                        <li><a href="{{ route('home') }}" class="text-link">{{ __('paginas.ruta.inicio') }}</a></li>
                         <li aria-hidden="true">›</li>
-                        <li aria-current="page" class="font-semibold text-heading">{{ $indice['title'] }}</li>
+                        <li aria-current="page" class="font-semibold text-heading">{{ ConfigLabel::of($indice, 'title', 'titulo') }}</li>
                     </ol>
                 </nav>
 
                 <h1 class="m-0 font-display text-25 leading-[1.2] font-bold tracking-[-0.015em] text-heading lg:text-33">
-                    {{ $indice['title'] }}
+                    {{ ConfigLabel::of($indice, 'title', 'titulo') }}
                 </h1>
 
                 <div class="mt-8 flex flex-col gap-3">
@@ -74,7 +79,7 @@
                                      lector de pantalla salta de encabezado en encabezado para
                                      recorrer un índice como este, y al convertir los grupos en
                                      desplegables se perdieron los doce de golpe. --}}
-                                <h2 class="m-0 flex-1 font-display text-16-5 font-bold">{{ $grupo['label'] }}</h2>
+                                <h2 class="m-0 flex-1 font-display text-16-5 font-bold">{{ ConfigLabel::of($grupo) }}</h2>
 
                                 {{-- La flecha gira al abrir. Decorativa: quien no la ve ya
                                      tiene el estado en el propio <summary>. --}}

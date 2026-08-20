@@ -243,9 +243,11 @@ class TopicController extends Controller
         }
 
         return array_values(array_filter([
-            ['key' => 'recientes', 'label' => 'Recientes'],
-            ['key' => 'az', 'label' => 'A-Z'],
-            $topic->sortsByIssueDate() ? ['key' => 'expedicion', 'label' => 'Fecha de expedición'] : null,
+            ['key' => 'recientes', 'label' => __('mensajes.orden.recientes')],
+            ['key' => 'az', 'label' => __('mensajes.orden.az')],
+            $topic->sortsByIssueDate()
+                ? ['key' => 'expedicion', 'label' => __('mensajes.orden.expedicion')]
+                : null,
         ]));
     }
 

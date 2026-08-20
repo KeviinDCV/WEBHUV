@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Mecanismos de contacto — '.config('huv.institution.short_name'))
-@section('description', 'Dirección, teléfonos, correos y horario de atención del '
-    .config('huv.institution.name_plain').'.')
+@section('title', __('paginas.contacto.titulo').' — '.config('huv.institution.short_name'))
+@section('description', __('paginas.contacto.descripcion', [
+    'entidad' => config('huv.institution.name_plain'),
+]))
 
 @php
+    use App\Support\ConfigLabel;
+
     /*
      | Los mismos datos del pie, con los rótulos y el orden de esta página.
      |
@@ -19,12 +22,12 @@
     $filas = collect(config('huv.footer.contact'))->keyBy('key');
 
     $mecanismos = [
-        'direccion' => 'Dirección',
-        'conmutador' => 'Teléfono',
-        'linea-gratuita' => 'Línea de atención gratuita',
-        'correo' => 'Email',
-        'correo-judicial' => 'Notificaciones Judiciales',
-        'horario' => 'Horario de atención',
+        'direccion' => __('paginas.contacto.mecanismos.direccion'),
+        'conmutador' => __('paginas.contacto.mecanismos.conmutador'),
+        'linea-gratuita' => __('paginas.contacto.mecanismos.linea_gratuita'),
+        'correo' => __('paginas.contacto.mecanismos.correo'),
+        'correo-judicial' => __('paginas.contacto.mecanismos.correo_judicial'),
+        'horario' => __('paginas.contacto.mecanismos.horario'),
     ];
 @endphp
 
@@ -33,16 +36,16 @@
         <x-container class="py-8 lg:py-10">
             <div class="mx-auto max-w-[820px]">
 
-                <nav aria-label="Ruta de navegación" class="mb-4">
+                <nav aria-label="{{ __('paginas.ruta.etiqueta') }}" class="mb-4">
                     <ol class="flex flex-wrap items-center gap-2 text-13 text-muted">
-                        <li><a href="{{ route('home') }}" class="text-link">Inicio</a></li>
+                        <li><a href="{{ route('home') }}" class="text-link">{{ __('paginas.ruta.inicio') }}</a></li>
                         <li aria-hidden="true">›</li>
-                        <li aria-current="page" class="font-semibold text-heading">Mecanismos de contacto</li>
+                        <li aria-current="page" class="font-semibold text-heading">{{ __('paginas.contacto.titulo') }}</li>
                     </ol>
                 </nav>
 
                 <h1 class="m-0 font-display text-25 leading-[1.2] font-bold tracking-[-0.015em] text-heading lg:text-33">
-                    Mecanismos de contacto
+                    {{ __('paginas.contacto.titulo') }}
                 </h1>
 
                 {{-- <address> y <dl>: son los datos de contacto de la entidad, y
@@ -58,12 +61,12 @@
                                     <dd class="m-0 min-w-0 text-body">
                                         @if (! empty($fila['tel']))
                                             <a href="tel:{{ $fila['tel'] }}"
-                                               class="text-link underline underline-offset-2">{{ $fila['value'] }}</a>
+                                               class="text-link underline underline-offset-2">{{ ConfigLabel::of($fila, 'value', 'valor') }}</a>
                                         @elseif (! empty($fila['mailto']))
                                             <a href="mailto:{{ $fila['mailto'] }}"
-                                               class="break-all text-link underline underline-offset-2">{{ $fila['value'] }}</a>
+                                               class="break-all text-link underline underline-offset-2">{{ ConfigLabel::of($fila, 'value', 'valor') }}</a>
                                         @else
-                                            {{ $fila['value'] }}
+                                            {{ ConfigLabel::of($fila, 'value', 'valor') }}
                                         @endif
                                     </dd>
                                 </div>
@@ -80,8 +83,8 @@
                     <a href="{{ config('huv.contact.request_form') }}"
                        target="_blank" rel="noopener noreferrer"
                        class="font-display text-15 font-semibold text-link underline underline-offset-4">
-                        Formulario electrónico de solicitudes, peticiones, quejas, reclamos y denuncias
-                        <span class="sr-only">(se abre en una pestaña nueva)</span>
+                        {{ __('paginas.contacto.formulario') }}
+                        <span class="sr-only">{{ __('paginas.enlace.pestana_nueva') }}</span>
                     </a>
                 </p>
             </div>

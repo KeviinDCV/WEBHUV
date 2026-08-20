@@ -8,18 +8,18 @@
     @php
         $actions = [
             [
-                'label' => $content->is_featured ? 'Ya está destacado' : 'Destacar',
+                'label' => $content->is_featured ? __('componentes.acciones.ya_destacado') : __('componentes.acciones.destacar'),
                 'route' => route('admin.contents.feature', $content),
                 'disabled' => $content->is_featured,
                 'icon' => 'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z',
             ],
             [
-                'label' => $content->is_active ? 'Inactivar' : 'Activar',
+                'label' => $content->is_active ? __('componentes.acciones.inactivar') : __('componentes.acciones.activar'),
                 'route' => route('admin.contents.active', $content),
                 'icon' => 'M12 4v8M7.5 6.3a7.5 7.5 0 1 0 9 0',
             ],
             [
-                'label' => $content->is_hidden ? 'Mostrar' : 'Ocultar',
+                'label' => $content->is_hidden ? __('componentes.acciones.mostrar') : __('componentes.acciones.ocultar'),
                 'route' => route('admin.contents.hidden', $content),
                 'icon' => $content->is_hidden
                     ? 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm9.5 2.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z'
@@ -44,7 +44,7 @@
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
-            <span class="sr-only">Acciones del contenido «{{ Str::limit($content->title, 60) }}»</span>
+            <span class="sr-only">{{ __('componentes.acciones.menu_contenido', ['titulo' => Str::limit($content->title, 60)]) }}</span>
         </button>
 
         <div x-show="open" x-cloak
@@ -65,7 +65,7 @@
                             <path d="M12 20h9" />
                             <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                         </svg>
-                        Editar
+                        {{ __('componentes.acciones.editar') }}
                     </a>
                 </li>
 
@@ -89,7 +89,7 @@
 
                 <li class="mt-1 border-t border-line pt-1">
                     <form method="POST" action="{{ route('admin.contents.destroy', $content) }}"
-                          onsubmit="return confirm('¿Eliminar «{{ Str::limit(addslashes($content->title), 60) }}»? La acción no se puede deshacer.')">
+                          onsubmit="return confirm('{{ __('componentes.acciones.eliminar_confirmar', ['titulo' => Str::limit(addslashes($content->title), 60)]) }}')">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
@@ -99,7 +99,7 @@
                                  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
                             </svg>
-                            Eliminar
+                            {{ __('componentes.acciones.eliminar') }}
                         </button>
                     </form>
                 </li>

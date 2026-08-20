@@ -62,7 +62,7 @@
     @if ($errors->any())
         <div role="alert"
              class="mb-6 rounded-[3px] border border-line border-l-4 border-l-danger bg-danger-surface px-4 py-3">
-            <p class="m-0 text-13-5 font-semibold text-danger">Revise los siguientes puntos</p>
+            <p class="m-0 text-13-5 font-semibold text-danger">{{ __('estructura.admin.errores') }}</p>
             <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-danger">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -83,7 +83,7 @@
         @else
             {{-- Hay temas que mezclan documentos y artículos en el mismo
                  listado, así que el recuadro del tipo es un selector. --}}
-            <label for="kind{{ $uid }}" class="sr-only">Tipo de contenido</label>
+            <label for="kind{{ $uid }}" class="sr-only">{{ __('admin-temas.tipo.etiqueta') }}</label>
             <select id="kind{{ $uid }}" name="kind" x-model="kind"
                     class="rounded-[3px] border border-stroke bg-card px-8 py-[7px] text-center text-14 text-ink">
                 @foreach ($kinds as $option)
@@ -96,43 +96,49 @@
     {{-- ---------------- Enlace (documento o enlace) ---------------- --}}
     <fieldset class="mb-5 border-0 p-0" x-show="isDocument || isLink" :disabled="! isDocument && ! isLink" x-cloak>
         <label for="link{{ $uid }}" class="text-13-5 text-link">
-            Link <span class="text-muted">(Agregar https:// o http://)</span>
+            {{ __('admin-temas.enlace.etiqueta') }}
+            <span class="text-muted">{{ __('admin-temas.enlace.pista') }}</span>
         </label>
         {{-- Si el archivo ya está en el servidor, su dirección de origen no
              pinta nada aquí: llenaría el campo con el enlace del portal
              anterior y bastaría con guardar para volver a apuntar fuera. --}}
-        <input id="link{{ $uid }}" name="link" type="url" inputmode="url" placeholder="Link"
+        <input id="link{{ $uid }}" name="link" type="url" inputmode="url"
+               placeholder="{{ __('admin-temas.enlace.marcador') }}"
                value="{{ old('link', $item->isDownloaded() ? null : $item->source_url) }}"
                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
         <p class="m-0 mt-1 text-12-5 text-muted" x-show="isDocument">
-            Para documentos que se consultan en otro sitio. Si adjunta un archivo, no hace falta.
+            {{ __('admin-temas.enlace.ayuda_documento') }}
         </p>
         <p class="m-0 mt-1 text-12-5 text-muted" x-show="isLink" x-cloak>
-            Adonde lleva este contenido. Es lo que lo define, así que hace falta.
+            {{ __('admin-temas.enlace.ayuda_enlace') }}
         </p>
     </fieldset>
 
     {{-- ---------------- Título ---------------- --}}
     <div class="mb-5">
         <label for="title{{ $uid }}" class="text-13-5 text-link">
-            Título <span class="text-muted">(150 caracteres)</span>
+            {{ __('admin-temas.titulo.etiqueta') }}
+            <span class="text-muted">{{ __('admin-temas.titulo.limite') }}</span>
         </label>
         {{-- El `value` va también en el HTML, no solo en el x-model: sin
              JavaScript el campo llegaría vacío y se perdería el título. --}}
         <input id="title{{ $uid }}" name="title" type="text" maxlength="150" required x-model="title"
-               placeholder="Título" value="{{ old('title', $item->title) }}"
+               placeholder="{{ __('admin-temas.titulo.marcador') }}" value="{{ old('title', $item->title) }}"
                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
-        <output class="mt-1 block text-12-5 text-muted" x-text="`Quedan ${150 - title.length} caracteres.`"></output>
+        {{-- El recuento lo lleva el navegador: el marcador de la frase se
+             sustituye ahí mismo por lo que queda del tope. --}}
+        <output class="mt-1 block text-12-5 text-muted"
+                x-text="@js(__('admin-temas.titulo.restantes')).replace(':n', 150 - title.length)"></output>
     </div>
 
     {{-- ---------------- Fecha de expedición (documento) ---------------- --}}
     <fieldset class="mb-5 border-0 p-0" x-show="isDocument" :disabled="! isDocument" x-cloak>
-        <label for="issued_at{{ $uid }}" class="text-13-5 text-link">Fecha expedición</label>
+        <label for="issued_at{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.expedicion.etiqueta') }}</label>
         <input id="issued_at{{ $uid }}" name="issued_at" type="date"
                value="{{ old('issued_at', $item->issued_at?->format('Y-m-d')) }}"
                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
         <p class="m-0 mt-1 text-12-5 text-muted">
-            La del documento en sí, no la del día en que se sube.
+            {{ __('admin-temas.expedicion.ayuda') }}
         </p>
     </fieldset>
 
@@ -153,7 +159,8 @@
     <fieldset class="mb-5 border-0 p-0" x-show="isEvent" :disabled="! isEvent" x-cloak>
         <div class="mb-4">
             <label for="event_host{{ $uid }}" class="text-13-5 text-link">
-                Organizador <span class="text-muted">(70 caracteres)</span>
+                {{ __('admin-temas.evento.organizador') }}
+                <span class="text-muted">{{ __('admin-temas.evento.limite') }}</span>
             </label>
             <input id="event_host{{ $uid }}" name="event_host" type="text" maxlength="70"
                    value="{{ old('event_host', $item->event_host) }}"
@@ -162,7 +169,8 @@
 
         <div class="mb-4">
             <label for="event_location{{ $uid }}" class="text-13-5 text-link">
-                Lugar <span class="text-muted">(70 caracteres)</span>
+                {{ __('admin-temas.evento.lugar') }}
+                <span class="text-muted">{{ __('admin-temas.evento.limite') }}</span>
             </label>
             <input id="event_location{{ $uid }}" name="event_location" type="text" maxlength="70"
                    value="{{ old('event_location', $item->event_location) }}"
@@ -171,14 +179,14 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-                <label for="event_date{{ $uid }}" class="text-13-5 text-link">Fecha inicio</label>
+                <label for="event_date{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.evento.fecha') }}</label>
                 <input id="event_date{{ $uid }}" name="event_date" type="date"
                        value="{{ old('event_date', $item->opens_at?->format('Y-m-d')) }}"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
             </div>
 
             <div>
-                <label for="event_time{{ $uid }}" class="text-13-5 text-link">Hora inicio</label>
+                <label for="event_time{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.evento.hora') }}</label>
                 <input id="event_time{{ $uid }}" name="event_time" type="time"
                        value="{{ old('event_time', $item->opens_at?->format('H:i')) }}"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
@@ -190,14 +198,14 @@
     <fieldset class="mb-5 border-0 p-0" x-show="isConvocation" :disabled="! isConvocation" x-cloak>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-                <label for="opens_at{{ $uid }}" class="text-13-5 text-link">Fecha y hora de inicio</label>
+                <label for="opens_at{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.convocatoria.apertura') }}</label>
                 <input id="opens_at{{ $uid }}" name="opens_at" type="datetime-local"
                        value="{{ old('opens_at', $item->opens_at?->format('Y-m-d\TH:i')) }}"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
             </div>
 
             <div>
-                <label for="closes_at{{ $uid }}" class="text-13-5 text-link">Fecha y hora de cierre</label>
+                <label for="closes_at{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.convocatoria.cierre') }}</label>
                 <input id="closes_at{{ $uid }}" name="closes_at" type="datetime-local"
                        value="{{ old('closes_at', $item->closes_at?->format('Y-m-d\TH:i')) }}"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
@@ -205,8 +213,7 @@
         </div>
 
         <p class="m-0 mt-1 text-12-5 text-muted">
-            Cerrada se sigue consultando: la fecha de cierre informa del proceso,
-            no retira la convocatoria del listado.
+            {{ __('admin-temas.convocatoria.ayuda') }}
         </p>
     </fieldset>
 
@@ -219,35 +226,35 @@
             <input id="no_end_date{{ $uid }}" name="no_end_date" type="checkbox" value="1" x-model="noEndDate"
                    @checked($noEndDate)
                    class="size-4 rounded-[2px] border-stroke accent-azure">
-            Sin fecha final de visualización
+            {{ __('admin-temas.caducidad.sin_fecha') }}
         </label>
 
         <div x-show="! noEndDate" x-cloak class="mt-2">
-            <label for="expires_at{{ $uid }}" class="text-13-5 text-link">Fecha final de visualización</label>
+            <label for="expires_at{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.caducidad.etiqueta') }}</label>
             {{-- Deshabilitado al marcar la casilla: así la fecha escondida no
                  viaja con el formulario y no puede contradecir a la casilla. --}}
             <input id="expires_at{{ $uid }}" name="expires_at" type="datetime-local" :disabled="noEndDate"
                    value="{{ old('expires_at', $item->expires_at?->format('Y-m-d\TH:i')) }}"
                    class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
             <p class="m-0 mt-1 text-12-5 text-muted">
-                Pasada esa fecha deja de mostrarse, sin tener que retirarlo a mano.
+                {{ __('admin-temas.caducidad.ayuda') }}
             </p>
         </div>
     </fieldset>
 
     {{-- ---------------- Descripción ---------------- --}}
     <div class="mb-6">
-        <span class="text-13-5 text-link">Descripción</span>
+        <span class="text-13-5 text-link">{{ __('admin-temas.descripcion.etiqueta') }}</span>
         <input type="hidden" name="body" id="body-input{{ $uid }}" value="{{ old('body', $item->body) }}">
 
         {{-- Quill escribe en el input oculto; ver resources/js/admin.js. --}}
         <div data-huv-editor="#body-input{{ $uid }}"
-             data-huv-editor-label="Descripción del contenido"
+             data-huv-editor-label="{{ __('admin-temas.descripcion.editor') }}"
              class="mt-1 min-h-[240px] rounded-b-[3px] bg-card"></div>
 
         <noscript>
             <p class="m-0 mt-2 rounded-[3px] border border-line bg-tint px-3 py-2 text-12-5 text-muted">
-                El editor con formato necesita JavaScript.
+                {{ __('admin-temas.descripcion.sin_js') }}
             </p>
         </noscript>
     </div>
@@ -267,7 +274,7 @@
                         <path d="M14 3v5h5" />
                         <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
                     </svg>
-                    Archivo principal:
+                    {{ __('admin-temas.archivo.actual') }}
                     <a href="{{ $item->fileUrl() }}" class="font-semibold text-link">{{ $item->file_name }}</a>
                     <span class="text-muted">({{ $item->extension() }} · {{ $item->humanSize() }})</span>
                 </p>
@@ -281,9 +288,11 @@
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 12.5 12.9 20.6a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 1 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />
                     </svg>
-                    {{ $editing && $item->isDownloaded() ? 'Reemplazar el archivo principal' : 'Archivo principal' }}
+                    {{ $editing && $item->isDownloaded()
+                        ? __('admin-temas.archivo.reemplazar')
+                        : __('admin-temas.archivo.etiqueta') }}
                 </span>
-                <span class="text-12-5 text-muted">Peso máximo: 30 MB · pdf, doc, xls, ppt, csv, txt o zip</span>
+                <span class="text-12-5 text-muted">{{ __('admin-temas.archivo.limite') }}</span>
             </label>
             <input id="file{{ $uid }}" name="file" type="file" class="sr-only"
                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip">
@@ -293,9 +302,9 @@
             {{-- El portal actual rotula este campo «Descripción de la imagen»
                  aunque aquí solo se adjuntan documentos: se nombra por lo que
                  es, que es lo que se lee al descargar. --}}
-            <label for="file_alt{{ $uid }}" class="sr-only">Descripción del archivo</label>
+            <label for="file_alt{{ $uid }}" class="sr-only">{{ __('admin-temas.archivo.descripcion') }}</label>
             <input id="file_alt{{ $uid }}" name="file_alt" type="text" maxlength="250"
-                   placeholder="Agregue una descripción al archivo"
+                   placeholder="{{ __('admin-temas.archivo.descripcion_marcador') }}"
                    value="{{ old('file_alt', $item->file_name) }}"
                    class="w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
         </div>
@@ -339,14 +348,14 @@
     {{-- ---------------- Categorías ---------------- --}}
     <div class="mb-6">
         <div class="flex flex-wrap items-center gap-3">
-            <span class="text-13-5 text-link">Categorías</span>
+            <span class="text-13-5 text-link">{{ __('admin-temas.categorias.etiqueta') }}</span>
 
             <button type="button" @click="adding = ! adding"
                     :aria-expanded="adding ? 'true' : 'false'"
                     aria-controls="new_category{{ $uid }}"
                     class="rounded-full border border-rule-accent bg-card px-4 py-[6px] text-13-5
                            font-semibold text-link transition-colors hover:bg-tint">
-                Agregar categoría
+                {{ __('admin-temas.categorias.agregar') }}
                 <span aria-hidden="true" x-text="adding ? '−' : '+'">+</span>
             </button>
         </div>
@@ -356,7 +365,7 @@
                  a la vez, como el programa de transparencia, que está en
                  «Programa PTEE» y en «2025». --}}
             <fieldset class="mt-2 flex flex-wrap gap-x-5 gap-y-2 border-0 p-0">
-                <legend class="sr-only">Categorías de {{ $topic->name }}</legend>
+                <legend class="sr-only">{{ __('admin-temas.categorias.leyenda', ['tema' => $topic->name]) }}</legend>
                 @foreach ($topic->categories as $category)
                     <label for="cat{{ $uid }}-{{ $category->id }}" class="flex items-center gap-2 text-13-5 text-body">
                         <input id="cat{{ $uid }}-{{ $category->id }}" name="topic_category_ids[]" type="checkbox"
@@ -369,10 +378,10 @@
         @endif
 
         <div x-show="adding" x-cloak class="mt-3 max-w-[320px]">
-            <label for="new_category{{ $uid }}" class="sr-only">Nombre de la categoría nueva</label>
+            <label for="new_category{{ $uid }}" class="sr-only">{{ __('admin-temas.categorias.nueva') }}</label>
             <input id="new_category{{ $uid }}" name="new_category" type="text" maxlength="120"
                    value="{{ old('new_category') }}"
-                   placeholder="Por ejemplo: {{ now()->year }}"
+                   placeholder="{{ __('admin-temas.categorias.marcador', ['ejemplo' => now()->year]) }}"
                    class="w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
         </div>
     </div>
@@ -392,14 +401,14 @@
                 <input id="is_featured{{ $uid }}" name="is_featured" type="checkbox" value="1"
                        @checked(old('is_featured', $item->is_featured))
                        class="size-4 rounded-[2px] border-stroke accent-azure">
-                Destacar contenido
+                {{ __('admin-temas.publicacion.destacar') }}
             </label>
 
             <label for="show_in_feed{{ $uid }}" class="flex items-center gap-2 text-13-5 text-link">
                 <input id="show_in_feed{{ $uid }}" name="show_in_feed" type="checkbox" value="1"
                        @checked(old('show_in_feed', ! $item->is_hidden))
                        class="size-4 rounded-[2px] border-stroke accent-azure">
-                Mostrar en muro de contenidos
+                {{ __('admin-temas.publicacion.muro') }}
             </label>
         </div>
 
@@ -409,21 +418,21 @@
                     aria-controls="published_at{{ $uid }}"
                     class="rounded-full border border-rule-accent bg-card px-6 py-[9px] font-display text-12-5
                            font-bold tracking-[0.06em] text-link uppercase transition-colors hover:bg-tint">
-                Programar
+                {{ __('admin-temas.publicacion.programar') }}
             </button>
 
             <button type="submit"
                     class="rounded-full border-0 bg-azure px-7 py-[9px] font-display text-12-5 font-bold
                            tracking-[0.06em] text-on-accent uppercase transition-colors hover:bg-azure-dark"
-                    x-text="isFuture ? 'Guardar programado' : 'Publicar'">
-                Publicar
+                    x-text="isFuture ? @js(__('admin-temas.publicacion.guardar_programado')) : @js(__('admin-temas.publicacion.publicar'))">
+                {{ __('admin-temas.publicacion.publicar') }}
             </button>
 
             @if ($editing)
                 <details class="relative">
                     <summary class="cursor-pointer rounded-full bg-navy px-6 py-[9px] font-display text-12-5
                                     font-bold tracking-[0.06em] text-on-brand uppercase">
-                        Compartir en redes
+                        {{ __('admin-temas.publicacion.compartir') }}
                     </summary>
                     <div class="absolute right-0 z-20 mt-2 rounded-[4px] border border-line bg-card p-4
                                 shadow-[0_10px_28px_rgba(23,32,64,0.22)]">
@@ -436,29 +445,29 @@
 
     {{-- Fecha de publicación: solo aparece al pulsar «Programar». --}}
     <div x-show="scheduling" x-cloak class="mt-4 ml-auto max-w-[320px]">
-        <label for="published_at{{ $uid }}" class="text-13-5 text-link">Publicar el</label>
+        <label for="published_at{{ $uid }}" class="text-13-5 text-link">{{ __('admin-temas.programacion.etiqueta') }}</label>
         <input id="published_at{{ $uid }}" name="published_at" type="datetime-local" x-model="publishedAt"
                value="{{ old('published_at') }}"
                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
         <p x-show="isFuture" x-cloak class="m-0 mt-1 text-12-5 text-link">
-            La fecha está por delante: no se verá hasta que llegue.
+            {{ __('admin-temas.programacion.aviso') }}
         </p>
     </div>
 
     <p class="m-0 mt-4 text-right text-12-5 text-faint">
-        Contenido en «{{ $topic->name }}»
+        {{ __('admin-temas.pie.tema', ['tema' => $topic->name]) }}
     </p>
 </form>
 
 @if ($editing)
     {{-- Fuera del formulario: un formulario no puede anidarse. --}}
     <form method="POST" action="{{ route('admin.topics.items.destroy', [$topic, $item]) }}" class="mt-4"
-          onsubmit="return confirm('¿Eliminar este contenido? La acción no se puede deshacer.')">
+          onsubmit="return confirm(@js(__('admin-temas.eliminar.confirmar')))">
         @csrf
         @method('DELETE')
         <button type="submit"
                 class="border-0 bg-transparent p-0 text-13-5 font-semibold text-danger underline underline-offset-4">
-            Eliminar contenido
+            {{ __('admin-temas.eliminar.boton') }}
         </button>
     </form>
 @endif

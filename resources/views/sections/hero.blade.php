@@ -9,23 +9,26 @@
     {{-- La sección se reserva aunque no haya banners: así el espacio del
          carrusel no desaparece y la portada no se recoloca al publicar el
          primero. --}}
-    <section id="inicio" aria-label="Banner principal" class="relative overflow-hidden bg-hero-shell">
+    <section id="inicio" aria-label="{{ __('portada.banner.region') }}" class="relative overflow-hidden bg-hero-shell">
 
-        <x-edit-chip section="banner" label="el banner" :url="route('admin.banners.index')" floating />
+        <x-edit-chip section="banner" :label="__('portada.chip.banner')" :url="route('admin.banners.index')" floating />
 
         <div class="flex min-h-[440px] flex-col items-center justify-center gap-4 border border-dashed
                     border-stroke-strong px-5 text-center lg:min-h-[max(320px,25.81vw)]"
              style="aspect-ratio: {{ \App\Models\Banner::IMAGE_WIDTH }} / {{ \App\Models\Banner::IMAGE_HEIGHT }}">
 
             <p class="m-0 text-13-5 font-medium text-faint">
-                Banner principal ({{ \App\Models\Banner::IMAGE_WIDTH }} × {{ \App\Models\Banner::IMAGE_HEIGHT }})
+                {{ __('portada.banner.marcador', [
+                    'ancho' => \App\Models\Banner::IMAGE_WIDTH,
+                    'alto' => \App\Models\Banner::IMAGE_HEIGHT,
+                ]) }}
             </p>
 
             @auth
                 <a href="{{ route('admin.banners.index') }}"
                    class="inline-flex items-center rounded-full border border-rule-accent bg-card px-5 py-[10px]
                           font-display text-14 font-semibold text-link no-underline hover:bg-tint hover:no-underline">
-                    Agregar el primer banner
+                    {{ __('portada.banner.agregar_primero') }}
                 </a>
             @endauth
         </div>
@@ -33,9 +36,13 @@
 @else
     <section id="inicio"
              role="region"
-             aria-roledescription="carrusel"
-             aria-label="Banner principal"
-             x-data="huvCarousel({ count: {{ $count }}, autoplay: true, seconds: {{ $rotation }} })"
+             aria-roledescription="{{ __('portada.banner.carrusel') }}"
+             aria-label="{{ __('portada.banner.region') }}"
+             x-data="huvCarousel({ count: {{ $count }}, autoplay: true, seconds: {{ $rotation }}, textos: {{ Illuminate\Support\Js::from([
+             'detener' => __('portada.banner.detener'),
+             'reproducir' => __('portada.banner.reproducir'),
+             'posicion' => __('portada.banner.posicion', ['posicion' => ':posicion', 'total' => ':total']),
+         ]) }} })"
              @mouseenter="hovering = true"
              @mouseleave="hovering = false"
              @focusin="focused = true"
@@ -45,7 +52,7 @@
              @touchend.passive="onTouchEnd($event)"
              class="relative overflow-hidden bg-hero-shell">
 
-        <x-edit-chip section="banner" label="el banner" :url="route('admin.banners.index')" floating />
+        <x-edit-chip section="banner" :label="__('portada.chip.banner')" :url="route('admin.banners.index')" floating />
 
         <div class="relative w-full overflow-hidden">
             <div id="huv-hero-track" class="flex" style="width: {{ $count * 100 }}%" :style="trackStyle">
@@ -54,8 +61,8 @@
                     <div class="relative shrink-0 grow-0 bg-slide-shell"
                          style="width: {{ $slideWidth }}%"
                          role="group"
-                         aria-roledescription="diapositiva"
-                         aria-label="{{ $index + 1 }} de {{ $count }}"
+                         aria-roledescription="{{ __('portada.banner.diapositiva') }}"
+                         aria-label="{{ __('portada.banner.posicion', ['posicion' => $index + 1, 'total' => $count]) }}"
                          :aria-hidden="! isActive({{ $index }})">
 
                         @php
@@ -91,12 +98,12 @@
                                             md:px-16 lg:px-[165px]
                                             {{ $banner->alignment === 'center' ? 'items-center text-center' : 'items-start text-left' }}">
                                     @if ($banner->title)
-                                        <p class="m-0 text-[1.75rem] leading-[1.12] text-balance lg:text-40"
-                                           style="{{ $banner->textStyle('title') }}">{{ $banner->title }}</p>
+                                        <x-texto-del-portal tag="p" class="m-0 text-[1.75rem] leading-[1.12] text-balance lg:text-40"
+                                           style="{{ $banner->textStyle('title') }}">{{ $banner->title }}</x-texto-del-portal>
                                     @endif
                                     @if ($banner->subtitle)
-                                        <p class="m-0 max-w-[46ch] text-15 leading-[1.4] text-pretty lg:text-22"
-                                           style="{{ $banner->textStyle('subtitle') }}">{{ $banner->subtitle }}</p>
+                                        <x-texto-del-portal tag="p" class="m-0 max-w-[46ch] text-15 leading-[1.4] text-pretty lg:text-22"
+                                           style="{{ $banner->textStyle('subtitle') }}">{{ $banner->subtitle }}</x-texto-del-portal>
                                     @endif
                                 </div>
                             @endif
@@ -107,7 +114,7 @@
 
             @if ($count > 1)
                 {{-- Controles laterales --}}
-                <button type="button" @click="prev()" aria-label="Banner anterior"
+                <button type="button" @click="prev()" aria-label="{{ __('portada.banner.anterior') }}"
                         aria-controls="huv-hero-track" data-huv-control
                         class="absolute top-1/2 left-2 z-20 flex size-11 -translate-y-1/2 items-center justify-center
                                rounded-full border-0 bg-control text-on-control transition-colors
@@ -118,7 +125,7 @@
                     </svg>
                 </button>
 
-                <button type="button" @click="next()" aria-label="Banner siguiente"
+                <button type="button" @click="next()" aria-label="{{ __('portada.banner.siguiente') }}"
                         aria-controls="huv-hero-track" data-huv-control
                         class="absolute top-1/2 right-2 z-20 flex size-11 -translate-y-1/2 items-center justify-center
                                rounded-full border-0 bg-control text-on-control transition-colors
@@ -135,7 +142,7 @@
                             bg-controlbar px-4 py-[9px] lg:px-[26px]">
 
                     <button type="button" @click="togglePlay()"
-                            :aria-label="playing ? 'Detener la reproducción automática del banner' : 'Reproducir el banner automáticamente'"
+                            :aria-label="playing ? '{{ __('portada.banner.detener_automatico') }}' : '{{ __('portada.banner.reproducir_automatico') }}'"
                             class="flex items-center justify-self-start gap-[9px] border-0 bg-transparent text-13-5 font-semibold text-on-control">
                         <svg x-show="playing" class="size-[11px]" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
                             <rect x="2" y="1" width="3" height="10" rx="0.5" />
@@ -144,13 +151,13 @@
                         <svg x-show="! playing" x-cloak class="size-[11px]" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
                             <polygon points="2,1 11,6 2,11" />
                         </svg>
-                        <span x-text="playLabel" class="hidden sm:inline">Detener</span>
+                        <span x-text="playLabel" class="hidden sm:inline">{{ __('portada.banner.detener') }}</span>
                     </button>
 
-                    <div role="group" aria-label="Seleccionar banner" class="flex justify-self-center gap-3">
+                    <div role="group" aria-label="{{ __('portada.banner.seleccionar') }}" class="flex justify-self-center gap-3">
                         @foreach ($banners as $index => $banner)
                             <button type="button" @click="go({{ $index }})"
-                                    aria-label="Ir al banner {{ $index + 1 }} de {{ $count }}"
+                                    aria-label="{{ __('portada.banner.ir_a', ['posicion' => $index + 1, 'total' => $count]) }}"
                                     :aria-current="isActive({{ $index }}) ? 'true' : 'false'"
                                     :class="isActive({{ $index }}) ? 'bg-dot-active' : 'bg-transparent'"
                                     class="size-[13px] rounded-full border-2 border-on-control p-0 transition-colors"></button>

@@ -21,11 +21,11 @@
             <div class="mx-auto max-w-[820px]">
 
                 {{-- Rastro de navegación --}}
-                <nav aria-label="Ruta de navegación" class="mb-4">
+                <nav aria-label="{{ __('paginas.ruta.etiqueta') }}" class="mb-4">
                     <ol class="flex flex-wrap items-center gap-2 text-13 text-muted">
-                        <li><a href="{{ route('home') }}" class="text-link">Inicio</a></li>
+                        <li><a href="{{ route('home') }}" class="text-link">{{ __('paginas.ruta.inicio') }}</a></li>
                         <li aria-hidden="true">›</li>
-                        <li aria-current="page" class="font-semibold text-heading">{{ $content->category }}</li>
+                        <li aria-current="page" class="font-semibold text-heading">{{ App\Models\Content::categoryLabel($content->category) }}</li>
                     </ol>
                 </nav>
 
@@ -40,11 +40,11 @@
                         escribió aquí y nunca vino del portal.
                     --}}
                     <p class="m-0 text-12 text-faint">
-                        Modificación:
+                        {{ __('paginas.ficha.modificacion') }}
                         <time datetime="{{ ($content->modified_at ?? $content->updated_at)->toIso8601String() }}">
                             {{ ($content->modified_at ?? $content->updated_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
-                        · Creación:
+                        · {{ __('paginas.ficha.creacion') }}
                         <time datetime="{{ ($content->published_at ?? $content->created_at)->toIso8601String() }}">
                             {{ ($content->published_at ?? $content->created_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
@@ -55,7 +55,7 @@
                            x-show="$store.huvUi.editMode" x-cloak
                            data-huv-edit="contenido"
                            class="inline-flex items-center gap-[6px] text-13-5 font-semibold text-link">
-                            Editar
+                            {{ __('paginas.ficha.editar') }}
                             <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 20h9" />
@@ -65,9 +65,7 @@
                     @endauth
                 </div>
 
-                <h1 class="m-0 font-display text-25 leading-[1.25] font-bold tracking-[-0.015em] text-balance text-heading lg:text-33">
-                    {{ $content->title }}
-                </h1>
+                <x-texto-del-portal tag="h1" class="m-0 font-display text-25 leading-[1.25] font-bold tracking-[-0.015em] text-balance text-heading lg:text-33">{{ $content->title }}</x-texto-del-portal>
 
                 @auth
                     <div class="mt-3"><x-content-badges :content="$content" /></div>
@@ -97,7 +95,7 @@
                 @if ($related->isNotEmpty())
                     <section aria-labelledby="huv-relacionados" class="mt-10">
                         <h2 id="huv-relacionados" class="m-0 mb-4 font-display text-17 font-bold text-heading">
-                            También en {{ $content->category }}
+                            {{ __('paginas.ficha.relacionados', ['contexto' => App\Models\Content::categoryLabel($content->category)]) }}
                         </h2>
                         <ul class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             @foreach ($related as $item)
@@ -106,7 +104,7 @@
                                        class="block h-full rounded-[4px] border border-line bg-card p-4 text-14
                                               leading-[1.45] font-semibold text-heading no-underline
                                               hover:bg-tint hover:no-underline">
-                                        {{ $item->title }}
+                                        <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
                                     </a>
                                 </li>
                             @endforeach

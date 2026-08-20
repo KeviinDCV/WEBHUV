@@ -43,19 +43,19 @@
             @endif
         </p>
 
-        <p class="m-0 text-12-5 text-link">{{ $content->category }}</p>
+        <p class="m-0 text-12-5 text-link">{{ App\Models\Content::categoryLabel($content->category) }}</p>
 
         <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
             <a href="{{ $content->url() }}"
                @if ($content->isExternal()) target="_blank" rel="noopener noreferrer" @endif
                class="text-heading underline decoration-1 underline-offset-4 hover:text-heading-hover">
-                {{ $content->title }}
+                <x-texto-del-portal>{{ $content->title }}</x-texto-del-portal>
             </a>
             {{-- El lápiz va pegado al título, como en el portal actual. --}}
             <x-content-actions :content="$content" class="ml-1 inline-flex align-[-5px]" />
         </h3>
 
-        <p class="m-0 text-13-5 leading-[1.6] whitespace-pre-line text-pretty text-muted">{{ $content->summary() }}</p>
+        <x-texto-del-portal tag="p" class="m-0 text-13-5 leading-[1.6] whitespace-pre-line text-pretty text-muted">{{ $content->summary() }}</x-texto-del-portal>
 
         <x-participa-link :item="$content" class="mt-1" />
 

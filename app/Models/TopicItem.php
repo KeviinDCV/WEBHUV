@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Concerns\Translatable;
 
 /**
  * Un elemento dentro de un tema: un documento, un artículo…
@@ -30,6 +31,11 @@ use Illuminate\Support\Str;
  */
 class TopicItem extends Model
 {
+    use Translatable;
+
+    /** Campos con texto de lectura que se sirven traducidos. */
+    protected array $translatable = ['title', 'body'];
+
     public const KIND_DOCUMENT = 'documento';
 
     public const KIND_ARTICLE = 'articulo';
@@ -254,8 +260,8 @@ class TopicItem extends Model
     public function procedureType(): ?string
     {
         return match ($this->procedure_type) {
-            self::PROCEDURE_ONLINE => 'Trámite en línea',
-            self::PROCEDURE_IN_PERSON => 'Trámite presencial',
+            self::PROCEDURE_ONLINE => __('mensajes.tramite.en_linea'),
+            self::PROCEDURE_IN_PERSON => __('mensajes.tramite.presencial'),
             default => null,
         };
     }
@@ -270,11 +276,11 @@ class TopicItem extends Model
     public function procedureCost(): ?string
     {
         return match ($this->procedure_cost_type) {
-            self::COST_FREE => 'Trámite sin costo',
-            self::COST_PAID => 'Trámite con costo',
+            self::COST_FREE => __('mensajes.tramite.sin_costo'),
+            self::COST_PAID => __('mensajes.tramite.con_costo'),
             self::COST_EXACT => filled($this->procedure_cost)
-                ? 'Costo: '.$this->procedure_cost
-                : 'Trámite con costo',
+                ? __('mensajes.tramite.costo_exacto', ['costo' => $this->procedure_cost])
+                : __('mensajes.tramite.con_costo'),
             default => null,
         };
     }

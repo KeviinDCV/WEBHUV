@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended(route('home'))
-            ->with('status', 'Sesión iniciada. Ya puede editar el contenido del portal.');
+            ->with('status', __('mensajes.acceso.iniciada'));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -41,6 +41,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('status', 'Sesión cerrada correctamente.');
+        return redirect()->route('home')->with('status', __('mensajes.acceso.cerrada'));
     }
 }

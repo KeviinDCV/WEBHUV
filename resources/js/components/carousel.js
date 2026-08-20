@@ -12,8 +12,9 @@
 
 const SWIPE_THRESHOLD_PX = 45;
 
-export default function huvCarousel({ count = 3, autoplay = true, seconds = 7 } = {}) {
+export default function huvCarousel({ count = 3, autoplay = true, seconds = 7, textos = {} } = {}) {
     return {
+        textos,
         count,
         slide: 0,
         playing: autoplay,
@@ -62,12 +63,17 @@ export default function huvCarousel({ count = 3, autoplay = true, seconds = 7 } 
             };
         },
 
+        // Los rotulos llegan traducidos desde la vista: aqui no hay forma de
+        // saber en que idioma esta la pagina, y escribirlos en el JS los dejaba
+        // en espanol pisando lo que ya traducia el Blade.
         get playLabel() {
-            return this.playing ? 'Detener' : 'Reproducir';
+            return this.playing ? this.textos.detener : this.textos.reproducir;
         },
 
         get statusLabel() {
-            return `Banner ${this.slide + 1} de ${this.count}`;
+            return this.textos.posicion
+                .replace(':posicion', this.slide + 1)
+                .replace(':total', this.count);
         },
 
         isActive(index) {

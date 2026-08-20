@@ -36,13 +36,13 @@ class ContentBlockController extends Controller
             'sections.*.title' => ['required', 'string', 'max:150'],
             'sections.*.hide_in_feed' => ['boolean'],
         ], [
-            'sections.*.category.required' => 'Elija la sección que alimenta el bloque.',
-            'sections.*.title.required' => 'Cada sección necesita el título con el que se muestra.',
+            'sections.*.category.required' => __('mensajes.validacion.seccion_bloque'),
+            'sections.*.title.required' => __('mensajes.validacion.titulo_seccion'),
         ], [
-            'name' => 'nombre del bloque',
-            'sections_count' => 'número de secciones',
-            'sort' => 'orden de los contenidos',
-            'theme' => 'tema',
+            'name' => __('mensajes.campo.nombre_bloque'),
+            'sections_count' => __('mensajes.campo.numero_secciones'),
+            'sort' => __('mensajes.campo.orden_contenidos'),
+            'theme' => __('mensajes.campo.tema'),
         ]);
 
         $block->update([
@@ -65,6 +65,6 @@ class ContentBlockController extends Controller
             ]);
         }
 
-        return redirect()->route('home')->with('status', 'Bloque de contenidos guardado.');
+        return redirect()->route('home')->with('status', __('mensajes.bloque.contenidos_guardado'));
     }
 }

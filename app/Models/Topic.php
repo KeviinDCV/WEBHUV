@@ -5,9 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\Concerns\Translatable;
 
 class Topic extends Model
 {
+    use Translatable;
+
+    /** Campos con texto de lectura que se sirven traducidos. */
+    protected array $translatable = ['name', 'description'];
+
     /**
      * Tipos del portal de origen que este aplicativo sabe publicar.
      *
@@ -173,16 +179,16 @@ class Topic extends Model
     public function itemNoun(?string $kind = null): string
     {
         return match ($kind ?? $this->defaultKind()) {
-            TopicItem::KIND_DOCUMENT => 'Documento',
+            TopicItem::KIND_DOCUMENT => __('mensajes.tipo.documento'),
             // «Clasificado» es como lo llama el portal en su propio editor, y
             // es el rótulo que ve quien filtra el listado por tipo.
-            TopicItem::KIND_NOTICE => 'Clasificado',
-            TopicItem::KIND_LINK => 'Link',
-            TopicItem::KIND_QUESTION => 'Pregunta',
-            TopicItem::KIND_CONVOCATION => 'Convocatoria',
-            TopicItem::KIND_EVENT => 'Evento',
-            TopicItem::KIND_PROCEDURE => 'Trámite',
-            default => 'Noticia',
+            TopicItem::KIND_NOTICE => __('mensajes.tipo.clasificado'),
+            TopicItem::KIND_LINK => __('mensajes.tipo.link'),
+            TopicItem::KIND_QUESTION => __('mensajes.tipo.pregunta'),
+            TopicItem::KIND_CONVOCATION => __('mensajes.tipo.convocatoria'),
+            TopicItem::KIND_EVENT => __('mensajes.tipo.evento'),
+            TopicItem::KIND_PROCEDURE => __('mensajes.tipo.tramite'),
+            default => __('mensajes.tipo.noticia'),
         };
     }
 
@@ -239,7 +245,9 @@ class Topic extends Model
     /** Cómo se cuentan en el pie del listado. */
     public function itemsNoun(): string
     {
-        return $this->supportedKinds() === [TopicItem::KIND_DOCUMENT] ? 'documentos' : 'contenidos';
+        return $this->supportedKinds() === [TopicItem::KIND_DOCUMENT]
+            ? __('mensajes.sustantivo.documentos')
+            : __('mensajes.sustantivo.contenidos');
     }
 
     public function getRouteKeyName(): string

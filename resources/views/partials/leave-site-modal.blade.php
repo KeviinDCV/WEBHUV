@@ -28,7 +28,7 @@
              class="relative w-full max-w-[430px] rounded-[10px] bg-card px-8 pt-12 pb-9 text-center
                     shadow-[0_20px_50px_rgba(23,32,64,0.3)]">
 
-            <button type="button" @click="close()" aria-label="Cerrar el aviso"
+            <button type="button" @click="close()" aria-label="{{ __('estructura.salida.cerrar') }}"
                     class="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full
                            border-0 bg-transparent text-heading hover:bg-tint">
                 <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -49,11 +49,11 @@
 
             <h2 id="huv-salida-titulo"
                 class="m-0 mb-3 font-display text-24 font-bold text-warning-ink">
-                Atención
+                {{ __('estructura.salida.titulo') }}
             </h2>
 
             <p id="huv-salida-texto" class="m-0 mb-7 text-14-5 leading-[1.6] text-body">
-                Está a punto de ser redirigido a
+                {{ __('estructura.salida.texto') }}
                 <strong class="block font-semibold break-all text-heading" x-text="host"></strong>
             </p>
 
@@ -61,12 +61,12 @@
                 <button type="button" @click="accept()"
                         class="rounded-full border-0 bg-azure px-7 py-[10px] font-display text-14
                                font-semibold text-on-accent transition-colors hover:bg-azure-dark">
-                    Aceptar
+                    {{ __('estructura.salida.aceptar') }}
                 </button>
                 <button type="button" @click="close()"
                         class="rounded-full border border-rule-accent bg-card px-7 py-[10px] font-display
                                text-14 font-semibold text-link transition-colors hover:bg-tint">
-                    Cancelar
+                    {{ __('estructura.salida.cancelar') }}
                 </button>
             </div>
         </div>

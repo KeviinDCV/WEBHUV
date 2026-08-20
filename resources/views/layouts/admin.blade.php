@@ -1,6 +1,6 @@
 @php $institution = config('huv.institution'); @endphp
 <!DOCTYPE html>
-<html lang="es-CO" dir="ltr">
+<html lang="{{ app()->getLocale() === 'en' ? 'en' : 'es-CO' }}" dir="ltr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#2b3b80">
 
-    <title>@yield('title', 'Administración') — WEB Huv</title>
+    <title>@yield('title', __('estructura.admin.area')) — WEB Huv</title>
 
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
 
@@ -32,12 +32,12 @@
 {{-- Ver la nota sobre `x-data` en layouts/app.blade.php. --}}
 <body x-data class="bg-surface font-sans text-ink">
 
-    <a href="#contenido" class="huv-skip">Saltar al contenido principal</a>
+    <a href="#contenido" class="huv-skip">{{ __('estructura.esqueleto.saltar') }}</a>
 
     <header class="bg-navy text-on-brand">
         <x-container class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3">
             <p class="m-0 font-display text-15 font-bold tracking-[0.04em]">
-                WEB Huv <span class="font-normal opacity-80">· Administración</span>
+                WEB Huv <span class="font-normal opacity-80">· {{ __('estructura.admin.area') }}</span>
             </p>
 
             <div class="flex items-center gap-5 text-13">
@@ -46,7 +46,7 @@
                     @csrf
                     <button type="submit"
                             class="border-0 bg-transparent p-0 text-13 font-semibold text-on-brand underline underline-offset-4">
-                        Cerrar sesión
+                        {{ __('estructura.admin.cerrar_sesion') }}
                     </button>
                 </form>
             </div>
@@ -61,9 +61,9 @@
                      stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m15 5-7 7 7 7" />
                 </svg>
-                Atrás
+                {{ __('estructura.admin.atras') }}
             </a>
-            <p class="m-0 font-display text-19 text-heading lg:text-22">{{ $institution['name_plain'] }}</p>
+            <x-texto-del-portal tag="p" class="m-0 font-display text-19 text-heading lg:text-22">{{ $institution['name_plain'] }}</x-texto-del-portal>
         </x-container>
     </div>
 
@@ -85,7 +85,7 @@
             @if ($errors->any())
                 <div role="alert"
                      class="mt-5 rounded-[3px] border border-line border-l-4 border-l-danger bg-danger-surface px-4 py-3">
-                    <p class="m-0 text-13-5 font-semibold text-danger">Revise los siguientes puntos</p>
+                    <p class="m-0 text-13-5 font-semibold text-danger">{{ __('estructura.admin.errores') }}</p>
                     <ul class="m-0 mt-1 flex list-disc flex-col gap-1 pl-5 text-13-5 text-danger">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

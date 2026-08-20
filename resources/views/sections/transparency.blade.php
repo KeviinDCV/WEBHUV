@@ -1,12 +1,16 @@
-@php $transparency = config('huv.transparency'); @endphp
+@php
+    use App\Support\ConfigLabel;
+
+    $transparency = config('huv.transparency');
+@endphp
 
 <section id="transparencia" aria-labelledby="huv-transparencia" class="bg-navy-deep text-on-brand">
     <x-container class="pt-14 pb-15 lg:pt-[58px] lg:pb-[62px]">
         <h2 id="huv-transparencia"
             class="m-0 mb-[6px] font-display text-22 font-bold tracking-[-0.01em] lg:text-26">
-            {{ $transparency['title'] }}
+            {{ ConfigLabel::of($transparency, 'title', 'titulo') }}
         </h2>
-        <p class="m-0 mb-[30px] text-15 text-on-brand-muted">{{ $transparency['subtitle'] }}</p>
+        <p class="m-0 mb-[30px] text-15 text-on-brand-muted">{{ ConfigLabel::of($transparency, 'subtitle', 'subtitulo') }}</p>
 
         {{-- Las diez llevan al índice, no cada una a su grupo: el índice se
              está trasladando por partes y un ancla a un grupo que todavía no
@@ -21,7 +25,7 @@
                         <span aria-hidden="true" class="font-display text-12 font-bold text-azure-pale">
                             {{ $index + 1 }}
                         </span>
-                        <span class="font-display text-14-5 leading-[1.35] font-semibold">{{ $item }}</span>
+                        <span class="font-display text-14-5 leading-[1.35] font-semibold">{{ ConfigLabel::item($transparency, 'items', $index, $item) }}</span>
                     </a>
                 </li>
             @endforeach

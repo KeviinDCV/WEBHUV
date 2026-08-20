@@ -32,7 +32,30 @@ class EventController extends Controller
             // día. Sin tema todavía importado no hay ninguna, y el bloque se
             // configura igual.
             'categories' => $this->topicFor($block->option('source'))?->categories ?? collect(),
+            'sources' => $this->sources(),
         ]);
+    }
+
+    /**
+     * Los temas que pueden alimentar la agenda, con el nombre que tienen.
+     *
+     * El nombre sale de la base y no de la constante: son los mismos siete
+     * temas que el visitante ve rotulados así en su propia página, y con la
+     * constante por delante un tema renombrado se quedaba con el rótulo viejo
+     * en el único sitio donde se elige. La constante queda de reserva para el
+     * tema que todavía no se haya importado, que si no desaparecería de la
+     * lista y no habría forma de escogerlo.
+     *
+     * @return array<string, string>
+     */
+    private function sources(): array
+    {
+        $nombres = Topic::whereIn('slug', array_keys(ContentBlock::EVENT_SOURCES))
+            ->pluck('name', 'slug');
+
+        return collect(ContentBlock::EVENT_SOURCES)
+            ->map(fn (string $reserva, string $slug): string => $nombres[$slug] ?? $reserva)
+            ->all();
     }
 
     public function updateBlock(Request $request): RedirectResponse
@@ -43,10 +66,10 @@ class EventController extends Controller
             'categories' => ['array'],
             'categories.*' => ['integer', 'exists:topic_categories,id'],
         ], [
-            'source.required' => 'Elija la sección que alimenta el calendario.',
+            'source.required' => __('mensajes.validacion.seccion_calendario'),
         ], [
-            'name' => 'nombre del bloque',
-            'source' => 'sección',
+            'name' => __('mensajes.campo.nombre_bloque'),
+            'source' => __('mensajes.campo.seccion'),
         ]);
 
         $block = ContentBlock::events();
@@ -70,7 +93,7 @@ class EventController extends Controller
             ],
         ]);
 
-        return redirect()->route('home')->with('status', 'Bloque de eventos guardado.');
+        return redirect()->route('home')->with('status', __('mensajes.bloque.eventos_guardado'));
     }
 
     /**

@@ -38,9 +38,9 @@
                   this.newFiles = Array.from(event.target.files).map((file) => file.name);
               },
           }">
-    <legend class="p-0 font-display text-15 font-bold text-heading">Medios</legend>
+    <legend class="p-0 font-display text-15 font-bold text-heading">{{ __('admin-contenidos.medios.titulo') }}</legend>
     <p class="m-0 mt-1 mb-5 text-13-5 text-muted">
-        {{ $gallery ? 'Fotos, vídeo y documentos que acompañan al contenido.' : 'Archivos que acompañan al contenido.' }}
+        {{ $gallery ? __('admin-contenidos.medios.ayuda') : __('admin-contenidos.medios.ayuda_archivos') }}
     </p>
 
     {{--
@@ -53,7 +53,7 @@
         esconderlas aquí dejaba fotos que se ven en público y nadie puede tocar.
     --}}
     @if ($images->isNotEmpty())
-        <p class="m-0 mb-2 text-13-5 font-semibold text-heading">Fotos publicadas</p>
+        <p class="m-0 mb-2 text-13-5 font-semibold text-heading">{{ __('admin-contenidos.medios.fotos.publicadas') }}</p>
         <ul class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             @foreach ($images as $image)
                 <li x-data="{ remove: false }"
@@ -71,22 +71,23 @@
                                 <input type="radio" name="media_main" value="{{ $image->id }}"
                                        @checked($mainId === $image->id) :disabled="remove"
                                        class="size-4 accent-azure">
-                                Principal
+                                {{ __('admin-contenidos.medios.fotos.principal') }}
                             </label>
                         @endif
 
                         <label class="sr-only" for="media_alt_{{ $image->id }}{{ $uid }}">
-                            Descripción de la foto {{ $loop->iteration }}
+                            {{ __('admin-contenidos.medios.fotos.descripcion_numerada', ['n' => $loop->iteration]) }}
                         </label>
                         <input id="media_alt_{{ $image->id }}{{ $uid }}" name="media_alt[{{ $image->id }}]" type="text"
-                               maxlength="250" value="{{ $image->alt }}" placeholder="Descripción de la imagen"
+                               maxlength="250" value="{{ $image->alt }}"
+                               placeholder="{{ __('admin-contenidos.medios.fotos.descripcion') }}"
                                :disabled="remove"
                                class="w-full rounded-[3px] border border-stroke bg-card px-2 py-[6px] text-13">
 
                         <label class="flex items-center gap-2 text-12-5 text-danger">
                             <input type="checkbox" name="media_delete[]" value="{{ $image->id }}" x-model="remove"
                                    class="size-4 accent-danger">
-                            Quitar esta foto
+                            {{ __('admin-contenidos.medios.fotos.quitar') }}
                         </label>
                     </div>
                 </li>
@@ -109,11 +110,14 @@
                     <path d="M4 7.5h3l1.5-2.5h7L17 7.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z" />
                     <circle cx="12" cy="13" r="3.4" />
                 </svg>
-                Agrega foto
+                {{ __('admin-contenidos.medios.fotos.agregar') }}
             </label>
             <p class="m-0 mt-2 text-12-5 leading-[1.6] text-muted">
-                Dimensión recomendada {{ ContentMedia::IMAGE_WIDTH }} × {{ ContentMedia::IMAGE_HEIGHT }} px.<br>
-                Peso máximo 2 MB. Formatos gif, jpg, jpeg, png, bmp, webp.
+                {{ __('admin-contenidos.medios.fotos.dimension', [
+                    'ancho' => ContentMedia::IMAGE_WIDTH,
+                    'alto' => ContentMedia::IMAGE_HEIGHT,
+                ]) }}<br>
+                {{ __('admin-contenidos.medios.fotos.limites') }}
             </p>
             <input id="photos{{ $uid }}" name="photos[]" type="file" multiple @change="onPhotos($event)"
                    accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" class="sr-only">
@@ -127,7 +131,7 @@
                             {{-- La descripción es obligatoria: el servidor la exige
                                  por cada foto que llegue. --}}
                             <input type="text" :name="`photo_alts[${index}]`" maxlength="250" required
-                                   placeholder="Descripción de la imagen"
+                                   placeholder="{{ __('admin-contenidos.medios.fotos.descripcion') }}"
                                    class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[5px] text-12-5">
                         </div>
                     </li>
@@ -141,16 +145,16 @@
                 <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M5 4.5 19 12 5 19.5Z" />
                 </svg>
-                Agrega vídeo
+                {{ __('admin-contenidos.medios.video.agregar') }}
             </label>
             <p class="m-0 mt-2 mb-2 text-12-5 leading-[1.6] text-muted">
-                URL de YouTube, con https:// por delante.
+                {{ __('admin-contenidos.medios.video.ayuda') }}
             </p>
             <input id="video_url{{ $uid }}" name="video_url" type="url" inputmode="url"
                    value="{{ old('video_url', $video?->url) }}"
                    placeholder="https://www.youtube.com/watch?v=…"
                    class="w-full rounded-[3px] border border-stroke bg-card px-2 py-[7px] text-13">
-            <p class="m-0 mt-2 text-12 text-faint">Deje el campo vacío para quitar el vídeo.</p>
+            <p class="m-0 mt-2 text-12 text-faint">{{ __('admin-contenidos.medios.video.vaciar') }}</p>
         </div>
 
         </div>
@@ -163,10 +167,10 @@
                      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M20 11.5 12.5 19a4.2 4.2 0 0 1-6-6l7.6-7.6a2.8 2.8 0 0 1 4 4l-7.6 7.6a1.4 1.4 0 0 1-2-2l7-7" />
                 </svg>
-                Agrega archivo
+                {{ __('admin-contenidos.medios.archivos.agregar') }}
             </label>
             <p class="m-0 mt-2 text-12-5 leading-[1.6] text-muted">
-                Peso máximo 30 MB.<br>
+                {{ __('admin-contenidos.medios.archivos.limites') }}<br>
                 pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, zip.
             </p>
             <input id="files{{ $uid }}" name="files[]" type="file" multiple @change="onFiles($event)"
@@ -177,7 +181,7 @@
                     <li>
                         <p class="m-0 truncate text-12 text-muted" x-text="name"></p>
                         <input type="text" :name="`file_titles[${index}]`" maxlength="250"
-                               placeholder="Título visible del documento (opcional)"
+                               placeholder="{{ __('admin-contenidos.medios.archivos.titulo_nuevo') }}"
                                class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-2 py-[5px] text-12-5">
                     </li>
                 </template>
@@ -187,7 +191,7 @@
 
     {{-- ---------------- Archivos ya guardados ---------------- --}}
     @if ($files->isNotEmpty())
-        <p class="m-0 mt-6 mb-2 text-13-5 font-semibold text-heading">Documentos publicados</p>
+        <p class="m-0 mt-6 mb-2 text-13-5 font-semibold text-heading">{{ __('admin-contenidos.medios.archivos.publicados') }}</p>
         <ul class="flex flex-col gap-2">
             @foreach ($files as $file)
                 <li x-data="{ remove: false }"
@@ -197,7 +201,7 @@
                         {{ $file->extension() }}
                     </span>
 
-                    <label class="sr-only" for="file_alt_{{ $file->id }}{{ $uid }}">Título del documento</label>
+                    <label class="sr-only" for="file_alt_{{ $file->id }}{{ $uid }}">{{ __('admin-contenidos.medios.archivos.titulo') }}</label>
                     <input id="file_alt_{{ $file->id }}{{ $uid }}" name="media_alt[{{ $file->id }}]" type="text"
                            maxlength="250" value="{{ $file->alt }}" :disabled="remove"
                            class="min-w-[200px] flex-1 rounded-[3px] border border-stroke bg-card px-2 py-[6px] text-13">
@@ -207,7 +211,7 @@
                     <label class="flex shrink-0 items-center gap-2 text-12-5 text-danger">
                         <input type="checkbox" name="media_delete[]" value="{{ $file->id }}" x-model="remove"
                                class="size-4 accent-danger">
-                        Quitar
+                        {{ __('admin-contenidos.medios.archivos.quitar') }}
                     </label>
                 </li>
             @endforeach

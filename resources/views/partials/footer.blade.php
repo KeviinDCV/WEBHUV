@@ -1,4 +1,5 @@
 @php
+    use App\Support\ConfigLabel;
     use App\Support\LegacyLink;
 
     $institution = config('huv.institution');
@@ -24,24 +25,22 @@
 
             {{-- Datos institucionales --}}
             <div>
-                <h2 class="m-0 mb-4 font-display text-16-5 font-bold text-heading">
-                    {{ $institution['name_plain'] }}
-                </h2>
+                <x-texto-del-portal tag="h2" class="m-0 mb-4 font-display text-16-5 font-bold text-heading">{{ $institution['name_plain'] }}</x-texto-del-portal>
 
                 <address class="not-italic">
                     <dl class="flex flex-col gap-[7px] text-14 leading-[1.55] text-body">
                         @foreach ($footer['contact'] as $row)
                             <div class="flex flex-wrap gap-x-[6px]">
-                                <dt class="shrink-0">{{ $row['label'] }}:</dt>
+                                <dt class="shrink-0">{{ ConfigLabel::of($row, 'label', 'rotulo') }}:</dt>
                                 <dd class="m-0 min-w-0">
                                     @if (! empty($row['tel']))
                                         <a href="tel:{{ $row['tel'] }}"
-                                           class="text-body underline underline-offset-2 hover:text-heading">{{ $row['value'] }}</a>
+                                           class="text-body underline underline-offset-2 hover:text-heading">{{ ConfigLabel::of($row, 'value', 'valor') }}</a>
                                     @elseif (! empty($row['mailto']))
                                         <a href="mailto:{{ $row['mailto'] }}"
-                                           class="break-all text-body underline underline-offset-2 hover:text-heading">{{ $row['value'] }}</a>
+                                           class="break-all text-body underline underline-offset-2 hover:text-heading">{{ ConfigLabel::of($row, 'value', 'valor') }}</a>
                                     @else
-                                        {{ $row['value'] }}
+                                        {{ ConfigLabel::of($row, 'value', 'valor') }}
                                     @endif
                                 </dd>
                             </div>
@@ -53,7 +52,7 @@
             {{-- Marca, hora legal y última modificación --}}
             <div class="flex flex-col gap-5 lg:w-[420px] lg:items-end lg:border-l lg:border-line lg:pl-14">
                 <img src="{{ asset('img/logo-huv.png') }}"
-                     alt="{{ $institution['name'] }}"
+                     alt="{{ $institution['name'] }}"{!! App\Support\PortalLang::attribute() !!}
                      width="620" height="175" loading="lazy" decoding="async"
                      class="block h-[52px] w-auto">
 
@@ -62,7 +61,7 @@
                 @endif
 
                 <p class="m-0 text-13-5 text-muted">
-                    Última modificación
+                    {{ __('estructura.pie.ultima_modificacion') }}
                     <time datetime="{{ $lastModified->toIso8601String() }}">
                         {{ \Illuminate\Support\Str::ucfirst($lastModified->diffForHumans()) }}
                     </time>
@@ -71,7 +70,7 @@
         </div>
 
         {{-- Redes sociales --}}
-        <h2 id="huv-footer-redes" class="sr-only">Redes sociales del hospital</h2>
+        <h2 id="huv-footer-redes" class="sr-only">{{ __('estructura.pie.redes') }}</h2>
         <ul aria-labelledby="huv-footer-redes"
             class="mt-12 grid grid-cols-1 gap-x-14 gap-y-5 sm:grid-cols-2">
             @foreach ($footer['social'] as $account)
@@ -84,7 +83,7 @@
                             <x-social-icon :network="$account['network']" />
                         </span>
                         <span class="truncate group-hover:underline">{{ $account['handle'] }}</span>
-                        <span class="sr-only">en {{ $account['name'] }} (se abre en una pestaña nueva)</span>
+                        <span class="sr-only">{{ __('estructura.pie.en_red', ['red' => ConfigLabel::of($account, 'name')]) }}</span>
                     </a>
                 </li>
             @endforeach
@@ -95,13 +94,13 @@
     <div class="border-t border-line">
         <x-container class="flex flex-wrap items-center gap-x-8 gap-y-3 py-5 text-13-5">
             <span class="text-muted">
-                Última modificación
+                {{ __('estructura.pie.ultima_modificacion') }}
                 <time datetime="{{ $lastModified->toIso8601String() }}">
                     {{ \Illuminate\Support\Str::ucfirst($lastModified->diffForHumans()) }}
                 </time>
             </span>
 
-            <nav aria-label="Enlaces legales y de servicio">
+            <nav aria-label="{{ __('estructura.pie.enlaces_legales') }}">
                 <ul class="flex flex-wrap items-center gap-x-8 gap-y-3">
                     @foreach ($footer['legal_links'] as $link)
                         {{-- Por LegacyLink: «Políticas», «Mapa del sitio» y
@@ -113,7 +112,7 @@
                             <a href="{{ $destino['href'] }}"
                                @if ($destino['external']) target="_blank" rel="noopener noreferrer" @endif
                                class="font-medium text-heading underline underline-offset-4 hover:text-heading-hover">
-                                {{ $link['label'] }}
+                                {!! ConfigLabel::marked($link) !!}
                             </a>
                         </li>
                     @endforeach

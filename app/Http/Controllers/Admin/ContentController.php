@@ -41,7 +41,7 @@ class ContentController extends Controller
         $this->settleFeatured($content);
 
         // Se vuelve al muro, que es donde se comprueba el resultado.
-        return $this->backToFeed('Contenido publicado correctamente.');
+        return $this->backToFeed(__('mensajes.contenido.publicado'));
     }
 
     public function edit(Content $content): View
@@ -58,14 +58,14 @@ class ContentController extends Controller
 
         $this->settleFeatured($content);
 
-        return $this->backToFeed('Contenido actualizado correctamente.');
+        return $this->backToFeed(__('mensajes.contenido.actualizado'));
     }
 
     public function destroy(Content $content): RedirectResponse
     {
         $content->delete();
 
-        return $this->backToFeed('Contenido eliminado.');
+        return $this->backToFeed(__('mensajes.contenido.eliminado'));
     }
 
     /** Vuelve al muro de contenidos de la portada, no al principio. */
@@ -85,7 +85,7 @@ class ContentController extends Controller
 
         $this->settleFeatured($content);
 
-        return back()->with('status', 'Contenido destacado.');
+        return back()->with('status', __('mensajes.contenido.destacado'));
     }
 
     /** Activar o inactivar: fuera de todo el sitio, no solo de la portada. */
@@ -95,7 +95,7 @@ class ContentController extends Controller
 
         return back()->with(
             'status',
-            $content->is_active ? 'Contenido activado.' : 'Contenido inactivado.'
+            $content->is_active ? __('mensajes.contenido.activado') : __('mensajes.contenido.inactivado')
         );
     }
 
@@ -106,7 +106,9 @@ class ContentController extends Controller
 
         return back()->with(
             'status',
-            $content->is_hidden ? 'Contenido oculto en la portada.' : 'Contenido visible en la portada.'
+            $content->is_hidden
+                ? __('mensajes.contenido.oculto_portada')
+                : __('mensajes.contenido.visible_portada')
         );
     }
 

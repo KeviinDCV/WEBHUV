@@ -15,11 +15,18 @@ export default function huvContentFeed({
     perPage = 6,
     canModerate = false,
     openEditor = false,
+    // Los rótulos se traducen en el servidor y viajan hasta aquí: escritos en
+    // este fichero se quedarían en español en la web en inglés, que es lo que
+    // ya pasó dos veces.
+    tabs = [],
+    moderationTabs = [],
 } = {}) {
     return {
         meta,
         perPage,
         canModerate,
+        publicTabs: tabs,
+        moderationTabs,
 
         /** Editor incrustado bajo la barra de controles. */
         editor: openEditor,
@@ -57,15 +64,20 @@ export default function huvContentFeed({
 
         /** Pestañas disponibles; las de moderación solo con sesión iniciada. */
         get tabs() {
-            const tabs = [
-                { key: 'recientes', label: 'Recientes' },
-                { key: 'destacados', label: 'Destacados' },
-            ];
+            const tabs = [...this.publicTabs];
 
-            if (this.canModerate) {
-                tabs.splice(1, 0, { key: 'inactivos', label: 'Inactivos' });
-                tabs.push({ key: 'ocultos', label: 'Ocultos' });
-            }
+            if (!this.canModerate) return tabs;
+
+            const de = (key) => this.moderationTabs.find((tab) => tab.key === key);
+
+            // «Inactivos» va entre las dos públicas y «Ocultos» al final, que
+            // es el orden en el que se revisa: primero lo que no se publica,
+            // al final lo que se publica pero no sale en la portada.
+            const inactivos = de('inactivos');
+            const ocultos = de('ocultos');
+
+            if (inactivos) tabs.splice(1, 0, inactivos);
+            if (ocultos) tabs.push(ocultos);
 
             return tabs;
         },

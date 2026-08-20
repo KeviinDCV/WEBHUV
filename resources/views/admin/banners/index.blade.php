@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Administración de banners')
-@section('heading', 'Administración de banners')
-@section('subheading', 'Agrega y/o edita el contenido de los banners y el orden en que aparecerán (máximo '.\App\Models\Banner::MAX.' banners).')
+@section('title', __('admin-bloques.banners.titulo'))
+@section('heading', __('admin-bloques.banners.titulo'))
+@section('subheading', __('admin-bloques.banners.descripcion', ['maximo' => \App\Models\Banner::MAX]))
 
 @section('content')
-    <div x-data="huvBannerOrder(@js($banners->pluck('id')))">
+    <div x-data="huvBannerOrder(@js($banners->pluck('id')), @js(__('admin-bloques.orden_movido')))">
 
         @if ($banners->count() < \App\Models\Banner::MAX)
             <a href="{{ route('admin.banners.create') }}"
@@ -16,12 +16,11 @@
                      stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
                     <path d="M12 5v14M5 12h14" />
                 </svg>
-                Agregar
+                {{ __('admin-bloques.acciones.agregar') }}
             </a>
         @else
             <p class="mb-7 rounded-[3px] border border-line bg-card px-4 py-3 text-13-5 text-muted">
-                Ya hay {{ \App\Models\Banner::MAX }} banners publicados, el máximo permitido.
-                Elimine uno para poder agregar otro.
+                {{ __('admin-bloques.banners.completo', ['maximo' => \App\Models\Banner::MAX]) }}
             </p>
         @endif
 
@@ -35,7 +34,7 @@
 
             @if ($banners->isEmpty())
                 <p class="rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-10 text-center text-14 text-muted">
-                    Todavía no hay banners. Use «Agregar» para publicar el primero.
+                    {{ __('admin-bloques.banners.vacio') }}
                 </p>
             @else
                 <ul class="flex flex-col gap-px bg-line">
@@ -46,7 +45,7 @@
                             <div class="flex shrink-0 flex-col">
                                 <button type="button" @click="move({{ $banner->id }}, -1)"
                                         x-show="! isFirst({{ $banner->id }})"
-                                        aria-label="Subir el banner {{ $loop->iteration }}"
+                                        aria-label="{{ __('admin-bloques.banners.subir', ['numero' => $loop->iteration]) }}"
                                         class="flex size-6 items-center justify-center border-0 bg-transparent text-link hover:text-heading">
                                     <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -55,7 +54,7 @@
                                 </button>
                                 <button type="button" @click="move({{ $banner->id }}, 1)"
                                         x-show="! isLast({{ $banner->id }})"
-                                        aria-label="Bajar el banner {{ $loop->iteration }}"
+                                        aria-label="{{ __('admin-bloques.banners.bajar', ['numero' => $loop->iteration]) }}"
                                         class="flex size-6 items-center justify-center border-0 bg-transparent text-link hover:text-heading">
                                     <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -75,15 +74,17 @@
 
                             <p class="m-0 min-w-[200px] flex-1 text-13 break-all text-muted">
                                 @if ($banner->link)
-                                    <span class="font-semibold text-body">Enlace:</span> {{ $banner->link }}
+                                    <span class="font-semibold text-body">{{ __('admin-bloques.banners.enlace') }}</span>
+                                    {{ $banner->link }}
                                 @else
-                                    <span class="italic">Sin enlace</span>
+                                    <span class="italic">{{ __('admin-bloques.banners.sin_enlace') }}</span>
                                 @endif
                             </p>
 
                             <a href="{{ route('admin.banners.edit', $banner) }}"
                                class="shrink-0 text-13-5 font-semibold text-link underline underline-offset-4">
-                                Editar<span class="sr-only"> el banner «{{ $banner->alt_text }}»</span>
+                                {{ __('admin-bloques.acciones.editar') }}<span class="sr-only">
+                                    {{ __('admin-bloques.banners.editar_detalle', ['texto' => $banner->alt_text]) }}</span>
                             </a>
                         </li>
                     @endforeach
@@ -93,16 +94,18 @@
             @endif
 
             <div class="mt-9">
-                <h2 class="m-0 font-display text-15 font-bold text-heading">Duración de rotación</h2>
+                <h2 class="m-0 font-display text-15 font-bold text-heading">
+                    {{ __('admin-bloques.banners.rotacion.titulo') }}
+                </h2>
                 <p class="m-0 mt-1 mb-3 text-13-5 text-muted">
-                    Define los segundos que durará la rotación automática de las imágenes.
+                    {{ __('admin-bloques.banners.rotacion.descripcion') }}
                 </p>
-                <label for="rotation" class="sr-only">Segundos entre banners</label>
+                <label for="rotation" class="sr-only">{{ __('admin-bloques.banners.rotacion.etiqueta') }}</label>
                 <select id="rotation" name="rotation"
                         class="rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 font-semibold text-heading">
                     @foreach (\App\Http\Controllers\Admin\BannerController::ROTATION_OPTIONS as $seconds)
                         <option value="{{ $seconds }}" @selected($rotation === $seconds)>
-                            {{ $seconds }} segundos
+                            {{ __('admin-bloques.banners.rotacion.opcion', ['segundos' => $seconds]) }}
                         </option>
                     @endforeach
                 </select>
@@ -112,12 +115,12 @@
                 <a href="{{ route('home') }}"
                    class="rounded-full border border-stroke bg-card px-6 py-[10px] font-display text-14
                           font-semibold text-heading no-underline hover:bg-tint hover:no-underline">
-                    Cancelar
+                    {{ __('admin-bloques.acciones.cancelar') }}
                 </a>
                 <button type="submit"
                         class="rounded-full border-0 bg-azure px-7 py-[10px] font-display text-14 font-semibold text-on-accent
                                transition-colors hover:bg-azure-dark">
-                    Guardar
+                    {{ __('admin-bloques.acciones.guardar') }}
                 </button>
             </div>
         </form>

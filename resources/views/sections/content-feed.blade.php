@@ -1,5 +1,6 @@
 @php
     use App\Models\Content;
+    use App\Support\ListTabs;
 
     $perPage = config('huv.content_feed.per_page', 6);
 
@@ -19,6 +20,9 @@
         'meta' => $meta,
         'perPage' => $perPage,
         'canModerate' => auth()->check(),
+        // Los rótulos se traducen aquí: el componente de Alpine no puede.
+        'tabs' => ListTabs::of('recientes', 'destacados'),
+        'moderationTabs' => ListTabs::of('inactivos', 'ocultos'),
         // El editor se despliega solo si se llegó a editar un contenido o si
         // el guardado falló y hay que corregir algo.
         'openEditor' => isset($editing) || $errors->any(),
@@ -35,13 +39,13 @@
          x-data='huvContentFeed(@json($feedConfig))'>
     <x-container class="py-12 lg:py-14">
 
-        <h2 id="huv-contenidos" class="sr-only">Todos los contenidos publicados</h2>
+        <h2 id="huv-contenidos" class="sr-only">{{ __('portada.contenidos.titulo') }}</h2>
 
         {{-- ---------------- Controles ---------------- --}}
         <div class="mb-5 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
 
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <span id="huv-orden" class="text-13-5 text-muted">Ordenar por:</span>
+                <span id="huv-orden" class="text-13-5 text-muted">{{ __('portada.contenidos.orden') }}</span>
 
                 <div role="tablist" aria-labelledby="huv-orden" class="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <template x-for="option in tabs" :key="option.key">
@@ -59,25 +63,25 @@
 
             <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <div class="flex items-center gap-2">
-                    <label for="huv-periodo" class="sr-only">Filtrar por fecha</label>
+                    <label for="huv-periodo" class="sr-only">{{ __('portada.contenidos.filtro_fecha.rotulo') }}</label>
                     <select id="huv-periodo" x-model="period"
                             class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                    font-semibold text-heading">
-                        <option value="todos">Filtrar por fecha</option>
-                        <option value="7">Última semana</option>
-                        <option value="30">Último mes</option>
-                        <option value="365">Último año</option>
+                        <option value="todos">{{ __('portada.contenidos.filtro_fecha.todas') }}</option>
+                        <option value="7">{{ __('portada.contenidos.filtro_fecha.semana') }}</option>
+                        <option value="30">{{ __('portada.contenidos.filtro_fecha.mes') }}</option>
+                        <option value="365">{{ __('portada.contenidos.filtro_fecha.anio') }}</option>
                     </select>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <label for="huv-categoria" class="sr-only">Filtrar por tipo de contenido</label>
+                    <label for="huv-categoria" class="sr-only">{{ __('portada.contenidos.filtro_categoria.rotulo') }}</label>
                     <select id="huv-categoria" x-model="category"
                             class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                    font-semibold text-heading">
-                        <option value="todos">Todos los contenidos</option>
+                        <option value="todos">{{ __('portada.contenidos.filtro_categoria.todas') }}</option>
                         @foreach (Content::CATEGORIES as $category)
-                            <option value="{{ $category }}">{{ $category }}</option>
+                            <option value="{{ $category }}">{{ Content::categoryLabel($category) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -96,12 +100,12 @@
                         class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-5 py-[8px]
                                font-display text-13-5 font-semibold text-on-accent
                                transition-colors hover:bg-azure-dark"
-                        x-text="editor ? 'Ocultar' : 'Nuevo contenido'">
-                    Nuevo contenido
+                        x-text="editor ? '{{ __('portada.contenidos.ocultar') }}' : '{{ __('portada.contenidos.nuevo') }}'">
+                    {{ __('portada.contenidos.nuevo') }}
                 </button>
             @endauth
 
-            <div role="group" aria-label="Forma de ver el listado" class="ml-auto flex items-center gap-1">
+            <div role="group" aria-label="{{ __('portada.contenidos.vista.grupo') }}" class="ml-auto flex items-center gap-1">
                 <button type="button" @click="setView('grid')"
                         :aria-pressed="view === 'grid' ? 'true' : 'false'"
                         :class="view === 'grid' ? 'bg-navy text-on-brand' : 'bg-tint text-muted hover:text-heading'"
@@ -112,7 +116,7 @@
                         <rect x="3" y="13" width="8" height="8" rx="1" />
                         <rect x="13" y="13" width="8" height="8" rx="1" />
                     </svg>
-                    <span class="sr-only">Ver en cuadrícula</span>
+                    <span class="sr-only">{{ __('portada.contenidos.vista.cuadricula') }}</span>
                 </button>
 
                 <button type="button" @click="setView('list')"
@@ -124,7 +128,7 @@
                         <rect x="3" y="10" width="18" height="4" rx="1" />
                         <rect x="3" y="16" width="18" height="4" rx="1" />
                     </svg>
-                    <span class="sr-only">Ver en lista</span>
+                    <span class="sr-only">{{ __('portada.contenidos.vista.lista') }}</span>
                 </button>
             </div>
         </div>
@@ -149,10 +153,15 @@
         @if ($feed->isEmpty())
             <p class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-10
                       text-center text-14 text-muted">
-                Todavía no hay contenidos publicados.
+                {{ __('portada.contenidos.vacio') }}
             </p>
         @else
-            <ul class="grid grid-cols-1 gap-6" :class="view === 'grid' && 'md:grid-cols-2'">
+            {{-- `items-start`: cada tarjeta mide lo que mide su texto.
+                 Una rejilla estira sus celdas a la altura de la fila por
+                 omisión, así que una noticia de dos renglones al lado de otra
+                 con foto salía con el recuadro estirado y medio palmo de blanco
+                 dentro. El hueco va entre tarjetas, no dentro de una. --}}
+            <ul class="grid grid-cols-1 items-start gap-6" :class="view === 'grid' && 'md:grid-cols-2'">
                 @foreach ($feed as $item)
                     <li x-show="isVisible({{ $item->id }})"
                         :style="{ order: positionOf({{ $item->id }}) }"
@@ -166,10 +175,10 @@
         {{-- Sin resultados tras filtrar --}}
         <p x-show="isEmpty" x-cloak
            class="m-0 rounded-[4px] border border-dashed border-stroke-strong bg-card px-5 py-8 text-center text-14 text-muted">
-            No hay contenidos que coincidan con los filtros seleccionados.
+            {{ __('portada.contenidos.sin_resultados') }}
             <button type="button" @click="reset()"
                     class="border-0 bg-transparent p-0 font-semibold text-link underline underline-offset-4">
-                Quitar los filtros
+                {{ __('portada.contenidos.quitar_filtros') }}
             </button>
         </p>
 
@@ -179,12 +188,15 @@
                 <button type="button" @click="loadMore()" x-show="hasMore" x-cloak
                         class="rounded-full border-0 bg-azure px-7 py-3 font-display text-12-5 font-bold
                                tracking-[0.08em] text-on-accent uppercase transition-colors hover:bg-azure-dark">
-                    Cargar más contenidos
+                    {{ __('portada.contenidos.cargar_mas') }}
                 </button>
 
                 {{-- aria-live: al pulsar «cargar más» el recuento se anuncia. --}}
                 <p class="m-0 text-12-5 text-muted" aria-live="polite" x-cloak x-show="! isEmpty">
-                    Mostrando <span x-text="showing"></span> de <span x-text="total"></span> contenidos
+                    {!! __('portada.contenidos.mostrando', [
+                        'visibles' => '<span x-text="showing"></span>',
+                        'total' => '<span x-text="total"></span>',
+                    ]) !!}
                 </p>
             </div>
         @endif

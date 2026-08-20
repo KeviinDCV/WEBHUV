@@ -16,6 +16,9 @@ export default function huvTopicList({
     meta = [],
     categories = [],
     publicTabs = [],
+    // Traducidas en el servidor: dentro del JavaScript no hay forma de pedir
+    // una traducción, y escritas aquí se quedaban en español.
+    moderationTabs = [],
     perPage = 6,
     canModerate = false,
     openEditor = false,
@@ -24,6 +27,7 @@ export default function huvTopicList({
         meta,
         categories,
         publicTabs,
+        moderationTabs,
         perPage,
         canModerate,
 
@@ -107,13 +111,7 @@ export default function huvTopicList({
         get tabs() {
             const tabs = [...this.publicTabs];
 
-            if (this.canModerate) {
-                tabs.push(
-                    { key: 'inactivos', label: 'Inactivos' },
-                    { key: 'destacados', label: 'Destacados' },
-                    { key: 'ocultos', label: 'Ocultos' }
-                );
-            }
+            if (this.canModerate) tabs.push(...this.moderationTabs);
 
             return tabs;
         },

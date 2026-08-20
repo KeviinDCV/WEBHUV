@@ -16,7 +16,7 @@
 
     <div class="flex shrink-0 items-center border-r border-white/20 px-3 py-2">
         <img src="{{ asset('img/inm-hora-legal.png') }}"
-             alt="Instituto Nacional de Metrología de Colombia"
+             alt="{{ __('estructura.hora_legal.inm') }}"{!! App\Support\PortalLang::attribute() !!}
              width="200" height="99" loading="lazy" decoding="async"
              class="block h-[38px] w-auto">
     </div>
@@ -31,13 +31,13 @@
               class="font-display text-24 font-bold tracking-[0.02em] tabular-nums">{{ $now->format('H:i:s') }}</time>
 
         <span class="text-10-5 leading-[1.25] font-semibold tracking-[0.06em] uppercase">
-            Hora legal<br>República de Colombia
+            {{ __('estructura.hora_legal.rotulo') }}<br>{{ __('estructura.hora_legal.pais') }}
         </span>
     </div>
 
     {{-- Un reloj que se actualiza cada segundo no debe anunciarse: se expone
          una sola etiqueta estática a los lectores de pantalla. --}}
     <span class="sr-only">
-        Hora legal de la República de Colombia, según el Instituto Nacional de Metrología.
+        {!! __('estructura.hora_legal.descripcion', ['entidad' => App\Support\PortalLang::wrap(__('estructura.hora_legal.inm'))]) !!}
     </span>
 </div>

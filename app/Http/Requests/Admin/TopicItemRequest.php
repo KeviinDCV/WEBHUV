@@ -192,25 +192,25 @@ class TopicItemRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'title' => 'título',
-            'body' => 'descripción',
-            'link' => 'enlace',
-            'issued_at' => 'fecha de expedición',
-            'event_host' => 'organizador',
-            'event_location' => 'lugar',
-            'event_date' => 'fecha de inicio',
-            'event_time' => 'hora de inicio',
-            'opens_at' => 'fecha de inicio',
-            'closes_at' => 'fecha de cierre',
-            'expires_at' => 'fecha final de visualización',
-            'file' => 'archivo',
-            'file_alt' => 'descripción del archivo',
-            'photos' => 'fotos',
-            'files' => 'archivos',
-            'video_url' => 'URL del vídeo',
-            'topic_category_ids' => 'categorías',
-            'new_category' => 'categoría nueva',
-            'published_at' => 'fecha de publicación',
+            'title' => __('mensajes.campo.titulo'),
+            'body' => __('mensajes.campo.descripcion'),
+            'link' => __('mensajes.campo.enlace'),
+            'issued_at' => __('mensajes.campo.fecha_expedicion'),
+            'event_host' => __('mensajes.campo.organizador'),
+            'event_location' => __('mensajes.campo.lugar'),
+            'event_date' => __('mensajes.campo.fecha_inicio'),
+            'event_time' => __('mensajes.campo.hora_inicio'),
+            'opens_at' => __('mensajes.campo.fecha_inicio'),
+            'closes_at' => __('mensajes.campo.fecha_cierre'),
+            'expires_at' => __('mensajes.campo.fecha_final'),
+            'file' => __('mensajes.campo.archivo'),
+            'file_alt' => __('mensajes.campo.descripcion_archivo'),
+            'photos' => __('mensajes.campo.fotos'),
+            'files' => __('mensajes.campo.archivos'),
+            'video_url' => __('mensajes.campo.url_video'),
+            'topic_category_ids' => __('mensajes.campo.categorias'),
+            'new_category' => __('mensajes.campo.categoria_nueva'),
+            'published_at' => __('mensajes.campo.fecha_publicacion'),
         ];
     }
 
@@ -220,19 +220,19 @@ class TopicItemRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.required' => 'Adjunte el archivo o indique un enlace donde consultarlo.',
-            'file.max' => 'El archivo puede pesar como máximo 30 MB.',
-            'file.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
-            'files.max' => 'Se pueden adjuntar como máximo 20 archivos de una vez.',
-            'files.*.max' => 'Cada archivo puede pesar como máximo 30 MB.',
-            'closes_at.after_or_equal' => 'La fecha de cierre no puede ir antes de la de inicio.',
-            'files.*.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
-            'photos.*.max' => 'Cada foto puede pesar como máximo 2 MB.',
-            'photos.*.image' => 'Solo se admiten imágenes en gif, jpg, jpeg, png, bmp o webp.',
-            'video_url.regex' => 'El vídeo debe ser una dirección de YouTube.',
-            'link.url' => 'El enlace debe empezar por http:// o https://',
-            'link.required' => 'Indique la dirección a la que lleva este contenido.',
-            'topic_category_ids.*.exists' => 'Esa categoría no pertenece a este tema.',
+            'file.required' => __('mensajes.validacion.archivo_obligatorio'),
+            'file.max' => __('mensajes.validacion.archivo_pesado'),
+            'file.mimes' => __('mensajes.validacion.archivo_formatos'),
+            'files.max' => __('mensajes.validacion.archivos_maximo'),
+            'files.*.max' => __('mensajes.validacion.archivos_pesados'),
+            'closes_at.after_or_equal' => __('mensajes.validacion.cierre_posterior'),
+            'files.*.mimes' => __('mensajes.validacion.archivo_formatos'),
+            'photos.*.max' => __('mensajes.validacion.foto_pesada'),
+            'photos.*.image' => __('mensajes.validacion.foto_formato'),
+            'video_url.regex' => __('mensajes.validacion.video_youtube'),
+            'link.url' => __('mensajes.validacion.enlace_http'),
+            'link.required' => __('mensajes.validacion.enlace_destino'),
+            'topic_category_ids.*.exists' => __('mensajes.validacion.categoria_ajena'),
         ];
     }
 
@@ -252,8 +252,7 @@ class TopicItemRequest extends FormRequest
                     if (blank($this->input("photo_alts.{$index}"))) {
                         $validator->errors()->add(
                             "photo_alts.{$index}",
-                            'Cada foto necesita su descripción: sin ella, no se puede entender '
-                                .'con un lector de pantalla.'
+                            __('mensajes.validacion.foto_alt')
                         );
                     }
                 }

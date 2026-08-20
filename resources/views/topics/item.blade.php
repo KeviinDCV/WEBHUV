@@ -23,9 +23,9 @@
             <div class="mx-auto max-w-[820px]">
 
                 {{-- ---------------- Rastro de navegación ---------------- --}}
-                <nav aria-label="Ruta de navegación" class="mb-4">
+                <nav aria-label="{{ __('paginas.ruta.etiqueta') }}" class="mb-4">
                     <ol class="flex flex-wrap items-center gap-2 text-13 text-muted">
-                        <li><a href="{{ route('home') }}" class="text-link">Inicio</a></li>
+                        <li><a href="{{ route('home') }}" class="text-link">{{ __('paginas.ruta.inicio') }}</a></li>
                         <li aria-hidden="true">›</li>
                         <li><a href="{{ route('topics.show', $topic) }}" class="text-link">{{ $topic->name }}</a></li>
                         <li aria-hidden="true">›</li>
@@ -38,20 +38,18 @@
                 @if ($item->categories->isNotEmpty())
                     <p class="m-0 mb-3 flex flex-wrap gap-2">
                         @foreach ($item->categories as $category)
-                            <span class="rounded-full bg-tint px-4 py-[5px] text-12-5 font-semibold text-link">
-                                {{ $category->name }}
-                            </span>
+                            <x-texto-del-portal class="rounded-full bg-tint px-4 py-[5px] text-12-5 font-semibold text-link">{{ $category->name }}</x-texto-del-portal>
                         @endforeach
                     </p>
                 @endif
 
                 <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <p class="m-0 text-12 text-faint">
-                        Modificación:
+                        {{ __('paginas.ficha.modificacion') }}
                         <time datetime="{{ ($item->modified_at ?? $item->updated_at)->toIso8601String() }}">
                             {{ ($item->modified_at ?? $item->updated_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
-                        · Creación:
+                        · {{ __('paginas.ficha.creacion') }}
                         <time datetime="{{ ($item->published_at ?? $item->created_at)->toIso8601String() }}">
                             {{ ($item->published_at ?? $item->created_at)->translatedFormat('Y/m/d H:i:s') }}
                         </time>
@@ -62,7 +60,7 @@
                            x-show="$store.huvUi.editMode" x-cloak
                            data-huv-edit="tema-elemento"
                            class="inline-flex items-center gap-[6px] text-13-5 font-semibold text-link">
-                            Editar
+                            {{ __('paginas.ficha.editar') }}
                             <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 20h9" />
@@ -72,9 +70,7 @@
                     @endauth
                 </div>
 
-                <h1 class="m-0 font-display text-25 leading-[1.25] font-bold tracking-[-0.015em] text-balance text-heading lg:text-33">
-                    {{ $item->title }}
-                </h1>
+                <x-texto-del-portal tag="h1" class="m-0 font-display text-25 leading-[1.25] font-bold tracking-[-0.015em] text-balance text-heading lg:text-33">{{ $item->title }}</x-texto-del-portal>
 
                 @auth
                     <div class="mt-3"><x-topic-item-badges :item="$item" /></div>
@@ -82,7 +78,7 @@
 
                 @if ($item->issued_at)
                     <p class="m-0 mt-3 text-13-5 text-muted">
-                        Fecha de expedición:
+                        {{ __('paginas.ficha.expedicion') }}
                         {{-- Con el sello tal cual, como el portal: la hora es
                              siempre un relleno, pero es lo que enseña. --}}
                         <time datetime="{{ $item->issued_at->toIso8601String() }}"
@@ -101,7 +97,7 @@
                 --}}
                 @if ($item->isDocument() || $item->isConvocation())
                     @if (filled($item->body))
-                        <div class="huv-prose mt-8">{!! $item->body !!}</div>
+                        <x-texto-del-portal tag="div" class="huv-prose mt-8">{!! $item->body !!}</x-texto-del-portal>
                     @endif
 
                     {{--
@@ -130,7 +126,7 @@
                     --}}
                     @if ($attachments->isNotEmpty())
                         <div class="mt-8">
-                            <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">Archivos para descargar</h2>
+                            <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">{{ __('paginas.ficha.archivos') }}</h2>
 
                             <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 @foreach ($attachments as $file)
@@ -146,11 +142,11 @@
                                                     {{ $file['extension'] }}
                                                 </span>
                                             </span>
-                                            <span class="min-w-0 flex-1 break-words">{{ $file['name'] }}</span>
+                                            <x-texto-del-portal class="min-w-0 flex-1 break-words">{{ $file['name'] }}</x-texto-del-portal>
                                             <span class="shrink-0 text-12-5 text-muted">
                                                 @if ($file['size']) {{ $file['size'] }} @endif
                                                 @unless ($file['downloaded'])
-                                                    <span class="sr-only">(se abre en una pestaña nueva)</span>
+                                                    <span class="sr-only">{{ __('paginas.enlace.pestana_nueva') }}</span>
                                                 @endunless
                                             </span>
                                         </a>
@@ -163,7 +159,7 @@
                     {{-- El detalle completo vive fuera: aquí queda la ficha
                          breve y el enlace al expediente. --}}
                     @if (filled($item->body))
-                        <div class="huv-prose mt-8">{!! $item->body !!}</div>
+                        <x-texto-del-portal tag="div" class="huv-prose mt-8">{!! $item->body !!}</x-texto-del-portal>
                     @endif
 
                     @if (filled($item->source_url))
@@ -172,14 +168,14 @@
                                class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-6 py-[10px]
                                       font-display text-13-5 font-semibold text-on-accent no-underline
                                       transition-colors hover:bg-azure-dark hover:no-underline">
-                                Consultar el expediente completo
+                                {{ __('paginas.ficha.expediente') }}
                                 <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M14 4h6v6" />
                                     <path d="M20 4 11 13" />
                                     <path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
                                 </svg>
-                                <span class="sr-only">(se abre en una pestaña nueva)</span>
+                                <span class="sr-only">{{ __('paginas.enlace.pestana_nueva') }}</span>
                             </a>
                         </p>
                     @endif
@@ -197,10 +193,10 @@
                         <dl class="m-0 mb-6 flex flex-col gap-2 rounded-[3px] border border-stroke bg-tint px-4 py-3">
                             @if ($item->startsAt())
                                 <div class="flex flex-wrap gap-x-2 text-14">
-                                    <dt class="font-semibold text-heading">Cuándo</dt>
+                                    <dt class="font-semibold text-heading">{{ __('paginas.ficha.evento.cuando') }}</dt>
                                     <dd class="m-0 text-body">
                                         <time datetime="{{ $item->startsAt()->toIso8601String() }}">
-                                            {{ $item->startsAt()->translatedFormat('l j \d\e F \d\e Y, H:i') }}
+                                            {{ $item->startsAt()->translatedFormat(__('paginas.ficha.evento.formato')) }}
                                         </time>
                                     </dd>
                                 </div>
@@ -208,15 +204,15 @@
 
                             @if (filled($item->event_location))
                                 <div class="flex flex-wrap gap-x-2 text-14">
-                                    <dt class="font-semibold text-heading">Dónde</dt>
-                                    <dd class="m-0 text-body">{{ $item->event_location }}</dd>
+                                    <dt class="font-semibold text-heading">{{ __('paginas.ficha.evento.donde') }}</dt>
+                                    <x-texto-del-portal tag="dd" class="m-0 text-body">{{ $item->event_location }}</x-texto-del-portal>
                                 </div>
                             @endif
 
                             @if (filled($item->event_host))
                                 <div class="flex flex-wrap gap-x-2 text-14">
-                                    <dt class="font-semibold text-heading">Organiza</dt>
-                                    <dd class="m-0 text-body">{{ $item->event_host }}</dd>
+                                    <dt class="font-semibold text-heading">{{ __('paginas.ficha.evento.organiza') }}</dt>
+                                    <x-texto-del-portal tag="dd" class="m-0 text-body">{{ $item->event_host }}</x-texto-del-portal>
                                 </div>
                             @endif
                         </dl>
@@ -225,7 +221,7 @@
                     @include('partials.ficha-medios', [
                         'item' => $item,
                         'body' => $item->body,
-                        'filesTitle' => 'Archivos para descargar',
+                        'filesTitle' => __('paginas.ficha.archivos'),
                     ])
                 @endif
 
@@ -239,7 +235,9 @@
                 @if ($related->isNotEmpty())
                     <section aria-labelledby="huv-relacionados" class="mt-10">
                         <h2 id="huv-relacionados" class="m-0 mb-4 font-display text-17 font-bold text-heading">
-                            También en {{ $item->categories->first()?->name ?: $topic->name }}
+                            {{ __('paginas.ficha.relacionados', [
+                                'contexto' => $item->categories->first()?->name ?: $topic->name,
+                            ]) }}
                         </h2>
                         <ul class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             @foreach ($related as $other)

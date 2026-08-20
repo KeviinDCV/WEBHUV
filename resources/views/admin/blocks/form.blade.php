@@ -14,9 +14,9 @@
 
 @extends('layouts.admin')
 
-@section('title', 'Configuración del bloque')
-@section('heading', 'Configuración del bloque')
-@section('subheading', 'Define de qué secciones se nutre este bloque de la portada y cómo se presenta.')
+@section('title', __('admin-bloques.bloque.titulo'))
+@section('heading', __('admin-bloques.bloque.titulo'))
+@section('subheading', __('admin-bloques.bloque.descripcion'))
 
 @section('content')
     <form method="POST" action="{{ route('admin.blocks.update', $block) }}"
@@ -31,33 +31,38 @@
         {{-- ---------------- Nombre ---------------- --}}
         <div class="mb-8 max-w-[560px]">
             <label for="name" class="text-13-5 font-semibold text-heading">
-                Nombre del bloque <span class="font-normal text-muted">(30 caracteres)</span>
+                {{ __('admin-bloques.comun.nombre_bloque') }}
+                <span class="font-normal text-muted">{{ __('admin-bloques.comun.limite_30') }}</span>
             </label>
             <input id="name" name="name" type="text" maxlength="30" required
                    value="{{ old('name', $block->name) }}"
                    class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink">
             <p class="m-0 mt-1 text-12-5 text-faint">
-                Rótulo interno para distinguir el bloque; no se muestra en la portada.
+                {{ __('admin-bloques.bloque.nombre_ayuda') }}
             </p>
         </div>
 
         {{-- ---------------- Selección ---------------- --}}
-        <h2 class="m-0 font-display text-15 font-bold text-heading">Selecciona una sección</h2>
+        <h2 class="m-0 font-display text-15 font-bold text-heading">
+            {{ __('admin-bloques.bloque.seleccion') }}
+        </h2>
 
         <div class="mt-3 mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:max-w-[720px]">
             <div>
-                <label for="sections_count" class="text-13-5 text-body">Número de secciones a mostrar</label>
+                <label for="sections_count" class="text-13-5 text-body">{{ __('admin-bloques.bloque.numero') }}</label>
                 <input id="sections_count" name="sections_count" type="number" min="1"
                        max="{{ ContentBlock::MAX_SECTIONS }}" x-model.number="count"
                        class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
             </div>
 
             <div>
-                <label for="sort" class="text-13-5 text-body">Orden de los contenidos</label>
+                <label for="sort" class="text-13-5 text-body">{{ __('admin-bloques.bloque.orden.etiqueta') }}</label>
                 <select id="sort" name="sort"
                         class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
-                    @foreach (ContentBlock::SORTS as $value => $label)
-                        <option value="{{ $value }}" @selected(old('sort', $block->sort) === $value)>{{ $label }}</option>
+                    @foreach (array_keys(ContentBlock::SORTS) as $value)
+                        <option value="{{ $value }}" @selected(old('sort', $block->sort) === $value)>
+                            {{ __('admin-bloques.bloque.orden.'.$value) }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -67,38 +72,41 @@
             <input id="show_title" name="show_title" type="checkbox" value="1" x-model="showTitle"
                    class="mt-[3px] size-4 rounded-[2px] border-stroke accent-azure">
             <span>
-                Habilitar título
+                {{ __('admin-bloques.bloque.titulo_visible') }}
                 <span class="block text-12-5 text-muted">
-                    Muestra en la portada el título de cada sección. Puedes cambiarlo en el campo
-                    «Título que lleva esta sección».
+                    {{ __('admin-bloques.bloque.titulo_visible_ayuda') }}
                 </span>
             </span>
         </label>
 
         {{-- ---------------- Secciones ---------------- --}}
-        <h2 class="m-0 font-display text-15 font-bold text-heading">Secciones de bloque</h2>
+        <h2 class="m-0 font-display text-15 font-bold text-heading">
+            {{ __('admin-bloques.bloque.secciones') }}
+        </h2>
 
         <div class="mt-3 mb-8 flex flex-col gap-5">
             @for ($i = 0; $i < ContentBlock::MAX_SECTIONS; $i++)
                 @php
                     $section = $sections[$i] ?? ['category' => Content::NEWS_CATEGORY, 'title' => '', 'hide_in_feed' => false];
-                    $ordinal = ['uno', 'dos', 'tres'][$i];
+                    $ordinal = __('admin-bloques.bloque.ordinal.'.['uno', 'dos', 'tres'][$i]);
                 @endphp
                 <fieldset x-show="count > {{ $i }}" x-cloak
                           class="rounded-[3px] border border-line bg-card p-4">
-                    <legend class="px-1 text-12-5 font-semibold text-heading">Sección {{ $ordinal }}</legend>
+                    <legend class="px-1 text-12-5 font-semibold text-heading">
+                        {{ __('admin-bloques.bloque.seccion', ['ordinal' => $ordinal]) }}
+                    </legend>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="section_{{ $i }}_category" class="text-13-5 text-body">
-                                Elige la sección {{ $ordinal }}
+                                {{ __('admin-bloques.bloque.elige', ['ordinal' => $ordinal]) }}
                             </label>
                             <select id="section_{{ $i }}_category" name="sections[{{ $i }}][category]"
                                     :disabled="count <= {{ $i }}"
                                     class="mt-1 w-full rounded-[3px] border border-stroke bg-card px-3 py-[9px] text-14 text-ink">
                                 @foreach (Content::CATEGORIES as $category)
                                     <option value="{{ $category }}" @selected($section['category'] === $category)>
-                                        Home / Infórmate / {{ $category }}
+                                        {{ __('admin-bloques.bloque.ruta_seccion', ['categoria' => Content::categoryLabel($category)]) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -106,7 +114,7 @@
 
                         <div>
                             <label for="section_{{ $i }}_title" class="text-13-5 text-body">
-                                Título que lleva esta sección
+                                {{ __('admin-bloques.bloque.titulo_seccion') }}
                             </label>
                             <input id="section_{{ $i }}_title" name="sections[{{ $i }}][title]" type="text"
                                    maxlength="150" :required="count > {{ $i }}" :disabled="count <= {{ $i }}"
@@ -120,10 +128,9 @@
                                value="1" @checked($section['hide_in_feed']) :disabled="count <= {{ $i }}"
                                class="mt-[3px] size-4 rounded-[2px] border-stroke accent-azure">
                         <span>
-                            Ocultar en muro de contenidos
+                            {{ __('admin-bloques.bloque.ocultar') }}
                             <span class="block text-12-5 text-muted">
-                                Los contenidos de esta sección salen del listado general de la portada,
-                                pero siguen apareciendo en este bloque.
+                                {{ __('admin-bloques.bloque.ocultar_ayuda') }}
                             </span>
                         </span>
                     </label>
@@ -132,10 +139,11 @@
         </div>
 
         {{-- ---------------- Tema ---------------- --}}
-        <h2 class="m-0 mb-1 font-display text-15 font-bold text-heading">Selecciona un tema</h2>
+        <h2 class="m-0 mb-1 font-display text-15 font-bold text-heading">
+            {{ __('admin-bloques.bloque.tema.titulo') }}
+        </h2>
         <p class="m-0 mb-4 text-13-5 text-muted">
-            Color de fondo del bloque. Todos los tonos están oscurecidos lo necesario para que el
-            texto blanco se lea encima; los claros del portal original lo dejarían ilegible.
+            {{ __('admin-bloques.bloque.tema.descripcion') }}
         </p>
 
         <div class="mb-9 flex flex-wrap items-start gap-8">
@@ -149,13 +157,15 @@
                     </svg>
                 </span>
                 <span class="flex-1 bg-white/10 px-4 py-5 text-white">
-                    <span class="block font-display text-14 font-bold">Título</span>
-                    <span class="block text-13">Texto descriptivo</span>
+                    <span class="block font-display text-14 font-bold">
+                        {{ __('admin-bloques.bloque.tema.vista_titulo') }}
+                    </span>
+                    <span class="block text-13">{{ __('admin-bloques.bloque.tema.vista_texto') }}</span>
                 </span>
             </div>
 
             <fieldset class="border-0 p-0">
-                <legend class="sr-only">Tema de color del bloque</legend>
+                <legend class="sr-only">{{ __('admin-bloques.bloque.tema.etiqueta') }}</legend>
                 <div class="flex flex-wrap gap-3">
                     @foreach (Themes::COLORS as $key => $color)
                         <label class="flex cursor-pointer items-center gap-2">
@@ -175,12 +185,12 @@
             <a href="{{ route('home') }}"
                class="rounded-full border border-stroke bg-card px-6 py-[10px] font-display text-14
                       font-semibold text-heading no-underline hover:bg-tint hover:no-underline">
-                Cancelar
+                {{ __('admin-bloques.acciones.cancelar') }}
             </a>
             <button type="submit"
                     class="rounded-full border-0 bg-azure px-7 py-[10px] font-display text-14 font-semibold
                            text-on-accent transition-colors hover:bg-azure-dark">
-                Guardar
+                {{ __('admin-bloques.acciones.guardar') }}
             </button>
         </div>
     </form>

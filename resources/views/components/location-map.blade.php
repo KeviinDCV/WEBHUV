@@ -21,15 +21,31 @@
     de navegación, y los botones de zoom acabarían pintados por encima. Con
     `isolate` la escala de Leaflet se queda dentro de su caja.
 --}}
-<section aria-labelledby="huv-mapa-titulo" x-data='huvMap(@json($map))' class="relative isolate mt-10">
-    <h2 id="huv-mapa-titulo" class="sr-only">{{ $map['title'] }}</h2>
+@php
+    // Los rótulos del globo del marcador se calculan aquí y no dentro del
+    // atributo: el JavaScript del mapa no sabe en qué idioma está la página.
+    $mapa = $map + ['textos' => [
+        'comoLlegar' => __('componentes.mapa.como_llegar'),
+        'pestanaNueva' => __('componentes.mapa.nueva_pestana'),
+        'cerrar' => __('componentes.mapa.cerrar'),
+        'acercar' => __('componentes.mapa.acercar'),
+        'alejar' => __('componentes.mapa.alejar'),
+        // Con :lugar y :direccion sin resolver: el JavaScript los sustituye
+        // cuando sabe qué marcador está pintando.
+        'lienzo' => __('componentes.mapa.lienzo'),
+        'lienzoConDireccion' => __('componentes.mapa.lienzo_con_direccion'),
+    ]];
+@endphp
+
+<section aria-labelledby="huv-mapa-titulo" x-data='huvMap(@json($mapa))' class="relative isolate mt-10">
+    <h2 id="huv-mapa-titulo" class="sr-only">{{ App\Support\ConfigLabel::of($map, 'title', 'titulo') }}</h2>
 
     {{-- Aviso de la rueda: aparece solo si se intenta acercar sin haber pulsado
          dentro. `pointer-events-none` para no robarle ese clic al mapa. --}}
     <div x-show="hint" x-cloak x-transition.opacity
          class="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center">
         <p class="m-0 rounded-full border border-line bg-navy px-5 py-2 text-13-5 font-semibold text-on-brand">
-            Pulsa en el mapa para acercar con la rueda
+            {{ __('componentes.mapa.aviso_rueda') }}
         </p>
     </div>
 
@@ -39,8 +55,8 @@
             <p class="m-0 text-14 text-muted">{{ $map['address'] }}</p>
             <a href="https://www.openstreetmap.org/?mlat={{ $map['latitude'] }}&amp;mlon={{ $map['longitude'] }}#map={{ $map['zoom'] }}/{{ $map['latitude'] }}/{{ $map['longitude'] }}"
                target="_blank" rel="noopener noreferrer" class="text-14 font-semibold text-link">
-                Ver la ubicación en OpenStreetMap
-                <span class="sr-only">(se abre en una pestaña nueva)</span>
+                {{ __('componentes.mapa.ver_en_openstreetmap') }}
+                <span class="sr-only">{{ __('componentes.enlace.pestana_nueva') }}</span>
             </a>
         </div>
     </div>

@@ -20,14 +20,14 @@ class MediaLibraryController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:60', Rule::unique('media_categories', 'name')],
         ], [
-            'name.unique' => 'Ya existe una categoría con ese nombre.',
+            'name.unique' => __('mensajes.validacion.categoria_repetida'),
         ], [
-            'name' => 'nombre de la categoría',
+            'name' => __('mensajes.campo.nombre_categoria'),
         ]);
 
         MediaCategory::create($validated);
 
-        return back()->with('status', 'Categoría creada.');
+        return back()->with('status', __('mensajes.biblioteca.categoria_creada'));
     }
 
     public function storeImage(Request $request): RedirectResponse
@@ -39,13 +39,12 @@ class MediaLibraryController extends Controller
             'alt' => ['required', 'string', 'max:250'],
             'media_category_id' => ['nullable', 'exists:media_categories,id'],
         ], [
-            'image.max' => 'La imagen no puede pesar más de 2 MB.',
-            'alt.required' => 'La descripción es obligatoria: acompañará a la imagen en todos los '
-                .'contenidos donde se use.',
+            'image.max' => __('mensajes.validacion.imagen_pesada'),
+            'alt.required' => __('mensajes.validacion.imagen_alt'),
         ], [
-            'image' => 'imagen',
-            'alt' => 'descripción',
-            'media_category_id' => 'categoría',
+            'image' => __('mensajes.campo.imagen'),
+            'alt' => __('mensajes.campo.descripcion'),
+            'media_category_id' => __('mensajes.campo.categoria'),
         ]);
 
         LibraryImage::create([
@@ -56,7 +55,7 @@ class MediaLibraryController extends Controller
             'size' => $request->file('image')->getSize(),
         ]);
 
-        return back()->with('status', 'Imagen añadida a la biblioteca.');
+        return back()->with('status', __('mensajes.biblioteca.imagen_agregada'));
     }
 
     public function destroyImage(LibraryImage $image): RedirectResponse
@@ -65,6 +64,6 @@ class MediaLibraryController extends Controller
         // contenidos que la usaban dejan de mostrarla en lugar de romperse.
         $image->delete();
 
-        return back()->with('status', 'Imagen eliminada de la biblioteca.');
+        return back()->with('status', __('mensajes.biblioteca.imagen_eliminada'));
     }
 }

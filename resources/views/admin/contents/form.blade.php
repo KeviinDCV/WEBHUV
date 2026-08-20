@@ -2,8 +2,14 @@
 
 @extends('layouts.admin')
 
-@section('title', $content->exists ? 'Actualizar contenido' : 'Nuevo contenido')
-@section('heading', $content->exists ? 'Actualizar contenido' : 'Nuevo contenido')
+@php
+    $screenTitle = $content->exists
+        ? __('admin-contenidos.pantalla.actualizar')
+        : __('admin-contenidos.pantalla.nuevo');
+@endphp
+
+@section('title', $screenTitle)
+@section('heading', $screenTitle)
 
 @push('head')
     @vite('resources/js/admin.js')

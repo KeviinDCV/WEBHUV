@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Políticas — '.config('huv.institution.short_name'))
-@section('description', 'Política de derechos de autor y autorización de uso de contenidos del '
-    .config('huv.institution.name_plain').'.')
+@section('title', __('paginas.politicas.titulo').' — '.config('huv.institution.short_name'))
+@section('description', __('paginas.politicas.descripcion', [
+    'entidad' => config('huv.institution.name_plain'),
+]))
 
 @section('content')
     {{--
@@ -18,39 +19,26 @@
         <x-container class="py-8 lg:py-10">
             <div class="mx-auto max-w-[820px]">
 
-                <nav aria-label="Ruta de navegación" class="mb-4">
+                <nav aria-label="{{ __('paginas.ruta.etiqueta') }}" class="mb-4">
                     <ol class="flex flex-wrap items-center gap-2 text-13 text-muted">
-                        <li><a href="{{ route('home') }}" class="text-link">Inicio</a></li>
+                        <li><a href="{{ route('home') }}" class="text-link">{{ __('paginas.ruta.inicio') }}</a></li>
                         <li aria-hidden="true">›</li>
-                        <li aria-current="page" class="font-semibold text-heading">Políticas</li>
+                        <li aria-current="page" class="font-semibold text-heading">{{ __('paginas.politicas.titulo') }}</li>
                     </ol>
                 </nav>
 
                 <h1 class="m-0 font-display text-25 leading-[1.2] font-bold tracking-[-0.015em] text-heading lg:text-33">
-                    Políticas
+                    {{ __('paginas.politicas.titulo') }}
                 </h1>
 
                 {{-- ---------------- Política del hospital ---------------- --}}
                 <section aria-labelledby="huv-derechos-de-autor" class="huv-prose mt-8">
                     <h2 id="huv-derechos-de-autor">
-                        Política de derechos de autor y autorización de uso de contenidos
+                        {{ __('paginas.politicas.derechos.titulo') }}
                     </h2>
 
                     <p>
-                        El {{ config('huv.institution.name') }} establece que todos los contenidos
-                        producidos o administrados en el marco de su actividad institucional constituyen
-                        activos estratégicos cuya creación, uso, divulgación y explotación deben someterse
-                        a principios de responsabilidad, legalidad, seguridad y protección institucional.
-                        En consecuencia, los derechos patrimoniales derivados de los contenidos generados
-                        por servidores públicos, contratistas, docentes, residentes o estudiantes en el
-                        ejercicio de sus funciones pertenecen al hospital, sin perjuicio del reconocimiento
-                        de los derechos morales de autor. Ningún contenido institucional podrá ser
-                        reproducido, publicado, transformado, licenciado, divulgado por cualquier medio o
-                        puesto a disposición del público sin la autorización expresa, previa y escrita de
-                        las dependencias facultadas para ello. El manejo del contenido deberá responder a
-                        estándares de seguridad de la información, calidad del dato, gestión documental y
-                        protección del dato personal y clínico, asegurando la trazabilidad, conservación y
-                        uso ético del conocimiento generado dentro de la institución.
+                        {{ __('paginas.politicas.derechos.texto', ['entidad' => config('huv.institution.name')]) }}
                     </p>
                 </section>
 
@@ -58,16 +46,17 @@
                 <section aria-labelledby="huv-mi-colombia-digital" class="huv-prose mt-10">
                     <h2 id="huv-mi-colombia-digital">Mi Colombia Digital</h2>
 
-                    <p>
-                        A continuación podrás consultar los términos y condiciones y las políticas de
-                        privacidad de información y el tratamiento de datos personales de la solución que
-                        debes tener en cuenta para el uso correcto del servicio de portales territoriales
-                        ofrecidos por el Gobierno Digital; recuerda dar clic en los títulos para conocer
-                        más:
-                    </p>
+                    <p>{{ __('paginas.politicas.plataforma.intro') }}</p>
 
                     @php
-                        // Los nueve del portal, en su orden y con su destino.
+                        /*
+                         | Los nueve del portal, en su orden y con su destino.
+                         |
+                         | Los rótulos no pasan por los ficheros de idioma: nombran documentos
+                         | legales que «Mi Colombia Digital» publica solo en español, y un rótulo
+                         | traducido prometería una versión inglesa que no existe. Por eso mismo
+                         | van marcados con su idioma: son español dentro de una página inglesa.
+                         */
                         $soporte = 'https://micolombiadigital.gov.co/soporte/';
 
                         $terminos = [
@@ -91,8 +80,8 @@
                         @foreach ($terminos as $titulo => $ruta)
                             <li>
                                 <a href="{{ $soporte.$ruta }}" target="_blank" rel="noopener noreferrer">
-                                    {{ $titulo }}
-                                    <span class="sr-only">(se abre en una pestaña nueva)</span>
+                                    <x-texto-del-portal>{{ $titulo }}</x-texto-del-portal>
+                                    <span class="sr-only">{{ __('paginas.enlace.pestana_nueva') }}</span>
                                 </a>
                             </li>
                         @endforeach

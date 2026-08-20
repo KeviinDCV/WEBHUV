@@ -12,7 +12,7 @@
                     <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
                 </svg>
                 <span>
-                    Sesión iniciada como
+                    {{ __('estructura.barra_admin.sesion_iniciada') }}
                     <strong class="font-semibold">{{ auth()->user()->name }}</strong>
                 </span>
             </p>
@@ -28,14 +28,14 @@
                         <span class="absolute top-[2px] left-[2px] size-[14px] rounded-full bg-white transition-transform"
                               :class="$store.huvUi.editMode && 'translate-x-[14px]'"></span>
                     </span>
-                    Controles de edición
+                    {{ __('estructura.barra_admin.controles_edicion') }}
                 </button>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
                             class="border-0 bg-transparent p-0 text-13 font-semibold text-on-brand underline underline-offset-4">
-                        Cerrar sesión
+                        {{ __('estructura.barra_admin.cerrar_sesion') }}
                     </button>
                 </form>
             </div>

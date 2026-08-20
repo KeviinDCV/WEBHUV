@@ -60,7 +60,7 @@ class BannerController extends Controller
         // el propio banner.
         return redirect()
             ->route('home')
-            ->with('status', 'Banner agregado correctamente.');
+            ->with('status', __('mensajes.banner.agregado'));
     }
 
     public function edit(Banner $banner): View
@@ -82,7 +82,7 @@ class BannerController extends Controller
 
         return redirect()
             ->route('home')
-            ->with('status', 'Banner actualizado correctamente.');
+            ->with('status', __('mensajes.banner.actualizado'));
     }
 
     public function destroy(Banner $banner): RedirectResponse
@@ -91,7 +91,7 @@ class BannerController extends Controller
 
         return redirect()
             ->route('admin.banners.index')
-            ->with('status', 'Banner eliminado.');
+            ->with('status', __('mensajes.banner.eliminado'));
     }
 
     /**
@@ -104,7 +104,7 @@ class BannerController extends Controller
             'order.*' => ['integer', 'exists:banners,id'],
             'rotation' => ['required', 'integer', Rule::in(self::ROTATION_OPTIONS)],
         ], [
-            'rotation.in' => 'La duración de rotación seleccionada no es válida.',
+            'rotation.in' => __('mensajes.validacion.rotacion'),
         ]);
 
         foreach ($validated['order'] ?? [] as $position => $id) {
@@ -115,7 +115,7 @@ class BannerController extends Controller
 
         return redirect()
             ->route('home')
-            ->with('status', 'Cambios guardados.');
+            ->with('status', __('mensajes.banner.orden_guardado'));
     }
 
     /**
@@ -125,8 +125,7 @@ class BannerController extends Controller
     {
         if (Banner::count() >= Banner::MAX) {
             throw ValidationException::withMessages([
-                'banner' => 'Ya hay '.Banner::MAX.' banners publicados, el máximo permitido. '
-                    .'Elimine uno antes de agregar otro.',
+                'banner' => __('mensajes.banner.sin_sitio', ['maximo' => Banner::MAX]),
             ]);
         }
     }

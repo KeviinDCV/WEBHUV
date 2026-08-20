@@ -37,7 +37,7 @@
         ]) }}
     >
         <span class="text-12 leading-relaxed font-medium text-faint">
-            {{ $hint ?? 'Imagen pendiente' }}
+            {{ $hint ?? __('componentes.imagen.pendiente') }}
         </span>
     </div>
 @endif

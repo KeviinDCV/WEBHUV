@@ -29,9 +29,9 @@ class CommentWall
     public static function options(): array
     {
         return [
-            self::NINGUNA => 'Contenido sin participación',
-            self::PUBLICA => 'Contenido con participación pública',
-            self::PRIVADA => 'Contenido con participación privada',
+            self::NINGUNA => __('mensajes.participacion.ninguna'),
+            self::PUBLICA => __('mensajes.participacion.publica'),
+            self::PRIVADA => __('mensajes.participacion.privada'),
         ];
     }
 

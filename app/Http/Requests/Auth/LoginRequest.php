@@ -39,8 +39,8 @@ class LoginRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'email' => 'correo institucional',
-            'password' => 'contraseña',
+            'email' => __('mensajes.campo.correo'),
+            'password' => __('mensajes.campo.contrasena'),
         ];
     }
 
@@ -59,7 +59,7 @@ class LoginRequest extends FormRequest
             // Un único mensaje genérico: distinguir «no existe» de «contraseña
             // incorrecta» permitiría averiguar qué correos tienen cuenta.
             throw ValidationException::withMessages([
-                'email' => 'Las credenciales no coinciden con nuestros registros.',
+                'email' => __('mensajes.acceso.credenciales'),
             ]);
         }
 
@@ -79,12 +79,13 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        // Dos mensajes enteros y no uno con la unidad en un hueco: en inglés
+        // el plural no se forma igual y una plantilla partida dejaría frases
+        // imposibles de traducir bien.
         throw ValidationException::withMessages([
-            'email' => sprintf(
-                'Demasiados intentos fallidos. Vuelva a intentarlo en %d %s.',
-                $seconds > 60 ? ceil($seconds / 60) : $seconds,
-                $seconds > 60 ? 'minutos' : 'segundos',
-            ),
+            'email' => $seconds > 60
+                ? __('mensajes.acceso.demasiados_minutos', ['n' => (int) ceil($seconds / 60)])
+                : __('mensajes.acceso.demasiados_segundos', ['n' => $seconds]),
         ]);
     }
 

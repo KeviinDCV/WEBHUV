@@ -22,7 +22,7 @@
         encima.
     --}}
     <div class="mt-8">
-        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">Galería</h2>
+        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">{{ __('componentes.galeria.titulo') }}</h2>
 
         <ul class="grid grid-cols-2 gap-4 md:grid-cols-3">
             @foreach ($images as $image)
@@ -30,12 +30,12 @@
                     <figure class="m-0">
                         <a href="{{ $image->fileUrl() }}" class="block">
                             <img src="{{ $image->fileUrl() }}"
-                                 alt="{{ $image->alt ?: 'Ampliar la imagen '.$loop->iteration.' de '.$images->count() }}"
+                                 alt="{{ $image->alt ?: __('componentes.galeria.ampliar', ['numero' => $loop->iteration, 'total' => $images->count()]) }}"@if (filled($image->alt)){!! App\Support\PortalLang::attribute() !!}@endif
                                  loading="lazy" decoding="async"
                                  class="aspect-[4/3] w-full rounded-[3px] border border-line bg-tint object-contain">
                         </a>
                         @if (filled($image->alt))
-                            <figcaption class="mt-1 text-12 text-muted">{{ $image->alt }}</figcaption>
+                            <x-texto-del-portal tag="figcaption" class="mt-1 text-12 text-muted">{{ $image->alt }}</x-texto-del-portal>
                         @endif
                     </figure>
                 </li>

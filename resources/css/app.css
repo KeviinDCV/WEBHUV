@@ -423,9 +423,41 @@ html[data-huv-contrast='on'] {
            contenido salta unos píxeles a la derecha. */
         scrollbar-gutter: stable;
 
-        /* Propiedad estándar: Firefox y navegadores modernos. */
+        /* La barra de la página no se pinta.
+
+           Solo la del documento: las de los contenedores con desplazamiento
+           propio —el menú completo, el cajón del móvil, el carrusel de logos,
+           las tablas anchas— se quedan, porque ahí son la única señal de que
+           hay más contenido fuera de la vista. Sin ellas, lo que queda a un
+           lado no existe para quien no adivine que eso se arrastra.
+
+           Desplazar sigue funcionando igual: rueda, teclado, dos dedos y
+           barra espaciadora. Lo que se pierde es arrastrar la barra con el
+           ratón y ver de un vistazo por dónde va uno en la página, que en un
+           listado de setecientas contrataciones no es poco. Es una decisión
+           de diseño, no un descuido; para deshacerla basta volver a poner
+           «thin» aquí y quitar el bloque de ::-webkit-scrollbar de abajo. */
+        scrollbar-width: none;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+
+    /* En alto contraste vuelve a verse. Ese modo lo enciende quien necesita
+       que los bordes de la interfaz se distingan, y esconderle justo el
+       control que dice dónde está sería lo contrario de lo que pide. */
+    html[data-huv-contrast='on'] {
         scrollbar-width: thin;
         scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    }
+
+    html[data-huv-contrast='on']::-webkit-scrollbar,
+    html[data-huv-contrast='on'] body::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
     }
 
     /* Barra personalizada en WebKit y Blink. Se aplica también a los

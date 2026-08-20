@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Después de la sesión: el idioma elegido se guarda en ella.
+        $middleware->web(append: [App\Http\Middleware\SetLocale::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -20,9 +20,9 @@
    ])>
     <span class="shrink-0 tabular-nums">{{ $order }}.</span>
     <span>
-        {{ $link['label'] }}
+        {!! App\Support\ConfigLabel::marked($link) !!}
         @if ($destino['external'])
-            <span class="sr-only">(se abre en una pestaña nueva)</span>
+            <span class="sr-only">{{ __('componentes.enlace.pestana_nueva') }}</span>
         @endif
     </span>
 </a>

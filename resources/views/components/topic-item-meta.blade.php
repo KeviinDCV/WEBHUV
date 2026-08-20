@@ -27,9 +27,7 @@
     sitio: los botones de filtro de arriba, y en los temas que se publican en
     filas, encima del título.
 --}}
-<p @class(['m-0 text-12-5', 'text-on-accent/85' => $sobreColor, 'text-link' => ! $sobreColor])>
-    {{ $item->topic->name }}
-</p>
+<x-texto-del-portal tag="p" @class(['m-0 text-12-5', 'text-on-accent/85' => $sobreColor, 'text-link' => ! $sobreColor])>{{ $item->topic->name }}</x-texto-del-portal>
 
 <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
     <a href="{{ $item->url() }}"
@@ -38,18 +36,18 @@
            'text-on-accent hover:text-on-accent' => $sobreColor,
            'text-heading hover:text-heading-hover' => ! $sobreColor,
        ])>
-        {{ $item->title }}
+        <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
     </a>
     {{-- El lápiz va pegado al título, como en el portal actual. --}}
     <x-topic-item-actions :item="$item" :tone="$tone" class="ml-1 inline-flex align-[-5px]" />
 </h3>
 
 @if (filled($item->summary()))
-    <p @class([
+    <x-texto-del-portal tag="p" @class([
         'm-0 text-13-5 leading-[1.6] whitespace-pre-line text-pretty',
         'text-on-accent/90' => $sobreColor,
         'text-muted' => ! $sobreColor,
-    ])>{{ $item->summary() }}</p>
+    ])>{{ $item->summary() }}</x-texto-del-portal>
 @endif
 
 <x-participa-link :item="$item" class="mt-1" />

@@ -28,16 +28,16 @@
                 <a href="{{ $item->url() }}"
                    @if (filled($item->source_url)) target="_blank" rel="noopener noreferrer" @endif
                    class="text-link underline decoration-1 underline-offset-4 hover:text-heading-hover">
-                    {{ $item->title }}
+                    <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
                     @if (filled($item->source_url))
-                        <span class="sr-only">(se abre en una pestaña nueva)</span>
+                        <span class="sr-only">{{ __('componentes.enlace.pestana_nueva') }}</span>
                     @endif
                 </a>
                 <x-topic-item-actions :item="$item" class="ml-1 inline-flex align-[-5px]" />
             </h3>
 
             @if (filled($item->summary(280)))
-                <p class="m-0 mt-1 text-13-5 leading-[1.55] whitespace-pre-line text-pretty text-body">{{ $item->summary(280) }}</p>
+                <x-texto-del-portal tag="p" class="m-0 mt-1 text-13-5 leading-[1.55] whitespace-pre-line text-pretty text-body">{{ $item->summary(280) }}</x-texto-del-portal>
             @endif
 
             {{-- «Ver más» además del título, como en el portal: el resumen se
@@ -49,14 +49,14 @@
                 <p class="m-0 mt-1">
                     <a href="{{ $item->url() }}" target="_blank" rel="noopener noreferrer"
                        class="text-13 text-link underline decoration-1 underline-offset-4">
-                        Ver más<span class="sr-only"> sobre {{ $item->title }} (se abre en una pestaña nueva)</span>
+                        {{ __('componentes.fila.ver_mas') }}<span class="sr-only"> {!! __('componentes.fila.ver_mas_sobre', ['titulo' => App\Support\PortalLang::wrap($item->title)]) !!}</span>
                     </a>
                 </p>
             @endif
 
             @if ($item->date())
                 <p class="m-0 mt-2 text-12 text-faint">
-                    Última modificación: <x-published-at :value="$item->date()" class="lowercase" />
+                    {{ __('componentes.fila.ultima_modificacion') }} <x-published-at :value="$item->date()" class="lowercase" />
                 </p>
             @endif
 
@@ -68,10 +68,10 @@
         <dl class="m-0 flex shrink-0 flex-col gap-[6px] text-13 text-body lg:w-[230px]">
             @php
                 $datos = [
-                    ['dt' => 'Modalidad', 'dd' => $item->procedureType(), 'icono' => 'persona'],
-                    ['dt' => 'Costo', 'dd' => $item->procedureCost(), 'icono' => 'moneda'],
-                    ['dt' => 'Duración', 'dd' => $item->procedure_time
-                        ? 'Duración '.$item->procedure_time
+                    ['dt' => __('componentes.fila.modalidad'), 'dd' => $item->procedureType(), 'icono' => 'persona'],
+                    ['dt' => __('componentes.fila.costo'), 'dd' => $item->procedureCost(), 'icono' => 'moneda'],
+                    ['dt' => __('componentes.fila.duracion'), 'dd' => $item->procedure_time
+                        ? __('componentes.fila.duracion_valor', ['tiempo' => $item->procedure_time])
                         : null, 'icono' => 'reloj'],
                 ];
             @endphp
@@ -130,33 +130,33 @@
 
         <div class="min-w-0 flex-1">
             @if ($item->categories->isNotEmpty())
-                <p class="m-0 font-display text-11-5 font-semibold tracking-[0.06em] text-muted uppercase">
+                <x-texto-del-portal tag="p" class="m-0 font-display text-11-5 font-semibold tracking-[0.06em] text-muted uppercase">
                     {{ $item->categories->pluck('name')->join(', ') }}
-                </p>
+                </x-texto-del-portal>
             @endif
 
             <h3 class="m-0 mt-[2px] font-display text-15 leading-[1.4] font-bold">
                 <a href="{{ $item->url() }}"
                    class="text-link underline decoration-1 underline-offset-4 hover:text-heading-hover">
-                    {{ $item->title }}
+                    <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
                 </a>
                 <x-topic-item-actions :item="$item" class="ml-1 inline-flex align-[-5px]" />
             </h3>
 
             @if (filled($item->summary(280)))
-                <p class="m-0 mt-1 text-13 leading-[1.5] whitespace-pre-line text-pretty text-muted">{{ $item->summary(280) }}</p>
+                <x-texto-del-portal tag="p" class="m-0 mt-1 text-13 leading-[1.5] whitespace-pre-line text-pretty text-muted">{{ $item->summary(280) }}</x-texto-del-portal>
             @endif
 
             <p class="m-0 mt-1 text-12 text-faint">
                 @if ($item->date())
-                    Publicación: <x-published-at :value="$item->date()" />
+                    {{ __('componentes.fila.publicacion') }} <x-published-at :value="$item->date()" />
                 @endif
 
                 @if ($item->issued_at)
                     @if ($item->date())
                         <span aria-hidden="true">·</span>
                     @endif
-                    Expedición:
+                    {{ __('componentes.fila.expedicion') }}
                     {{-- Con el sello tal cual, como el portal: la hora es
                          siempre un relleno, pero es lo que enseña. --}}
                     <time datetime="{{ $item->issued_at->toIso8601String() }}">
@@ -178,13 +178,13 @@
     <h3 class="m-0 mt-1 font-display text-15 leading-[1.4] font-bold">
         <a href="{{ $item->url() }}"
            class="text-link underline decoration-1 underline-offset-4 hover:text-heading-hover">
-            {{ $item->title }}
+            <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
         </a>
         <x-topic-item-actions :item="$item" class="ml-1 inline-flex align-[-5px]" />
     </h3>
 
     @if (filled($item->summary(280)))
-        <p class="m-0 mt-1 text-13 leading-[1.5] whitespace-pre-line text-pretty text-muted">{{ $item->summary(280) }}</p>
+        <x-texto-del-portal tag="p" class="m-0 mt-1 text-13 leading-[1.5] whitespace-pre-line text-pretty text-muted">{{ $item->summary(280) }}</x-texto-del-portal>
     @endif
 
     <x-topic-item-badges :item="$item" />

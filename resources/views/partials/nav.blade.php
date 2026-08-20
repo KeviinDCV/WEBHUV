@@ -1,10 +1,12 @@
 @php
+    use App\Support\ConfigLabel;
+
     $items = config('huv.nav');
     $mega = config('huv.mega_menu');
     $megaKeys = array_column($mega, 'key');
 @endphp
 
-<nav aria-label="Menú principal"
+<nav aria-label="{{ __('estructura.navegacion.menu_principal') }}"
      x-data="huvNav(@js($megaKeys))"
      @keydown.escape="onEscape($event)"
      @focusout="onFocusOut($event)"
@@ -39,7 +41,7 @@
                               flex min-h-[58px] items-center px-[22px] font-display text-13-5 font-medium
                               leading-[1.3] no-underline hover:no-underline
                               {{ ! empty($item['narrow']) ? 'max-w-[210px]' : '' }}">
-                        {{ $item['label'] }}
+                        {!! ConfigLabel::marked($item) !!}
                     </a>
                 @else
                     @php
@@ -74,7 +76,7 @@
                                        flex min-h-[58px] items-center gap-2 border-0 px-[22px]
                                        text-left font-display text-13-5 font-medium leading-[1.3]
                                        {{ ! empty($item['narrow']) ? 'max-w-[210px]' : '' }}">
-                            {{ $item['label'] }}
+                            {!! ConfigLabel::marked($item) !!}
                             <svg class="size-[9px] shrink-0 transition-transform duration-150"
                                  :class="isOpen('{{ $item['key'] }}') && 'rotate-180'"
                                  viewBox="0 0 10 6" fill="none" stroke="currentColor"
@@ -105,7 +107,7 @@
                                         <a href="{{ App\Support\LegacyLink::resolve($child)['href'] }}"
                                            class="block h-full px-[22px] py-[9px] text-13-5 text-ink no-underline
                                                   hover:bg-tint hover:text-heading hover:no-underline">
-                                            {{ $child['label'] }}
+                                            {!! ConfigLabel::marked($child) !!}
                                         </a>
                                     </li>
                                 @endforeach
@@ -119,7 +121,7 @@
                 <button type="button"
                         data-huv-trigger="mega"
                         @click="toggle('mega')"
-                        aria-label="Abrir menú completo"
+                        aria-label="{{ __('estructura.navegacion.abrir_menu_completo') }}"
                         :aria-expanded="isOpen('mega') ? 'true' : 'false'"
                         aria-controls="huv-megamenu"
                         class="flex w-[62px] items-center justify-center border-0 bg-transparent text-heading hover:bg-tint-hover">
@@ -147,7 +149,7 @@
                    : 'text-heading hover:bg-tint-hover hover:text-heading' }}
                       flex min-h-[52px] items-center px-6 font-display text-14-5 font-semibold
                       no-underline hover:no-underline">
-                Inicio
+                {{ __('estructura.navegacion.inicio') }}
             </a>
             <button type="button"
                     x-ref="mobileTrigger"
@@ -161,7 +163,7 @@
                     <path x-show="! mobileOpen" d="M3 6h18M3 12h18M3 18h18" />
                     <path x-show="mobileOpen" x-cloak d="M5 5l14 14M19 5L5 19" />
                 </svg>
-                <span x-text="mobileOpen ? 'Cerrar' : 'Menú'">Menú</span>
+                <span x-text="mobileOpen ? @js(__('estructura.navegacion.cerrar')) : @js(__('estructura.navegacion.menu'))">{{ __('estructura.navegacion.menu') }}</span>
             </button>
         </div>
     </x-container>
@@ -178,7 +180,7 @@
         <x-container class="grid grid-cols-[260px_minmax(0,1fr)] py-6">
 
             <div data-huv-tablist role="tablist" aria-orientation="vertical"
-                 aria-label="Categorías del menú completo"
+                 aria-label="{{ __('estructura.navegacion.categorias_menu_completo') }}"
                  class="flex flex-col border-r border-line pr-4">
                 @foreach ($mega as $column)
                     <button type="button"
@@ -196,7 +198,7 @@
                                 : 'border-l-transparent text-body hover:bg-tint hover:text-heading'"
                             class="flex items-center justify-between gap-3 border-0 border-l-[3px] bg-transparent
                                    px-4 py-[13px] text-left font-display text-14 font-semibold transition-colors">
-                        {{ $column['title'] }}
+                        {{ ConfigLabel::of($column, 'title') }}
                         <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m9 5 7 7-7 7" />
@@ -214,7 +216,7 @@
                      class="col-start-2 row-start-1 max-h-[min(62vh,540px)] overflow-y-auto overscroll-contain pl-8">
 
                     <h3 class="m-0 mb-3 font-display text-13 font-bold tracking-[0.06em] text-heading uppercase">
-                        {{ $column['title'] }}
+                        {{ ConfigLabel::of($column, 'title') }}
                         <span class="ml-1 font-normal text-faint normal-case">
                             ({{ count($column['links']) }})
                         </span>
@@ -244,15 +246,15 @@
 
         {{-- `x-trap.noscroll`: siendo un diálogo modal, el foco no debe poder
              escaparse al contenido de detrás mientras está abierto. --}}
-        <div id="huv-menu-movil" role="dialog" aria-modal="true" aria-label="Menú principal"
+        <div id="huv-menu-movil" role="dialog" aria-modal="true" aria-label="{{ __('estructura.navegacion.menu_principal') }}"
              x-trap.noscroll="mobileOpen"
              data-huv-panel
              class="fixed inset-y-0 right-0 z-50 flex w-[min(88vw,380px)] flex-col overflow-y-auto border-l border-line bg-card
                     shadow-[-8px_0_30px_rgba(23,32,64,0.22)]">
 
             <div class="flex items-center justify-between border-b border-line bg-surface px-5 py-4">
-                <span class="font-display text-14 font-bold tracking-[0.06em] text-heading uppercase">Menú</span>
-                <button type="button" @click="toggleMobile()" aria-label="Cerrar menú"
+                <span class="font-display text-14 font-bold tracking-[0.06em] text-heading uppercase">{{ __('estructura.navegacion.menu') }}</span>
+                <button type="button" @click="toggleMobile()" aria-label="{{ __('estructura.navegacion.cerrar_menu') }}"
                         class="flex size-9 items-center justify-center rounded-full border-0 bg-transparent text-heading hover:bg-tint">
                     <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -267,7 +269,7 @@
                         @if (empty($item['children']))
                             <a href="{{ App\Support\LegacyLink::resolve($item)['href'] }}"
                                class="block px-5 py-[14px] font-display text-14 font-medium text-heading no-underline hover:bg-tint">
-                                {{ $item['label'] }}
+                                {!! ConfigLabel::marked($item) !!}
                             </a>
                         @else
                             <button type="button"
@@ -276,7 +278,7 @@
                                     aria-controls="huv-movil-{{ $item['key'] }}"
                                     class="flex w-full items-center justify-between gap-3 border-0 bg-transparent px-5 py-[14px]
                                            text-left font-display text-14 font-medium text-heading hover:bg-tint">
-                                <span>{{ $item['label'] }}</span>
+                                <span>{!! ConfigLabel::marked($item) !!}</span>
                                 <svg class="size-3 shrink-0 transition-transform duration-150"
                                      :class="mobileSection === '{{ $item['key'] }}' && 'rotate-180'"
                                      viewBox="0 0 10 6" fill="none" stroke="currentColor"
@@ -293,7 +295,7 @@
                                     <li>
                                         <a href="{{ App\Support\LegacyLink::resolve($child)['href'] }}"
                                            class="block px-5 py-[10px] pl-8 text-13-5 text-ink no-underline hover:text-heading">
-                                            {{ $child['label'] }}
+                                            {!! ConfigLabel::marked($child) !!}
                                         </a>
                                     </li>
                                 @endforeach
@@ -315,7 +317,7 @@
                                 class="flex w-full items-center justify-between gap-3 border-0 bg-transparent px-5 py-[14px]
                                        text-left font-display text-14 font-medium text-heading hover:bg-tint">
                             <span>
-                                {{ $column['title'] }}
+                                {{ ConfigLabel::of($column, 'title') }}
                                 <span class="font-normal text-faint">({{ count($column['links']) }})</span>
                             </span>
                             <svg class="size-3 shrink-0 transition-transform duration-150"

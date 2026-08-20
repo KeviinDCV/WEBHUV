@@ -9,10 +9,12 @@
  * Sin JavaScript no se puede reordenar, pero el formulario sigue guardando la
  * duración de rotación: el servidor trata el orden como opcional.
  */
-export default function huvBannerOrder(initialIds = []) {
+export default function huvBannerOrder(initialIds = [], movedLabel = '') {
     return {
         ids: [...initialIds],
         announcement: '',
+        // Traducido en el servidor: aquí dentro no hay forma de pedirlo.
+        movedLabel,
 
         position(id) {
             return this.ids.indexOf(id) + 1;
@@ -36,7 +38,9 @@ export default function huvBannerOrder(initialIds = []) {
 
             // El cambio es puramente visual; sin anunciarlo, quien usa lector de
             // pantalla no percibe que la fila se movió.
-            this.announcement = `Banner movido a la posición ${to + 1} de ${this.ids.length}.`;
+            this.announcement = this.movedLabel
+                .replace(':posicion', to + 1)
+                .replace(':total', this.ids.length);
         },
     };
 }

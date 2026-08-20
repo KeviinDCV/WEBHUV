@@ -1,4 +1,5 @@
 @php
+    use App\Support\ConfigLabel;
     use App\Support\LegacyLink;
 
     $quick = config('huv.quick_access');
@@ -8,9 +9,9 @@
     <x-container class="pt-11 pb-12">
         <h2 id="huv-accesos"
             class="m-0 mb-[6px] font-display text-22 font-bold tracking-[-0.01em] text-heading lg:text-26">
-            {{ $quick['title'] }}
+            {{ ConfigLabel::of($quick, 'title', 'titulo') }}
         </h2>
-        <p class="m-0 mb-7 text-15 text-muted">{{ $quick['subtitle'] }}</p>
+        <p class="m-0 mb-7 text-15 text-muted">{{ ConfigLabel::of($quick, 'subtitle', 'subtitulo') }}</p>
 
         <ul class="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($quick['items'] as $item)
@@ -25,13 +26,13 @@
                               border-t-rule-accent bg-card px-5 pt-[22px] pb-6 no-underline transition
                               hover:border-rule-brand hover:border-t-rule-accent hover:no-underline
                               hover:shadow-[0_10px_26px_rgba(23,32,64,0.1)]">
-                        <h3 class="m-0 font-display text-16 font-bold text-heading">{{ $item['title'] }}</h3>
-                        <p class="m-0 text-13-5 leading-[1.55] text-muted">{{ $item['text'] }}</p>
+                        <h3 class="m-0 font-display text-16 font-bold text-heading">{{ ConfigLabel::of($item, 'title', 'titulo') }}</h3>
+                        <p class="m-0 text-13-5 leading-[1.55] text-muted">{{ ConfigLabel::of($item, 'text', 'texto') }}</p>
                         <span class="mt-auto flex items-center gap-1 pt-2 text-12-5 font-bold text-link">
-                            {{ $item['cta'] }}
+                            {{ ConfigLabel::of($item, 'cta', 'accion') }}
                             <span aria-hidden="true" class="transition-transform group-hover:translate-x-[3px]">→</span>
                             @if ($destino['external'])
-                                <span class="sr-only">(se abre en una pestaña nueva)</span>
+                                <span class="sr-only">{{ __('portada.nueva_pestana') }}</span>
                             @endif
                         </span>
                     </a>

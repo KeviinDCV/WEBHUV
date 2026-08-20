@@ -7,17 +7,17 @@
 <section id="noticias" aria-labelledby="huv-noticias" class="relative text-on-brand"
          style="background: {{ $newsBlock['block']->themeColor() }}">
 
-    <x-edit-chip section="noticias" label="el bloque de noticias"
+    <x-edit-chip section="noticias" :label="__('portada.chip.noticias')"
                  :url="route('admin.blocks.edit', $newsBlock['block'])" floating />
 
     <x-container class="py-12 lg:py-14">
 
-        <h2 id="huv-noticias" class="sr-only">Noticias del hospital</h2>
+        <h2 id="huv-noticias" class="sr-only">{{ __('portada.noticias.titulo') }}</h2>
 
         @if ($groups->isEmpty())
             <p class="m-0 rounded-[4px] border border-dashed border-on-brand/40 px-5 py-10 text-center
                       text-14 text-on-brand-muted">
-                Todavía no hay noticias publicadas.
+                {{ __('portada.noticias.vacio') }}
             </p>
         @endif
 
@@ -41,7 +41,7 @@
                                  stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
                                 <path d="M12 5v14M5 12h14" />
                             </svg>
-                            Agregar contenido
+                            {{ __('portada.noticias.agregar') }}
                         </a>
                     @endauth
                 </div>
@@ -55,7 +55,7 @@
                             <a href="{{ $featured->url() }}" tabindex="-1" aria-hidden="true"
                                class="block aspect-video overflow-hidden rounded-[3px] bg-white/10">
                                 <x-image-slot :src="$featured->imageUrl()" :alt="''"
-                                              hint="Foto principal (1200×768)" :bordered="false" />
+                                              :hint="__('portada.noticias.foto_principal')" :bordered="false" />
                             </a>
 
                             <div class="flex flex-col gap-[10px]">
@@ -63,7 +63,7 @@
                                     <h3 class="m-0 font-display text-17 leading-[1.4] font-bold text-balance lg:text-19">
                                         <a href="{{ $featured->url() }}"
                                            class="text-on-brand underline decoration-1 underline-offset-4 hover:text-on-brand">
-                                            {{ $featured->title }}
+                                            <x-texto-del-portal>{{ $featured->title }}</x-texto-del-portal>
                                         </a>
                                     </h3>
                                     <x-content-actions :content="$featured" tone="on-brand" class="mt-[2px]" />
@@ -72,7 +72,7 @@
                                 {{-- El resumen conserva sus saltos de línea, así que se imprime
                                      pegado a las etiquetas: con `whitespace-pre-line`, el sangrado
                                      de esta plantilla saldría como una línea en blanco delante. --}}
-                                <p class="m-0 text-14 leading-[1.6] whitespace-pre-line text-pretty text-on-brand-muted">{{ $featured->summary() }}</p>
+                                <x-texto-del-portal tag="p" class="m-0 text-14 leading-[1.6] whitespace-pre-line text-pretty text-on-brand-muted">{{ $featured->summary() }}</x-texto-del-portal>
 
                                 @if ($featured->displayDate())
                                     <x-published-at :value="$featured->displayDate()" class="text-12-5 text-on-brand-label" />
@@ -91,7 +91,7 @@
                                     <a href="{{ $item->url() }}" tabindex="-1" aria-hidden="true"
                                        class="block aspect-video overflow-hidden rounded-[3px] bg-white/10">
                                         <x-image-slot :src="$item->imageUrl()" :alt="''"
-                                                      hint="Miniatura" :bordered="false" />
+                                                      :hint="__('portada.noticias.miniatura')" :bordered="false" />
                                     </a>
 
                                     <div class="flex min-w-0 flex-col gap-[6px]">
@@ -99,7 +99,7 @@
                                             <h3 class="m-0 font-display text-14 leading-[1.4] font-semibold text-pretty">
                                                 <a href="{{ $item->url() }}"
                                                    class="text-on-brand underline decoration-1 underline-offset-4 hover:text-on-brand">
-                                                    {{ $item->title }}
+                                                    <x-texto-del-portal>{{ $item->title }}</x-texto-del-portal>
                                                 </a>
                                             </h3>
                                             <x-content-actions :content="$item" tone="on-brand" />
@@ -125,7 +125,7 @@
                    class="group inline-flex items-center gap-2 rounded-[3px] border border-on-brand/40 px-5 py-[10px]
                           font-display text-13-5 font-semibold text-on-brand no-underline
                           transition-colors hover:border-on-brand hover:bg-white/10 hover:text-on-brand hover:no-underline">
-                    Ver todas las noticias
+                    {{ __('portada.noticias.ver_todas') }}
                     <span aria-hidden="true" class="transition-transform group-hover:translate-x-[3px]">→</span>
                 </a>
             </p>

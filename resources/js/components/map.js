@@ -19,7 +19,9 @@
  *    que ya venía en el HTML, con la dirección y el enlace a OpenStreetMap.
  *    Por eso el contenedor no se vacía hasta tener Leaflet en la mano.
  */
-export default function huvMap({ latitude, longitude, zoom = 16, label = '', address = '' }) {
+// Los rotulos llegan traducidos desde la vista: aqui no hay forma de saber en
+// que idioma esta la pagina, y escribirlos en el JS los dejaba en espanol.
+export default function huvMap({ latitude, longitude, zoom = 16, label = '', address = '', textos = {} }) {
     return {
         map: null,
         hint: false,
@@ -68,8 +70,8 @@ export default function huvMap({ latitude, longitude, zoom = 16, label = '', add
             });
 
             L.control.zoom({
-                zoomInTitle: 'Acercar',
-                zoomOutTitle: 'Alejar',
+                zoomInTitle: textos.acercar,
+                zoomOutTitle: textos.alejar,
             }).addTo(this.map);
 
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -112,14 +114,14 @@ export default function huvMap({ latitude, longitude, zoom = 16, label = '', add
                 `<strong class="huv-map-name">${escape(label)}</strong>`
                 + (address ? `<span class="huv-map-address">${escape(address)}</span>` : '')
                 + `<a class="huv-map-route" href="${directions}" target="_blank" rel="noopener noreferrer">`
-                + 'Cómo llegar<span class="sr-only"> (se abre en una pestaña nueva)</span></a>',
+                + `${escape(textos.comoLlegar)}<span class="sr-only"> ${escape(textos.pestanaNueva)}</span></a>`,
                 { closeButton: true, maxWidth: 260 }
             ).openPopup();
 
             // El aspa del globo también llega rotulada en inglés, y su opción
             // de texto no se puede pasar al construirlo.
             canvas.querySelector('.leaflet-popup-close-button')
-                ?.setAttribute('aria-label', 'Cerrar la información');
+                ?.setAttribute('aria-label', textos.cerrar);
 
             // Arrastrar, pellizcar, los botones de zoom y el teclado funcionan
             // desde el primer momento. La rueda es la única que espera a que se
@@ -151,7 +153,14 @@ export default function huvMap({ latitude, longitude, zoom = 16, label = '', add
 
             // Leaflet le pone `tabindex` al contenedor, así que se tabula hasta
             // él y hay que decir qué es.
-            canvas.setAttribute('aria-label', address ? `Mapa: ${label}, ${address}` : `Mapa: ${label}`);
+            canvas.setAttribute(
+                'aria-label',
+                address
+                    ? textos.lienzoConDireccion
+                        .replace(':lugar', label)
+                        .replace(':direccion', address)
+                    : textos.lienzo.replace(':lugar', label)
+            );
         },
 
         destroy() {

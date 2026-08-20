@@ -7,16 +7,16 @@
         con cadenas en inglés que esta aplicación no traduce —se veían tal cual,
         «pagination.previous»— y su maquetación no es la del portal.
     --}}
-    <nav role="navigation" aria-label="Paginación del listado"
+    <nav role="navigation" aria-label="{{ __('componentes.paginacion.etiqueta') }}"
          class="flex flex-wrap items-center justify-center gap-2">
 
         @if ($paginator->onFirstPage())
-            <span class="px-3 py-[6px] text-13-5 text-faint" aria-hidden="true">Anterior</span>
+            <span class="px-3 py-[6px] text-13-5 text-faint" aria-hidden="true">{{ __('componentes.paginacion.anterior') }}</span>
         @else
             <a href="{{ $paginator->previousPageUrl() }}" rel="prev"
                class="px-3 py-[6px] text-13-5 font-semibold text-link underline underline-offset-4
                       hover:text-heading hover:no-underline">
-                Anterior
+                {{ __('componentes.paginacion.anterior') }}
             </a>
         @endif
 
@@ -39,7 +39,7 @@
                            class="flex min-w-8 items-center justify-center rounded-[3px] px-2 py-[6px]
                                   text-13-5 font-semibold text-link no-underline hover:bg-tint hover:no-underline">
                             {{ $page }}
-                            <span class="sr-only">Página {{ $page }}</span>
+                            <span class="sr-only">{{ __('componentes.paginacion.pagina', ['numero' => $page]) }}</span>
                         </a>
                     @endif
                 @endforeach
@@ -50,10 +50,10 @@
             <a href="{{ $paginator->nextPageUrl() }}" rel="next"
                class="px-3 py-[6px] text-13-5 font-semibold text-link underline underline-offset-4
                       hover:text-heading hover:no-underline">
-                Siguiente
+                {{ __('componentes.paginacion.siguiente') }}
             </a>
         @else
-            <span class="px-3 py-[6px] text-13-5 text-faint" aria-hidden="true">Siguiente</span>
+            <span class="px-3 py-[6px] text-13-5 text-faint" aria-hidden="true">{{ __('componentes.paginacion.siguiente') }}</span>
         @endif
     </nav>
 @endif

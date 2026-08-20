@@ -7,7 +7,7 @@
 @endphp
 
 <section id="eventos" aria-labelledby="huv-eventos" class="relative bg-page">
-    <x-edit-chip section="eventos" label="el bloque de eventos"
+    <x-edit-chip section="eventos" :label="__('portada.chip.eventos')"
                  :url="route('admin.events.block.edit')" floating />
 
     <x-container class="py-12 lg:py-14">
@@ -26,24 +26,24 @@
                               font-display text-12-5 font-bold tracking-[0.06em] text-on-accent uppercase
                               no-underline transition-colors hover:bg-azure-dark hover:text-on-accent
                               hover:no-underline">
-                        Nuevo evento
+                        {{ __('portada.eventos.nuevo') }}
                     </a>
                 @endauth
 
             {{-- Cambio de vista sin JavaScript: es un formulario que recarga
                  con el nuevo parámetro y vuelve a esta misma sección. --}}
             <form method="GET" action="{{ url('/') }}#eventos" class="flex items-center gap-2">
-                <label for="huv-vista" class="sr-only">Ver la agenda por</label>
+                <label for="huv-vista" class="sr-only">{{ __('portada.eventos.vista') }}</label>
                 <select id="huv-vista" name="vista" onchange="this.form.requestSubmit()"
                         class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                font-semibold text-heading">
-                    <option value="semana" @selected($calendar->isWeekly())>Semana</option>
-                    <option value="mes" @selected(! $calendar->isWeekly())>Mes</option>
+                    <option value="semana" @selected($calendar->isWeekly())>{{ __('portada.eventos.semana') }}</option>
+                    <option value="mes" @selected(! $calendar->isWeekly())>{{ __('portada.eventos.mes') }}</option>
                 </select>
                 <noscript>
                     <button type="submit"
                             class="rounded-[3px] border-0 bg-azure px-3 py-[7px] text-12-5 font-semibold text-on-accent">
-                        Aplicar
+                        {{ __('portada.eventos.aplicar') }}
                     </button>
                 </noscript>
             </form>
@@ -55,7 +55,7 @@
             {{-- Cabecera del periodo --}}
             <div class="flex items-center justify-between gap-4 bg-azure px-4 py-3 text-on-accent">
                 <a href="{{ url('/') }}?{{ http_build_query($calendar->queryFor(-1)) }}#eventos"
-                   rel="prev" aria-label="Periodo anterior"
+                   rel="prev" aria-label="{{ __('portada.eventos.periodo_anterior') }}"
                    class="flex size-8 shrink-0 items-center justify-center rounded-full text-on-accent
                           no-underline hover:bg-black/15 hover:text-on-accent hover:no-underline">
                     <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -72,7 +72,7 @@
                 </p>
 
                 <a href="{{ url('/') }}?{{ http_build_query($calendar->queryFor(1)) }}#eventos"
-                   rel="next" aria-label="Periodo siguiente"
+                   rel="next" aria-label="{{ __('portada.eventos.periodo_siguiente') }}"
                    class="flex size-8 shrink-0 items-center justify-center rounded-full text-on-accent
                           no-underline hover:bg-black/15 hover:text-on-accent hover:no-underline">
                     <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -107,7 +107,7 @@
                                 </span>
                             </span>
                             @if ($day['today'])
-                                <span class="text-10-5 font-bold tracking-[0.06em] text-link uppercase">Hoy</span>
+                                <span class="text-10-5 font-bold tracking-[0.06em] text-link uppercase">{{ __('portada.eventos.hoy') }}</span>
                             @endif
                         </p>
 
@@ -127,9 +127,9 @@
                                       hover:text-on-accent hover:no-underline
                                       {{ $event->is_active ? 'bg-azure hover:bg-azure-dark' : 'bg-faint' }}">
                                 <span class="block">{{ $event->startsAt()?->format('H:i') }}</span>
-                                <span class="block">{{ $event->title }}</span>
+                                <x-texto-del-portal tag="span" class="block">{{ $event->title }}</x-texto-del-portal>
                                 @unless ($event->is_active)
-                                    <span class="block text-10-5 uppercase">Inactivo</span>
+                                    <span class="block text-10-5 uppercase">{{ __('portada.eventos.inactivo') }}</span>
                                 @endunless
                             </{{ $tag }}>
                         @endforeach
@@ -140,14 +140,14 @@
 
         @if ($calendar->isEmpty())
             <p class="m-0 mt-5 text-14 text-muted">
-                No hay eventos programados en este periodo.
+                {{ __('portada.eventos.vacio') }}
             </p>
         @endif
 
         @auth
             @if (filled($eventsBlock->option('categories')))
                 <p x-show="$store.huvUi.editMode" x-cloak class="m-0 mt-4 text-12-5 text-muted">
-                    El bloque solo muestra los eventos de las categorías elegidas en su configuración.
+                    {{ __('portada.eventos.aviso_categorias') }}
                 </p>
             @endif
         @endauth

@@ -3,6 +3,16 @@
 return [
 
     /*
+     | Traducción del contenido al inglés.
+     |
+     | Sin clave, `huv:traducir` avisa y no hace nada: el sitio sigue sirviendo
+     | el español, que es lo que hay guardado.
+    */
+    'google_translate' => [
+        'key' => env('GOOGLE_TRANSLATE_KEY'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------

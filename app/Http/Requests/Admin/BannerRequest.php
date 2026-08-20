@@ -65,20 +65,20 @@ class BannerRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'image' => 'imagen de fondo',
-            'filter_color' => 'color del filtro',
-            'filter_opacity' => 'opacidad del filtro',
-            'title' => 'título',
-            'title_color' => 'color del título',
-            'title_background' => 'color de fondo del título',
-            'title_font' => 'tipografía del título',
-            'subtitle' => 'subtítulo',
-            'subtitle_color' => 'color del subtítulo',
-            'subtitle_background' => 'color de fondo del subtítulo',
-            'subtitle_font' => 'tipografía del subtítulo',
-            'alignment' => 'justificación',
-            'alt_text' => 'texto descriptivo para accesibilidad',
-            'link' => 'enlace',
+            'image' => __('mensajes.campo.imagen_fondo'),
+            'filter_color' => __('mensajes.campo.color_filtro'),
+            'filter_opacity' => __('mensajes.campo.opacidad_filtro'),
+            'title' => __('mensajes.campo.titulo'),
+            'title_color' => __('mensajes.campo.color_titulo'),
+            'title_background' => __('mensajes.campo.fondo_titulo'),
+            'title_font' => __('mensajes.campo.tipografia_titulo'),
+            'subtitle' => __('mensajes.campo.subtitulo'),
+            'subtitle_color' => __('mensajes.campo.color_subtitulo'),
+            'subtitle_background' => __('mensajes.campo.fondo_subtitulo'),
+            'subtitle_font' => __('mensajes.campo.tipografia_subtitulo'),
+            'alignment' => __('mensajes.campo.justificacion'),
+            'alt_text' => __('mensajes.campo.texto_descriptivo'),
+            'link' => __('mensajes.campo.enlace'),
         ];
     }
 
@@ -88,11 +88,10 @@ class BannerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'image.max' => 'La imagen no puede pesar más de 2 MB.',
-            'image.dimensions' => 'La imagen es demasiado pequeña. Se recomienda 3750 × 968 píxeles.',
-            'link.url' => 'El enlace debe empezar por http:// o https://',
-            'alt_text.required' => 'El texto descriptivo es obligatorio: sin él, el banner no se '
-                .'puede entender con un lector de pantalla.',
+            'image.max' => __('mensajes.validacion.imagen_pesada'),
+            'image.dimensions' => __('mensajes.validacion.imagen_pequena'),
+            'link.url' => __('mensajes.validacion.enlace_http'),
+            'alt_text.required' => __('mensajes.validacion.banner_alt'),
         ];
     }
 

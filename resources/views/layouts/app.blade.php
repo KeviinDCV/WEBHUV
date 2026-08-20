@@ -1,8 +1,11 @@
 @php
+    use App\Support\ConfigLabel;
+
     $institution = config('huv.institution');
     $seo = config('huv.seo');
     $pageTitle = trim($__env->yieldContent('title')) ?: $seo['title'];
-    $pageDescription = trim($__env->yieldContent('description')) ?: $seo['description'];
+    $pageDescription = trim($__env->yieldContent('description'))
+        ?: ConfigLabel::of($seo, 'description', 'descripcion');
 
     // Una ficha con imagen propia la declara aquí, y no apilando un segundo
     // juego de etiquetas: al compartir el enlace gana la primera que aparece, y
@@ -11,7 +14,7 @@
     $pageImage = trim($__env->yieldContent('og_image')) ?: asset('img/og-huv.png');
 @endphp
 <!DOCTYPE html>
-<html lang="es-CO" dir="ltr">
+<html lang="{{ app()->getLocale() === 'en' ? 'en' : 'es-CO' }}" dir="ltr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,7 +22,7 @@
 
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $pageDescription }}">
-    <meta name="keywords" content="{{ $seo['keywords'] }}">
+    <meta name="keywords" content="{{ ConfigLabel::of($seo, 'keywords', 'claves') }}">
     <meta name="author" content="{{ $institution['name'] }}">
     <meta name="theme-color" content="#2b3b80">
     <link rel="canonical" href="{{ url()->current() }}">
@@ -42,7 +45,7 @@
 
     {{-- Open Graph / Twitter --}}
     <meta property="og:type" content="{{ $pageType }}">
-    <meta property="og:locale" content="es_CO">
+    <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'es_CO' }}">
     <meta property="og:site_name" content="{{ $institution['name'] }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $pageTitle }}">
@@ -86,7 +89,7 @@
 --}}
 <body x-data class="bg-page font-sans text-ink">
 
-    <a href="#contenido" class="huv-skip">Saltar al contenido principal</a>
+    <a href="#contenido" class="huv-skip">{{ __('estructura.esqueleto.saltar') }}</a>
 
     @include('partials.admin-bar')
     @include('partials.header')

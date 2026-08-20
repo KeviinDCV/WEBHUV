@@ -33,10 +33,10 @@ class TopicBulkController extends Controller
         $request->validate([
             'archivo' => ['required', 'file', 'mimes:xlsx', 'max:10240'],
         ], [
-            'archivo.required' => 'Elija el archivo con los datos que va a cargar.',
-            'archivo.mimes' => 'El archivo debe ser una hoja de cálculo en formato xlsx.',
-            'archivo.max' => 'El archivo puede pesar como máximo 10 MB.',
-        ], ['archivo' => 'archivo']);
+            'archivo.required' => __('mensajes.validacion.hoja_obligatoria'),
+            'archivo.mimes' => __('mensajes.validacion.hoja_formato'),
+            'archivo.max' => __('mensajes.validacion.hoja_pesada'),
+        ], ['archivo' => __('mensajes.campo.archivo')]);
 
         [$creados, $problemas] = $this->readRows($request->file('archivo')->getRealPath(), $topic);
 
@@ -44,10 +44,10 @@ class TopicBulkController extends Controller
             return back()->withErrors(['archivo' => $problemas])->withInput();
         }
 
-        $mensaje = "{$creados} contenidos cargados.";
+        $mensaje = __('mensajes.carga.cargados', ['n' => $creados]);
 
         if ($problemas !== []) {
-            $mensaje .= ' '.count($problemas).' filas quedaron fuera.';
+            $mensaje .= ' '.__('mensajes.carga.descartadas', ['n' => count($problemas)]);
         }
 
         return redirect()
@@ -79,7 +79,7 @@ class TopicBulkController extends Controller
                 $numero++;
 
                 if ($numero > self::MAX_ROWS) {
-                    $problemas[] = 'Solo se leyeron las primeras '.self::MAX_ROWS.' filas.';
+                    $problemas[] = __('mensajes.carga.tope', ['n' => self::MAX_ROWS]);
                     break 2;
                 }
 
@@ -96,13 +96,13 @@ class TopicBulkController extends Controller
                 [$nombre, $descripcion, $url] = array_pad($celdas, 3, '');
 
                 if ($nombre === '' || $url === '') {
-                    $problemas[] = "Fila {$numero}: hacen falta el nombre y la dirección.";
+                    $problemas[] = __('mensajes.carga.fila_incompleta', ['fila' => $numero]);
 
                     continue;
                 }
 
                 if (! filter_var($url, FILTER_VALIDATE_URL) || ! str_starts_with($url, 'http')) {
-                    $problemas[] = "Fila {$numero}: «{$url}» no es una dirección válida.";
+                    $problemas[] = __('mensajes.carga.fila_direccion', ['fila' => $numero, 'url' => $url]);
 
                     continue;
                 }

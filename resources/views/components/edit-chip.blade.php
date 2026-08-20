@@ -26,9 +26,9 @@
                      lo da el sitio donde está. Para lectores de pantalla, que no
                      tienen ese contexto, se nombra la sección. --}}
                 @if ($floating)
-                    Editar<span class="sr-only"> {{ $label }}</span>
+                    {{ __('componentes.editar.rotulo') }}<span class="sr-only"> {{ $label }}</span>
                 @else
-                    Editar {{ $label }}
+                    {{ __('componentes.editar.seccion', ['seccion' => $label]) }}
                 @endif
             </a>
         @else
@@ -40,7 +40,7 @@
                     data-huv-edit="{{ $section }}"
                     aria-disabled="true"
                     @click.prevent
-                    title="La edición de esta sección aún no está habilitada"
+                    title="{{ __('componentes.editar.pendiente_titulo') }}"
                     class="inline-flex cursor-not-allowed items-center gap-[6px] rounded-full border border-dashed
                            border-stroke-strong bg-card px-3 py-[5px] text-12 font-semibold text-muted">
                 <svg class="size-[13px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -48,8 +48,8 @@
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                 </svg>
-                Editar {{ $label }}
-                <span class="sr-only">— pendiente de habilitar</span>
+                {{ __('componentes.editar.seccion', ['seccion' => $label]) }}
+                <span class="sr-only">{{ __('componentes.editar.pendiente_nota') }}</span>
             </button>
         @endif
     </div>

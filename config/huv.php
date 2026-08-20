@@ -12,6 +12,38 @@
 | Los enlaces aún no implementados apuntan a '#'. Al crear cada página basta
 | con reemplazar el valor por route('...') o url('...').
 |
+|--------------------------------------------------------------------------
+| Rótulos en dos idiomas: la clave 'i18n'
+|--------------------------------------------------------------------------
+|
+| Aquí NO se llama a __(). Este fichero lo lee el contenedor una sola vez por
+| petición —y con `config:cache` se lee una sola vez y punto—, cuando el
+| middleware todavía no ha fijado el idioma: lo que se tradujera aquí saldría
+| en el idioma equivocado, y cacheado, en el idioma del día que se cacheó.
+|
+| Así que cada entrada con rótulo declara en 'i18n' una clave de traducción
+| estable, y es la vista la que pide el texto con App\Support\ConfigLabel. Si
+| la traducción no existe, se devuelve el rótulo escrito aquí: el sitio nunca
+| se queda sin texto y una entrada nueva sale en español hasta que alguien la
+| traduzca.
+|
+| Se resuelve por clave escrita y no por el destino del enlace ('path'/'url')
+| porque los destinos se repiten y no identifican al rótulo: «/tema/noticias»
+| es «Noticias» en el menú, «Información sobre decisiones que pueden afectar
+| al público» en el 1.12 del índice de Transparencia y «Sección de Noticias»
+| en el 11.1; y los títulos del menú completo no tienen destino ninguno.
+|
+| Cuando la entrada tiene un solo texto, 'i18n' ES la clave. Cuando tiene
+| varios —título, texto y llamada de un acceso rápido—, 'i18n' es el prefijo
+| y cada campo cuelga de él con su nombre en español: '.titulo', '.texto',
+| '.accion', '.rotulo', '.valor', '.extra', '.resumen', '.marcador'.
+|
+| Lo que no lleva 'i18n' es lo que no se traduce: nombres propios de otras
+| entidades, direcciones, teléfonos, correos y la razón social del hospital.
+|
+| Los rótulos viven en lang/es/menu.php y lang/en/menu.php, con las mismas
+| claves y en el mismo orden que aquí.
+|
 */
 
 return [
@@ -56,6 +88,7 @@ return [
     */
     'maps' => [
         'directorio-institucional' => [
+            'i18n' => 'menu.mapa',
             'title' => 'Ubicación física',
             'label' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
             'address' => 'Calle 5 # 36-08, Santiago de Cali, Valle del Cauca',
@@ -81,6 +114,7 @@ return [
     ],
 
     'seo' => [
+        'i18n' => 'menu.seo',
         'title' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
         'description' => 'Institución de salud pública de alta complejidad del suroccidente colombiano. '
             .'Trámites, servicios, noticias y transparencia del Hospital Universitario del Valle E.S.E.',
@@ -95,38 +129,42 @@ return [
     */
     'nav' => [
         [
+            'i18n' => 'menu.nav.inicio',
             'label' => 'Inicio',
             'url' => '/',
         ],
         [
+            'i18n' => 'menu.nav.transparencia',
             'label' => 'Transparencia y acceso a la información pública',
             'path' => '/transparencia',
             'narrow' => true,
         ],
         [
+            'i18n' => 'menu.nav.atencion.rotulo',
             'label' => 'Atención y Servicios a la ciudadanía',
             'key' => 'atencion',
             'narrow' => true,
             'children' => [
-                ['label' => 'Política y protección de datos', 'path' => '/politicas'],
-                ['label' => 'PQRDS Recepción de Solicitudes', 'path' => '/peticiones-quejas-reclamos'],
-                ['label' => 'Mecanismos de contacto', 'path' => '/contactenos'],
-                ['label' => 'Trámites y servicios', 'path' => '/tema/tramites-y-servicios'],
-                ['label' => 'Consulta resultados laboratorio', 'url' => 'https://laboratorio.huv.gov.co/ConsultaWeb/'],
-                ['label' => 'Citas', 'url' => 'https://citas.huv.gov.co/login'],
-                ['label' => 'Servicios', 'path' => '/tema/servicios'],
-                ['label' => 'Programas', 'path' => '/tema/programas-342077'],
-                ['label' => 'Pagos en línea', 'path' => '/tema/pagos-en-linea'],
-                ['label' => 'Denuncias por posibles actos de corrupción', 'path' => '/tema/denuncias-por-actos-de-corrupcion'],
-                ['label' => 'Centro Integral de Atención al Usuario - CIAU', 'path' => '/tema/ciau'],
-                ['label' => 'Voluntariados', 'path' => '/tema/voluntariados'],
-                ['label' => 'Encuestas de satisfacción', 'path' => '/tema/encuestas-de-satisfaccion'],
-                ['label' => 'Herramienta Tic PCD', 'path' => '/tema/herramienta-tic-discapacitados'],
-                ['label' => 'Oficina Coordinadora Académica', 'path' => '/tema/diplomados-y-cursos'],
-                ['label' => 'Comité de Ética en Investigaciones Hospitalarias', 'url' => 'https://sites.google.com/correohuv.gov.co/comiteeticahospitauniversitari/p%C3%A1gina-principal'],
+                ['i18n' => 'menu.nav.atencion.politicas', 'label' => 'Política y protección de datos', 'path' => '/politicas'],
+                ['i18n' => 'menu.nav.atencion.pqrds', 'label' => 'PQRDS Recepción de Solicitudes', 'path' => '/peticiones-quejas-reclamos'],
+                ['i18n' => 'menu.nav.atencion.contacto', 'label' => 'Mecanismos de contacto', 'path' => '/contactenos'],
+                ['i18n' => 'menu.nav.atencion.tramites', 'label' => 'Trámites y servicios', 'path' => '/tema/tramites-y-servicios'],
+                ['i18n' => 'menu.nav.atencion.laboratorio', 'label' => 'Consulta resultados laboratorio', 'url' => 'https://laboratorio.huv.gov.co/ConsultaWeb/'],
+                ['i18n' => 'menu.nav.atencion.citas', 'label' => 'Citas', 'url' => 'https://citas.huv.gov.co/login'],
+                ['i18n' => 'menu.nav.atencion.servicios', 'label' => 'Servicios', 'path' => '/tema/servicios'],
+                ['i18n' => 'menu.nav.atencion.programas', 'label' => 'Programas', 'path' => '/tema/programas-342077'],
+                ['i18n' => 'menu.nav.atencion.pagos', 'label' => 'Pagos en línea', 'path' => '/tema/pagos-en-linea'],
+                ['i18n' => 'menu.nav.atencion.denuncias', 'label' => 'Denuncias por posibles actos de corrupción', 'path' => '/tema/denuncias-por-actos-de-corrupcion'],
+                ['i18n' => 'menu.nav.atencion.ciau', 'label' => 'Centro Integral de Atención al Usuario - CIAU', 'path' => '/tema/ciau'],
+                ['i18n' => 'menu.nav.atencion.voluntariados', 'label' => 'Voluntariados', 'path' => '/tema/voluntariados'],
+                ['i18n' => 'menu.nav.atencion.encuestas', 'label' => 'Encuestas de satisfacción', 'path' => '/tema/encuestas-de-satisfaccion'],
+                ['i18n' => 'menu.nav.atencion.tic', 'label' => 'Herramienta Tic PCD', 'path' => '/tema/herramienta-tic-discapacitados'],
+                ['i18n' => 'menu.nav.atencion.academica', 'label' => 'Oficina Coordinadora Académica', 'path' => '/tema/diplomados-y-cursos'],
+                ['i18n' => 'menu.nav.atencion.etica', 'label' => 'Comité de Ética en Investigaciones Hospitalarias', 'url' => 'https://sites.google.com/correohuv.gov.co/comiteeticahospitauniversitari/p%C3%A1gina-principal'],
             ],
         ],
         [
+            'i18n' => 'menu.nav.participa.rotulo',
             'label' => 'Participa',
             'key' => 'participa',
             'children' => [
@@ -136,20 +174,22 @@ return [
                 //
                 // «Rendición de cuentas» de aquí NO es /tema/control, que se
                 // llama igual: son dos temas distintos del portal.
-                ['label' => 'Diagnóstico e Identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
-                ['label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo'],
-                ['label' => 'Consulta ciudadana', 'path' => '/tema/consulta-ciudadana'],
-                ['label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
-                ['label' => 'Rendición de cuentas', 'path' => '/tema/rendicion-de-cuentas'],
-                ['label' => 'Control ciudadano', 'path' => '/tema/control-ciudadano'],
-                ['label' => 'Descripción Participa', 'path' => '/tema/descripcion-participa'],
+                ['i18n' => 'menu.nav.participa.diagnostico', 'label' => 'Diagnóstico e Identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
+                ['i18n' => 'menu.nav.participa.presupuesto', 'label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo'],
+                ['i18n' => 'menu.nav.participa.consulta', 'label' => 'Consulta ciudadana', 'path' => '/tema/consulta-ciudadana'],
+                ['i18n' => 'menu.nav.participa.colaboracion', 'label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
+                ['i18n' => 'menu.nav.participa.rendicion', 'label' => 'Rendición de cuentas', 'path' => '/tema/rendicion-de-cuentas'],
+                ['i18n' => 'menu.nav.participa.control', 'label' => 'Control ciudadano', 'path' => '/tema/control-ciudadano'],
+                ['i18n' => 'menu.nav.participa.descripcion', 'label' => 'Descripción Participa', 'path' => '/tema/descripcion-participa'],
             ],
         ],
         [
+            'i18n' => 'menu.nav.noticias',
             'label' => 'Noticias',
             'path' => '/tema/noticias',
         ],
         [
+            'i18n' => 'menu.nav.normatividad',
             'label' => 'Normatividad',
             'path' => '/tema/normatividad',
         ],
@@ -181,58 +221,62 @@ return [
 
         [
             'key' => 'documentos',
+            'i18n' => 'menu.completo.documentos.rotulo',
             'title' => 'Documentos',
             'links' => [
-                ['label' => 'Presupuesto', 'path' => '/tema/presupuesto'],
-                ['label' => 'Programas', 'path' => '/tema/programas'],
-                ['label' => 'Planes', 'path' => '/tema/planes'],
-                ['label' => 'Políticas y lineamientos', 'path' => '/tema/politicas-y-lineamientos'],
-                ['label' => 'Proyectos en ejecución', 'path' => '/tema/proyectos-en-ejecucion'],
-                ['label' => 'Informes de PQRDS', 'path' => '/tema/informe-de-pqr'],
-                ['label' => 'Control Interno', 'path' => '/tema/control-interno'],
-                ['label' => 'Otros', 'path' => '/tema/otros'],
+                ['i18n' => 'menu.completo.documentos.presupuesto', 'label' => 'Presupuesto', 'path' => '/tema/presupuesto'],
+                ['i18n' => 'menu.completo.documentos.programas', 'label' => 'Programas', 'path' => '/tema/programas'],
+                ['i18n' => 'menu.completo.documentos.planes', 'label' => 'Planes', 'path' => '/tema/planes'],
+                ['i18n' => 'menu.completo.documentos.politicas', 'label' => 'Políticas y lineamientos', 'path' => '/tema/politicas-y-lineamientos'],
+                ['i18n' => 'menu.completo.documentos.proyectos', 'label' => 'Proyectos en ejecución', 'path' => '/tema/proyectos-en-ejecucion'],
+                ['i18n' => 'menu.completo.documentos.informes_pqrds', 'label' => 'Informes de PQRDS', 'path' => '/tema/informe-de-pqr'],
+                ['i18n' => 'menu.completo.documentos.control_interno', 'label' => 'Control Interno', 'path' => '/tema/control-interno'],
+                ['i18n' => 'menu.completo.documentos.otros', 'label' => 'Otros', 'path' => '/tema/otros'],
             ],
         ],
 
         [
             'key' => 'informate',
+            'i18n' => 'menu.completo.informate.rotulo',
             'title' => 'Infórmate',
             'links' => [
-                ['label' => 'Contrataciones', 'path' => '/tema/contrataciones'],
-                ['label' => 'Población vulnerable', 'path' => '/tema/poblacion-vulnerable'],
-                ['label' => 'Rendición de cuentas', 'path' => '/tema/control'],
-                ['label' => 'Ofertas de empleo', 'path' => '/tema/ofertas-de-empleo'],
-                ['label' => 'Metas, objetivos e indicadores', 'path' => '/tema/metas-objetivos-e-indicadores'],
-                ['label' => 'Preguntas y respuestas', 'path' => '/tema/preguntas-y-respuestas'],
-                ['label' => 'Convocatorias', 'path' => '/tema/convocatorias'],
-                ['label' => 'Datos abiertos', 'path' => '/tema/datos-abiertos'],
-                ['label' => 'Sucursales', 'path' => '/sucursales'],
-                ['label' => 'Notificaciones Judiciales', 'path' => '/tema/notificaciones-judiciales'],
-                ['label' => 'Restructuración', 'path' => '/tema/restructuracion'],
-                ['label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
-                ['label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
-                ['label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
+                ['i18n' => 'menu.completo.informate.contrataciones', 'label' => 'Contrataciones', 'path' => '/tema/contrataciones'],
+                ['i18n' => 'menu.completo.informate.poblacion', 'label' => 'Población vulnerable', 'path' => '/tema/poblacion-vulnerable'],
+                ['i18n' => 'menu.completo.informate.rendicion', 'label' => 'Rendición de cuentas', 'path' => '/tema/control'],
+                ['i18n' => 'menu.completo.informate.empleo', 'label' => 'Ofertas de empleo', 'path' => '/tema/ofertas-de-empleo'],
+                ['i18n' => 'menu.completo.informate.metas', 'label' => 'Metas, objetivos e indicadores', 'path' => '/tema/metas-objetivos-e-indicadores'],
+                ['i18n' => 'menu.completo.informate.preguntas', 'label' => 'Preguntas y respuestas', 'path' => '/tema/preguntas-y-respuestas'],
+                ['i18n' => 'menu.completo.informate.convocatorias', 'label' => 'Convocatorias', 'path' => '/tema/convocatorias'],
+                ['i18n' => 'menu.completo.informate.datos', 'label' => 'Datos abiertos', 'path' => '/tema/datos-abiertos'],
+                ['i18n' => 'menu.completo.informate.sucursales', 'label' => 'Sucursales', 'path' => '/sucursales'],
+                ['i18n' => 'menu.completo.informate.notificaciones', 'label' => 'Notificaciones Judiciales', 'path' => '/tema/notificaciones-judiciales'],
+                ['i18n' => 'menu.completo.informate.restructuracion', 'label' => 'Restructuración', 'path' => '/tema/restructuracion'],
+                ['i18n' => 'menu.completo.informate.retencion', 'label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
+                ['i18n' => 'menu.completo.informate.actos', 'label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
+                ['i18n' => 'menu.completo.informate.inventario', 'label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
             ],
         ],
 
         [
             'key' => 'nosotros',
+            'i18n' => 'menu.completo.nosotros.rotulo',
             'title' => 'Nosotros',
             'links' => [
-                ['label' => 'Correo interno', 'url' => 'https://mail.huv.gov.co/'],
-                ['label' => 'Procesos y procedimientos', 'path' => '/tema/procesos-y-procedimientos'],
-                ['label' => 'Directorio de funcionarios', 'path' => '/tema/directorio-de-funcionarios'],
-                ['label' => 'Directorio institucional', 'path' => '/tema/directorio-institucional'],
-                ['label' => 'Entidad', 'path' => '/tema/entidad'],
-                ['label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
+                ['i18n' => 'menu.completo.nosotros.correo', 'label' => 'Correo interno', 'url' => 'https://mail.huv.gov.co/'],
+                ['i18n' => 'menu.completo.nosotros.procesos', 'label' => 'Procesos y procedimientos', 'path' => '/tema/procesos-y-procedimientos'],
+                ['i18n' => 'menu.completo.nosotros.funcionarios', 'label' => 'Directorio de funcionarios', 'path' => '/tema/directorio-de-funcionarios'],
+                ['i18n' => 'menu.completo.nosotros.institucional', 'label' => 'Directorio institucional', 'path' => '/tema/directorio-institucional'],
+                ['i18n' => 'menu.completo.nosotros.entidad', 'label' => 'Entidad', 'path' => '/tema/entidad'],
+                ['i18n' => 'menu.completo.nosotros.entidades', 'label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
                 // El portal actual corta este rótulo en «…y otros grupos de».
-                ['label' => 'Directorio de agremiaciones, asociaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
-                ['label' => 'Servicio al público, normas, formularios', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
+                ['i18n' => 'menu.completo.nosotros.agremiaciones', 'label' => 'Directorio de agremiaciones, asociaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
+                ['i18n' => 'menu.completo.nosotros.servicio', 'label' => 'Servicio al público, normas, formularios', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
             ],
         ],
 
         [
             'key' => 'entidades',
+            'i18n' => 'menu.completo.entidades.rotulo',
             'title' => 'Entidades relacionadas',
             'columns' => 3,
             'links' => [
@@ -368,52 +412,61 @@ return [
     |--------------------------------------------------------------------------
     */
     'quick_access' => [
+        'i18n' => 'menu.accesos',
         'title' => 'Atención y Servicios a la ciudadanía',
         'subtitle' => 'Trámites y canales de atención más consultados.',
         'items' => [
             [
+                'i18n' => 'menu.accesos.citas',
                 'title' => 'Asignación de citas',
                 'text' => 'Solicita, consulta o cancela tu cita de consulta externa.',
                 'cta' => 'Ir al trámite',
                 'url' => 'https://citas.huv.gov.co/login',
             ],
             [
+                'i18n' => 'menu.accesos.pqrsd',
                 'title' => 'PQRSD',
                 'text' => 'Peticiones, quejas, reclamos, sugerencias y denuncias.',
                 'cta' => 'Ir al trámite',
                 'path' => '/peticiones-quejas-reclamos',
             ],
             [
+                'i18n' => 'menu.accesos.historia',
                 'title' => 'Copia de historia clínica',
                 'text' => 'Solicitud de copia para el paciente o su representante legal.',
                 'cta' => 'Ir al trámite',
                 'path' => '/tramites-y-servicios/historia-clinica',
             ],
             [
+                'i18n' => 'menu.accesos.portafolio',
                 'title' => 'Portafolio de servicios',
                 'text' => 'Servicios habilitados de mediana y alta complejidad.',
                 'cta' => 'Consultar',
                 'path' => '/tema/servicios',
             ],
             [
+                'i18n' => 'menu.accesos.sangre',
                 'title' => 'Banco de Sangre',
                 'text' => 'Requisitos, horarios y puntos de donación.',
                 'cta' => 'Consultar',
                 'path' => '/servicios/banco-de-sangre',
             ],
             [
+                'i18n' => 'menu.accesos.judiciales',
                 'title' => 'Notificaciones judiciales',
                 'text' => 'Buzón oficial para notificaciones y comunicaciones judiciales.',
                 'cta' => 'Ir al buzón',
                 'path' => '/tema/notificaciones-judiciales',
             ],
             [
+                'i18n' => 'menu.accesos.contratacion',
                 'title' => 'Contratación',
                 'text' => 'Procesos, invitaciones públicas y estudios previos.',
                 'cta' => 'Consultar',
                 'path' => '/tema/contrataciones',
             ],
             [
+                'i18n' => 'menu.accesos.empleo',
                 'title' => 'Convocatorias de empleo',
                 'text' => 'Ofertas laborales y procesos de selección vigentes.',
                 'cta' => 'Consultar',
@@ -429,20 +482,24 @@ return [
     */
     'contact_strip' => [
         [
+            'i18n' => 'menu.lineas.conmutador',
             'label' => 'Conmutador',
             'value' => '(602) 620 6000',
             'tel' => '+576026206000',
         ],
         [
+            'i18n' => 'menu.lineas.atencion',
             'label' => 'Atención al usuario',
             'value' => '(602) 620 6275',
             'tel' => '+576026206275',
         ],
         [
+            'i18n' => 'menu.lineas.urgencias',
             'label' => 'Urgencias',
             'value' => 'Atención 24 horas',
         ],
         [
+            'i18n' => 'menu.lineas.sede',
             'label' => 'Sede principal',
             'value' => 'Calle 5 # 36-08',
             'value_extra' => 'Santiago de Cali, Valle del Cauca',
@@ -455,6 +512,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'entity' => [
+        'i18n' => 'menu.entidad',
         'eyebrow' => 'Nuestra entidad',
         'title' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
         'paragraphs' => [
@@ -468,12 +526,14 @@ return [
         ],
         'cards' => [
             [
+                'i18n' => 'menu.entidad.mision',
                 'title' => 'Misión',
                 'text' => 'El Hospital Universitario del Valle «Evaristo García» E.S.E. tiene como objetivo '
                     .'brindar servicios de salud de mediana y alta complejidad a la población que lo requiera '
                     .'a través de un talento humano competente y comprometido.',
             ],
             [
+                'i18n' => 'menu.entidad.naturaleza',
                 'title' => 'Naturaleza jurídica',
                 'text' => 'Mediante el Decreto Departamental N.° 1807 del 7 de noviembre de 1995 el Hospital '
                     .'se transforma en Empresa Social del Estado, en cumplimiento de los artículos 194 y 197 '
@@ -481,15 +541,15 @@ return [
             ],
         ],
         'actions' => [
-            ['label' => 'Conoce la entidad', 'path' => '/tema/entidad', 'variant' => 'primary'],
-            ['label' => 'Reseña histórica', 'path' => '/entidad/historia', 'variant' => 'ghost'],
+            ['i18n' => 'menu.entidad.accion_entidad', 'label' => 'Conoce la entidad', 'path' => '/tema/entidad', 'variant' => 'primary'],
+            ['i18n' => 'menu.entidad.accion_historia', 'label' => 'Reseña histórica', 'path' => '/entidad/historia', 'variant' => 'ghost'],
         ],
         'image' => null,
         'image_hint' => 'Fachada del HUV (800×600)',
         'stats' => [
-            ['value' => '70', 'label' => 'años de servicio', 'label_extra' => 'desde 1956'],
-            ['value' => '24/7', 'label' => 'urgencias y', 'label_extra' => 'alta complejidad'],
-            ['value' => 'ESE', 'label' => 'Empresa Social', 'label_extra' => 'del Estado'],
+            ['i18n' => 'menu.entidad.anos', 'value' => '70', 'label' => 'años de servicio', 'label_extra' => 'desde 1956'],
+            ['i18n' => 'menu.entidad.urgencias', 'value' => '24/7', 'label' => 'urgencias y', 'label_extra' => 'alta complejidad'],
+            ['i18n' => 'menu.entidad.ese', 'value' => 'ESE', 'label' => 'Empresa Social', 'label_extra' => 'del Estado'],
         ],
     ],
 
@@ -529,9 +589,11 @@ return [
     |--------------------------------------------------------------------------
     */
     'bulletins' => [
+        'i18n' => 'menu.boletines',
         'title' => 'Boletines y comunicados',
         'all_url' => null,
         'featured' => [
+            'i18n' => 'menu.boletines.destacado',
             'title' => 'Comunicado de prensa',
             'excerpt' => 'Garantizamos el funcionamiento estable de los canales de atención electrónicos.',
             'published_at' => '-4 days',
@@ -541,6 +603,7 @@ return [
         ],
         'items' => [
             [
+                'i18n' => 'menu.boletines.institucional',
                 'title' => 'Boletín informativo institucional',
                 'excerpt' => 'Resumen mensual de la gestión asistencial, docente e investigativa del hospital.',
                 'published_at' => '2026-07-01 09:00',
@@ -549,6 +612,7 @@ return [
                 'document_hint' => 'Miniatura del boletín (240×160)',
             ],
             [
+                'i18n' => 'menu.boletines.sede_electronica',
                 'title' => 'Contenidos de la sede electrónica',
                 'excerpt' => 'Guía de los trámites y servicios disponibles en línea y sus tiempos de respuesta.',
                 'published_at' => '2026-06-16 11:30',
@@ -567,6 +631,7 @@ return [
     | apuntar 'logo' a su ruta.
     */
     'partners' => [
+        'i18n' => 'menu.entidades_interes',
         'title' => 'Entidades y enlaces de interés',
         'items' => [
             ['name' => 'Instituto Nacional de Metrología de Colombia', 'url' => 'https://www.inm.gov.co/', 'logo' => null],
@@ -586,6 +651,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'services' => [
+        'i18n' => 'menu.servicios',
         'title' => 'Servicios y especialidades',
         'subtitle' => 'Servicios de mediana y alta complejidad habilitados en la institución.',
         'items' => [
@@ -621,6 +687,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'transparency' => [
+        'i18n' => 'menu.transparencia_mosaico',
         'title' => 'Transparencia y acceso a la información pública',
         'subtitle' => 'Ley 1712 de 2014 y Resolución 1519 de 2020 del MinTIC.',
         'items' => [
@@ -636,6 +703,22 @@ return [
             'Atención y servicios a la ciudadanía',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Idioma en que está escrito el contenido
+    |--------------------------------------------------------------------------
+    |
+    | Todo lo que llega del portal —noticias, documentos, eventos, temas— está
+    | en español, y ahí seguirá: es el idioma en que lo publica la entidad.
+    |
+    | No vale `app.locale` para esto. Ese dice en qué idioma se sirve la
+    | interfaz por omisión y puede cambiarse desde el entorno; este dice en qué
+    | idioma están las columnas, que es otra cosa. Confundirlos hacía que, con
+    | APP_LOCALE=en, el sitio diera por traducido el contenido español y no
+    | sirviera nunca las traducciones.
+    */
+    'content_locale' => 'es',
 
     /*
     |--------------------------------------------------------------------------
@@ -660,158 +743,180 @@ return [
     | El `active` del origen no se mira: allí es falso en cuatro entradas de
     | este primer grupo —Organigrama, Directorio de entidades…— y aun así el
     | portal las lista. Es una marca del menú de cabecera, no de este índice.
+    |
+    | Las claves 'i18n' se numeran por la posición legal del apartado —g1,
+    | g1_1, g1_1_1—, que es como se cita en una auditoría y como sale impreso
+    | en la página. Así lang/es/menu.php y lang/en/menu.php se leen al lado de
+    | este árbol sin tener que ir contando entradas.
     */
     'transparency_index' => [
+        'i18n' => 'menu.transparencia',
         'title' => 'Transparencia',
 
         'groups' => [
             [
+                'i18n' => 'menu.transparencia.g1',
                 'label' => 'Información de la entidad',
                 'items' => [
                 [
+                    'i18n' => 'menu.transparencia.g1_1',
                     'label' => 'Misión, visión, funciones y deberes',
                     'path' => '/tema/entidad',
                     'children' => [
-                        ['label' => 'Misión y Visión', 'path' => '/entidad/mision-y-vision'],
-                        ['label' => 'Funciones y deberes', 'path' => '/entidad/funciones-y-deberes'],
+                        ['i18n' => 'menu.transparencia.g1_1_1', 'label' => 'Misión y Visión', 'path' => '/entidad/mision-y-vision'],
+                        ['i18n' => 'menu.transparencia.g1_1_2', 'label' => 'Funciones y deberes', 'path' => '/entidad/funciones-y-deberes'],
                     ],
                 ],
-                ['label' => 'Organigrama', 'path' => '/entidad/organigrama'],
-                ['label' => 'Mapas y cartas descriptivas de los procesos', 'path' => '/entidad/nuestra-entidad'],
-                ['label' => 'Directorio Institucional incluyendo sedes, oficinas, sucursales, o regionales, y dependencias', 'path' => '/tema/directorio-institucional'],
-                ['label' => 'Directorio de servidores públicos, empleados o contratistas', 'path' => '/directorio-de-funcionarios/conoce-a-nuestros-funcionarios'],
-                ['label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
-                ['label' => 'Directorio de asociaciones, agremiaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
-                ['label' => 'Servicio al público, normas, formularios y protocolos de atención', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
-                ['label' => 'Procedimientos que se siguen para tomar decisiones en las diferentes áreas', 'path' => '/tema/procesos-y-procedimientos'],
-                ['label' => 'Mecanismo de presentación directa de solicitudes, quejas y reclamos', 'url' => 'https://acortar.link/OUtyCS'],
-                ['label' => 'Calendario de actividades', 'path' => '/tema/calendario-de-actividades'],
-                ['label' => 'Información sobre decisiones que pueden afectar al público', 'path' => '/tema/noticias'],
-                ['label' => 'Entes y autoridades que lo vigilan', 'path' => '/tema/directorio-de-entidades'],
-                ['label' => 'Publicación hojas de vida', 'path' => '/tema/ofertas-de-empleo'],
-                ['label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
+                ['i18n' => 'menu.transparencia.g1_2', 'label' => 'Organigrama', 'path' => '/entidad/organigrama'],
+                ['i18n' => 'menu.transparencia.g1_3', 'label' => 'Mapas y cartas descriptivas de los procesos', 'path' => '/entidad/nuestra-entidad'],
+                ['i18n' => 'menu.transparencia.g1_4', 'label' => 'Directorio Institucional incluyendo sedes, oficinas, sucursales, o regionales, y dependencias', 'path' => '/tema/directorio-institucional'],
+                ['i18n' => 'menu.transparencia.g1_5', 'label' => 'Directorio de servidores públicos, empleados o contratistas', 'path' => '/directorio-de-funcionarios/conoce-a-nuestros-funcionarios'],
+                ['i18n' => 'menu.transparencia.g1_6', 'label' => 'Directorio de entidades', 'path' => '/tema/directorio-de-entidades'],
+                ['i18n' => 'menu.transparencia.g1_7', 'label' => 'Directorio de asociaciones, agremiaciones y otros grupos de interés', 'path' => '/tema/directorio-de-agremiaciones-asociaciones-y-otros-grupos'],
+                ['i18n' => 'menu.transparencia.g1_8', 'label' => 'Servicio al público, normas, formularios y protocolos de atención', 'path' => '/tema/servicio-al-publico-normas-formularios-y-protocolos'],
+                ['i18n' => 'menu.transparencia.g1_9', 'label' => 'Procedimientos que se siguen para tomar decisiones en las diferentes áreas', 'path' => '/tema/procesos-y-procedimientos'],
+                ['i18n' => 'menu.transparencia.g1_10', 'label' => 'Mecanismo de presentación directa de solicitudes, quejas y reclamos', 'url' => 'https://acortar.link/OUtyCS'],
+                ['i18n' => 'menu.transparencia.g1_11', 'label' => 'Calendario de actividades', 'path' => '/tema/calendario-de-actividades'],
+                ['i18n' => 'menu.transparencia.g1_12', 'label' => 'Información sobre decisiones que pueden afectar al público', 'path' => '/tema/noticias'],
+                ['i18n' => 'menu.transparencia.g1_13', 'label' => 'Entes y autoridades que lo vigilan', 'path' => '/tema/directorio-de-entidades'],
+                ['i18n' => 'menu.transparencia.g1_14', 'label' => 'Publicación hojas de vida', 'path' => '/tema/ofertas-de-empleo'],
+                ['i18n' => 'menu.transparencia.g1_15', 'label' => 'Actos administrativos de nombramientos y encargos', 'path' => '/tema/actos-administrativos-de-nombramientos-y-encargos'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g2',
                 'label' => 'Normatividad',
                 'items' => [
                     [
+                        'i18n' => 'menu.transparencia.g2_1',
                         'label' => 'Normatividad',
                         'path' => '/tema/normatividad',
                         'children' => [
-                            ['label' => 'Leyes', 'path' => '/normatividad/normograma-institucional'],
-                            ['label' => 'Decreto Único Reglamentario', 'path' => '/normatividad/decreto-unico-reglamentario-del-sector-salud-y-proteccion'],
-                            ['label' => 'Normativa aplicable', 'path' => '/tema/normatividad'],
-                            ['label' => 'Gaceta Oficial', 'url' => 'https://impretics.gov.co/GACETA-DEPARTAMENTAL/'],
-                            ['label' => 'Políticas, lineamientos y manuales', 'path' => '/tema/politicas-y-lineamientos'],
+                            ['i18n' => 'menu.transparencia.g2_1_1', 'label' => 'Leyes', 'path' => '/normatividad/normograma-institucional'],
+                            ['i18n' => 'menu.transparencia.g2_1_2', 'label' => 'Decreto Único Reglamentario', 'path' => '/normatividad/decreto-unico-reglamentario-del-sector-salud-y-proteccion'],
+                            ['i18n' => 'menu.transparencia.g2_1_3', 'label' => 'Normativa aplicable', 'path' => '/tema/normatividad'],
+                            ['i18n' => 'menu.transparencia.g2_1_4', 'label' => 'Gaceta Oficial', 'url' => 'https://impretics.gov.co/GACETA-DEPARTAMENTAL/'],
+                            ['i18n' => 'menu.transparencia.g2_1_5', 'label' => 'Políticas, lineamientos y manuales', 'path' => '/tema/politicas-y-lineamientos'],
                         ],
                     ],
-                    ['label' => 'Busqueda de normas', 'url' => 'https://www.suin-juriscol.gov.co/'],
+                    ['i18n' => 'menu.transparencia.g2_2', 'label' => 'Busqueda de normas', 'url' => 'https://www.suin-juriscol.gov.co/'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g3',
                 'label' => 'Contratación',
                 'items' => [
-                    ['label' => 'Publicación del plan anual de adquisiciones', 'path' => '/tema/planes/2024-526540'],
-                    ['label' => 'Publicación de la información contractual', 'path' => '/tema/contrataciones/2024-600324'],
-                    ['label' => 'Publicación de la ejecución de contratos', 'path' => '/tema/contrataciones/2024-600324'],
-                    ['label' => 'Manual de contratación, adquisición y/o compras', 'path' => '/procesos-y-procedimientos/manual-de-contratacion-402456'],
+                    ['i18n' => 'menu.transparencia.g3_1', 'label' => 'Publicación del plan anual de adquisiciones', 'path' => '/tema/planes/2024-526540'],
+                    ['i18n' => 'menu.transparencia.g3_2', 'label' => 'Publicación de la información contractual', 'path' => '/tema/contrataciones/2024-600324'],
+                    ['i18n' => 'menu.transparencia.g3_3', 'label' => 'Publicación de la ejecución de contratos', 'path' => '/tema/contrataciones/2024-600324'],
+                    ['i18n' => 'menu.transparencia.g3_4', 'label' => 'Manual de contratación, adquisición y/o compras', 'path' => '/procesos-y-procedimientos/manual-de-contratacion-402456'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g4',
                 'label' => 'Planeación',
                 'items' => [
-                    ['label' => 'Presupuesto general de ingresos, gastos e inversión', 'path' => '/presupuesto/acuerdo-no023-presupuesto-2024'],
-                    ['label' => 'Ejecución presupuestal', 'path' => '/tema/presupuesto/ejecucion-presupuestal-2024'],
-                    ['label' => 'Planes de Acción', 'path' => '/tema/planes/2024-445229'],
-                    ['label' => 'Proyectos de Inversión', 'path' => '/metas-objetivos-e-indicadores/proyectos-de-inversion-vigencia-2024'],
-                    ['label' => 'Informes de empalme', 'path' => '/tema/control/informes-de-empalme'],
-                    ['label' => 'Información pública y/o relevante', 'path' => '/planes/plan-de-desarrollo-institucional-20242027'],
+                    ['i18n' => 'menu.transparencia.g4_1', 'label' => 'Presupuesto general de ingresos, gastos e inversión', 'path' => '/presupuesto/acuerdo-no023-presupuesto-2024'],
+                    ['i18n' => 'menu.transparencia.g4_2', 'label' => 'Ejecución presupuestal', 'path' => '/tema/presupuesto/ejecucion-presupuestal-2024'],
+                    ['i18n' => 'menu.transparencia.g4_3', 'label' => 'Planes de Acción', 'path' => '/tema/planes/2024-445229'],
+                    ['i18n' => 'menu.transparencia.g4_4', 'label' => 'Proyectos de Inversión', 'path' => '/metas-objetivos-e-indicadores/proyectos-de-inversion-vigencia-2024'],
+                    ['i18n' => 'menu.transparencia.g4_5', 'label' => 'Informes de empalme', 'path' => '/tema/control/informes-de-empalme'],
+                    ['i18n' => 'menu.transparencia.g4_6', 'label' => 'Información pública y/o relevante', 'path' => '/planes/plan-de-desarrollo-institucional-20242027'],
                     [
+                        'i18n' => 'menu.transparencia.g4_7',
                         'label' => 'Informes de gestión, evaluación y auditoría',
                         'path' => '/tema/control/informes-de-gestion-evaluacion-y-auditoria',
                         'children' => [
-                            ['label' => 'Informe de Gestión', 'path' => '/control/informe-al-entidad'],
-                            ['label' => 'Informe de rendición de cuentas ante la Contraloría General de la República', 'path' => '/control/informe-de-rendicion-de-cuenta-fiscal'],
-                            ['label' => 'Informe de rendición de cuentas a la ciudadanía', 'path' => '/control/informe-de-rendicion-de-cuentas-a-la-ciudadania'],
-                            ['label' => 'Informes a organismos de inspección, vigilancia y control', 'path' => '/control/informes-a-organismos-de-inspeccion-vigilancia-y-control'],
-                            ['label' => 'Planes de mejoramiento', 'path' => '/tema/planes/plan-de-mejoramiento'],
-                            ['label' => 'Enlace al organismo de control', 'url' => 'https://www.contraloriavalledelcauca.gov.co/publicaciones/32725/informes-de-las-auditorias-realizadas-por-la-cdvc/'],
+                            ['i18n' => 'menu.transparencia.g4_7_1', 'label' => 'Informe de Gestión', 'path' => '/control/informe-al-entidad'],
+                            ['i18n' => 'menu.transparencia.g4_7_2', 'label' => 'Informe de rendición de cuentas ante la Contraloría General de la República', 'path' => '/control/informe-de-rendicion-de-cuenta-fiscal'],
+                            ['i18n' => 'menu.transparencia.g4_7_3', 'label' => 'Informe de rendición de cuentas a la ciudadanía', 'path' => '/control/informe-de-rendicion-de-cuentas-a-la-ciudadania'],
+                            ['i18n' => 'menu.transparencia.g4_7_4', 'label' => 'Informes a organismos de inspección, vigilancia y control', 'path' => '/control/informes-a-organismos-de-inspeccion-vigilancia-y-control'],
+                            ['i18n' => 'menu.transparencia.g4_7_5', 'label' => 'Planes de mejoramiento', 'path' => '/tema/planes/plan-de-mejoramiento'],
+                            ['i18n' => 'menu.transparencia.g4_7_6', 'label' => 'Enlace al organismo de control', 'url' => 'https://www.contraloriavalledelcauca.gov.co/publicaciones/32725/informes-de-las-auditorias-realizadas-por-la-cdvc/'],
                         ],
                     ],
-                    ['label' => 'Informes de la Oficina de Control Interno', 'path' => '/tema/control-interno/2024-995206'],
-                    ['label' => 'Informe sobre Defensa Pública y Prevención del Daño Antijurídico -https://ekogui.defensajuridica.gov.co/Pages/NEW/index.aspx', 'url' => 'https://ekogui.defensajuridica.gov.co/Pages/inicio_bop.aspx'],
-                    ['label' => 'Informes trimestrales sobre acceso a información, quejas y reclamos', 'path' => '/tema/control/informes-trimestrales-pqrsfd-2023/2024-483422'],
+                    ['i18n' => 'menu.transparencia.g4_8', 'label' => 'Informes de la Oficina de Control Interno', 'path' => '/tema/control-interno/2024-995206'],
+                    ['i18n' => 'menu.transparencia.g4_9', 'label' => 'Informe sobre Defensa Pública y Prevención del Daño Antijurídico -https://ekogui.defensajuridica.gov.co/Pages/NEW/index.aspx', 'url' => 'https://ekogui.defensajuridica.gov.co/Pages/inicio_bop.aspx'],
+                    ['i18n' => 'menu.transparencia.g4_10', 'label' => 'Informes trimestrales sobre acceso a información, quejas y reclamos', 'path' => '/tema/control/informes-trimestrales-pqrsfd-2023/2024-483422'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g5',
                 'label' => 'Trámites',
                 'items' => [
-                    ['label' => 'Trámites', 'path' => '/tema/tramites-y-servicios'],
+                    ['i18n' => 'menu.transparencia.g5_1', 'label' => 'Trámites', 'path' => '/tema/tramites-y-servicios'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g6',
                 'label' => 'Participa',
                 'items' => [
-                    ['label' => 'Descripción Menu Participa', 'path' => '/tema/descripcion-participa'],
-                    ['label' => 'Diagnóstico e identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
-                    ['label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo/ita'],
-                    ['label' => 'Consulta Ciudadana', 'path' => '/tema/consulta-ciudadana'],
-                    ['label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
-                    ['label' => 'Rendición de cuentas - control', 'path' => '/tema/rendicion-de-cuentas/apcr-2024'],
-                    ['label' => 'Control social', 'path' => '/control-ciudadano/modalidades-control-social'],
+                    ['i18n' => 'menu.transparencia.g6_1', 'label' => 'Descripción Menu Participa', 'path' => '/tema/descripcion-participa'],
+                    ['i18n' => 'menu.transparencia.g6_2', 'label' => 'Diagnóstico e identificación de problemas', 'path' => '/tema/diagnostico-e-identificacion-de-problemas'],
+                    ['i18n' => 'menu.transparencia.g6_3', 'label' => 'Planeación y presupuesto participativo', 'path' => '/tema/planeacion-presupuesto-participativo/ita'],
+                    ['i18n' => 'menu.transparencia.g6_4', 'label' => 'Consulta Ciudadana', 'path' => '/tema/consulta-ciudadana'],
+                    ['i18n' => 'menu.transparencia.g6_5', 'label' => 'Colaboración e innovación', 'path' => '/tema/colaboracion-e-innovacion'],
+                    ['i18n' => 'menu.transparencia.g6_6', 'label' => 'Rendición de cuentas - control', 'path' => '/tema/rendicion-de-cuentas/apcr-2024'],
+                    ['i18n' => 'menu.transparencia.g6_7', 'label' => 'Control social', 'path' => '/control-ciudadano/modalidades-control-social'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g7',
                 'label' => 'Datos abiertos',
                 'items' => [
                     [
+                        'i18n' => 'menu.transparencia.g7_1',
                         'label' => 'Instrumentos de gestión de la información',
                         'path' => '/tema/tablas-de-retencion-documental',
                         'children' => [
-                            ['label' => 'Registros de activos de información', 'url' => 'https://www.datos.gov.co/Salud-y-Protecci-n-Social/REGISTRO-DE-ACTIVOS-DE-INFORMACION/naix-b9bv'],
-                            ['label' => 'Índice de información clasificada y reservada', 'path' => '/control/indice-de-informacion-clasificada-y-reservada'],
-                            ['label' => 'Esquema de publicación de la información', 'path' => '/control/esquema-de-publicacion-de-informacion'],
-                            ['label' => 'Programa de gestión documental', 'path' => '/programas/programa-de-gestion-documental-755714'],
-                            ['label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
+                            ['i18n' => 'menu.transparencia.g7_1_1', 'label' => 'Registros de activos de información', 'url' => 'https://www.datos.gov.co/Salud-y-Protecci-n-Social/REGISTRO-DE-ACTIVOS-DE-INFORMACION/naix-b9bv'],
+                            ['i18n' => 'menu.transparencia.g7_1_2', 'label' => 'Índice de información clasificada y reservada', 'path' => '/control/indice-de-informacion-clasificada-y-reservada'],
+                            ['i18n' => 'menu.transparencia.g7_1_3', 'label' => 'Esquema de publicación de la información', 'path' => '/control/esquema-de-publicacion-de-informacion'],
+                            ['i18n' => 'menu.transparencia.g7_1_4', 'label' => 'Programa de gestión documental', 'path' => '/programas/programa-de-gestion-documental-755714'],
+                            ['i18n' => 'menu.transparencia.g7_1_5', 'label' => 'Tablas de retención documental', 'path' => '/tema/tablas-de-retencion-documental'],
                         ],
                     ],
-                    ['label' => 'Sección de Datos Abiertos', 'url' => 'https://www.datos.gov.co/d/naix-b9bv'],
-                    ['label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
+                    ['i18n' => 'menu.transparencia.g7_2', 'label' => 'Sección de Datos Abiertos', 'url' => 'https://www.datos.gov.co/d/naix-b9bv'],
+                    ['i18n' => 'menu.transparencia.g7_3', 'label' => 'Inventario único documental', 'path' => '/tema/inventario-unico-documental'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g8',
                 'label' => 'Información específica para grupos de interés',
                 'items' => [
-                    ['label' => 'Información para niños, niñas y adolescentes', 'path' => '/politicas-y-lineamientos/derechos-del-nino-hospitalizado-872252'],
-                    ['label' => 'Información para Mujeres', 'path' => '/politicas-y-lineamientos/politica-institucion-amiga-de-la-mujer-y-de-la-infancia'],
-                    ['label' => 'Otros de grupos de interés', 'path' => '/tema/politicas-y-lineamientos/poblacion-vulnerable-31962'],
+                    ['i18n' => 'menu.transparencia.g8_1', 'label' => 'Información para niños, niñas y adolescentes', 'path' => '/politicas-y-lineamientos/derechos-del-nino-hospitalizado-872252'],
+                    ['i18n' => 'menu.transparencia.g8_2', 'label' => 'Información para Mujeres', 'path' => '/politicas-y-lineamientos/politica-institucion-amiga-de-la-mujer-y-de-la-infancia'],
+                    ['i18n' => 'menu.transparencia.g8_3', 'label' => 'Otros de grupos de interés', 'path' => '/tema/politicas-y-lineamientos/poblacion-vulnerable-31962'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g9',
                 'label' => 'Obligación de reporte de información específica',
                 'items' => [
-                    ['label' => 'Normatividad especial', 'path' => '/otros/normatividad-especial'],
+                    ['i18n' => 'menu.transparencia.g9_1', 'label' => 'Normatividad especial', 'path' => '/otros/normatividad-especial'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g10',
                 'label' => 'Atención y servicio a la ciudadanía',
                 'items' => [
-                    ['label' => 'Trámites, Otros Procedimientos Administrativos y consultas de acceso a información pública', 'path' => '/tema/tramites-y-servicios'],
-                    ['label' => 'Canales de atención y pida una cita', 'path' => '/contactenos/'],
-                    ['label' => 'PQRSFD', 'url' => 'https://acortar.link/OUtyCS'],
+                    ['i18n' => 'menu.transparencia.g10_1', 'label' => 'Trámites, Otros Procedimientos Administrativos y consultas de acceso a información pública', 'path' => '/tema/tramites-y-servicios'],
+                    ['i18n' => 'menu.transparencia.g10_2', 'label' => 'Canales de atención y pida una cita', 'path' => '/contactenos/'],
+                    ['i18n' => 'menu.transparencia.g10_3', 'label' => 'PQRSFD', 'url' => 'https://acortar.link/OUtyCS'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g11',
                 'label' => 'Noticias',
                 'items' => [
-                    ['label' => 'Sección de Noticias', 'path' => '/tema/noticias'],
+                    ['i18n' => 'menu.transparencia.g11_1', 'label' => 'Sección de Noticias', 'path' => '/tema/noticias'],
                 ],
             ],
             [
+                'i18n' => 'menu.transparencia.g12',
                 'label' => 'Condiciones técnicas y de seguridad digital',
                 'items' => [
-                    ['label' => 'Condiciones técnicas y de seguridad digital', 'path' => '/politicas-y-lineamientos/politica-de-seguridad-digital'],
+                    ['i18n' => 'menu.transparencia.g12_1', 'label' => 'Condiciones técnicas y de seguridad digital', 'path' => '/politicas-y-lineamientos/politica-de-seguridad-digital'],
                 ],
             ],
         ],
@@ -835,40 +940,47 @@ return [
         'contact' => [
             [
                 'key' => 'direccion',
+                'i18n' => 'menu.pie.contacto.direccion',
                 'label' => 'Dirección',
                 'value' => 'Cl. 5 # 36-08 Santiago de Cali. Valle del Cauca, Colombia',
             ],
             [
                 'key' => 'horario',
+                'i18n' => 'menu.pie.contacto.horario',
                 'label' => 'Horario de atención',
                 'value' => 'Lunes a Viernes de 7:00 A.M. a 12:00 M y 1:00 P.M. a 5:30 P.M.',
             ],
             [
                 'key' => 'conmutador',
+                'i18n' => 'menu.pie.contacto.conmutador',
                 'label' => 'Teléfono Conmutador',
                 'value' => '(57+2) 6206000 Ext. 1001',
                 'tel' => '+5726206000,1001',
             ],
             [
                 'key' => 'linea-gratuita',
+                'i18n' => 'menu.pie.contacto.linea_gratuita',
                 'label' => 'Línea de atención gratuita',
                 'value' => '(57+2) 6206000 Ext: 1218 / 1216',
                 'tel' => '+5726206000,1218',
             ],
             [
                 'key' => 'anticorrupcion',
+                'i18n' => 'menu.pie.contacto.anticorrupcion',
                 'label' => 'Línea anticorrupción',
                 'value' => '(57+2) 6206000 Ext: 1043',
                 'tel' => '+5726206000,1043',
             ],
             [
                 'key' => 'correo',
+                'i18n' => 'menu.pie.contacto.correo',
                 'label' => 'Correo institucional',
                 'value' => 'pqrsf@correohuv.gov.co',
                 'mailto' => 'pqrsf@correohuv.gov.co',
             ],
             [
                 'key' => 'correo-judicial',
+                'i18n' => 'menu.pie.contacto.correo_judicial',
                 'label' => 'Correo de notificaciones judiciales',
                 'value' => 'notificacionesjudiciales@correohuv.gov.co',
                 'mailto' => 'notificacionesjudiciales@correohuv.gov.co',
@@ -898,6 +1010,7 @@ return [
         'social' => [
             [
                 'network' => 'x',
+                'i18n' => 'menu.pie.redes.x',
                 'name' => 'X (antes Twitter)',
                 'handle' => '@huvoficial',
                 'url' => 'https://x.com/huvoficial',
@@ -917,10 +1030,10 @@ return [
         ],
 
         'legal_links' => [
-            ['label' => 'Políticas', 'path' => '/politicas'],
-            ['label' => 'Transparencia', 'path' => '/transparencia'],
-            ['label' => 'Mapa del sitio', 'path' => '/mapa-del-sitio'],
-            ['label' => 'Estadísticas', 'path' => '/estadisticas'],
+            ['i18n' => 'menu.pie.legal.politicas', 'label' => 'Políticas', 'path' => '/politicas'],
+            ['i18n' => 'menu.pie.legal.transparencia', 'label' => 'Transparencia', 'path' => '/transparencia'],
+            ['i18n' => 'menu.pie.legal.mapa', 'label' => 'Mapa del sitio', 'path' => '/mapa-del-sitio'],
+            ['i18n' => 'menu.pie.legal.estadisticas', 'label' => 'Estadísticas', 'path' => '/estadisticas'],
         ],
     ],
 

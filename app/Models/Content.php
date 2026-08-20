@@ -11,15 +11,40 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use App\Models\Concerns\Translatable;
 
 class Content extends Model
 {
+    use Translatable;
+
+    /** Campos con texto de lectura que se sirven traducidos. */
+    protected array $translatable = ['title', 'excerpt', 'body'];
+
     /** Categorías disponibles. */
     public const CATEGORIES = [
         'Noticias',
         'Notificaciones Judiciales',
         'Comunicados',
     ];
+
+    /**
+     * Cómo se lee la categoría en pantalla.
+     *
+     * El valor guardado no se traduce: es el dato con el que se consulta la
+     * tabla y con el que la importación decide dónde va cada contenido. Lo que
+     * se traduce es el rótulo, y si falta la traducción se cae al propio valor,
+     * que en español ya es el texto bueno.
+     */
+    public static function categoryLabel(?string $category): string
+    {
+        if (blank($category)) {
+            return '';
+        }
+
+        $clave = 'mensajes.categorias.'.Str::slug($category, '_');
+
+        return __($clave) === $clave ? $category : __($clave);
+    }
 
     /** Categoría que alimenta el bloque de Noticias de la portada. */
     public const NEWS_CATEGORY = 'Noticias';

@@ -56,20 +56,27 @@
 
     $months = $enteros + $ancla->diffInSeconds($ahora) / max(1, $ancla->diffInSeconds($siguiente));
 
-    $label = match (true) {
-        $seconds < 45 => 'unos segundos',
-        $seconds < 90 => 'un minuto',
-        $minutes < 45 => round($minutes).' minutos',
-        $minutes < 90 => 'una hora',
-        $hours < 22 => round($hours).' horas',
-        $hours < 36 => 'un día',
-        $days < 26 => round($days).' días',
-        $days < 46 => 'un mes',
-        $days < 320 => round($months).' meses',
-        $days < 548 => 'un año',
-        default => round($months / 12).' años',
+    /*
+     | Del fichero de idioma sale la frase entera, no «Hace» por un lado y la
+     | cifra por otro: en inglés no hay prefijo y el orden se invierte
+     | —«3 years ago»—. La escala y sus saltos siguen aquí, intactos.
+    */
+    [$unidad, $cuenta] = match (true) {
+        $seconds < 45 => ['segundos', null],
+        $seconds < 90 => ['minuto', null],
+        $minutes < 45 => ['minutos', round($minutes)],
+        $minutes < 90 => ['hora', null],
+        $hours < 22 => ['horas', round($hours)],
+        $hours < 36 => ['dia', null],
+        $days < 26 => ['dias', round($days)],
+        $days < 46 => ['mes', null],
+        $days < 320 => ['meses', round($months)],
+        $days < 548 => ['anio', null],
+        default => ['anios', round($months / 12)],
     };
+
+    $label = __('componentes.fecha.'.$unidad, ['cuenta' => (int) $cuenta]);
 @endphp
 
-<time datetime="{{ $date->toIso8601String() }}" title="{{ $date->translatedFormat('l j \d\e F \d\e Y, H:i') }}"
-      {{ $attributes }}>Hace {{ $label }}</time>
+<time datetime="{{ $date->toIso8601String() }}" title="{{ $date->translatedFormat(__('componentes.fecha.formato_exacto')) }}"
+      {{ $attributes }}>{{ $label }}</time>

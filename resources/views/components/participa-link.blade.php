@@ -11,6 +11,6 @@
            'tracking-[0.06em] text-on-accent uppercase no-underline',
            'hover:bg-azure-dark hover:no-underline',
        ]) }}>
-        Participa<span class="sr-only"> en «{{ Str::limit($item->title, 60) }}»</span>
+        {{ __('componentes.participa.rotulo') }}<span class="sr-only"> {!! __('componentes.participa.en', ['titulo' => App\Support\PortalLang::wrap(Str::limit($item->title, 60))]) !!}</span>
     </a>
 @endif

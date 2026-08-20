@@ -30,31 +30,31 @@
 {{-- Imagen principal --}}
 @if ($mainImage)
     <figure class="m-0 mt-7 bg-tint p-5 lg:p-8">
-        <img src="{{ $mainImage->fileUrl() }}" alt="{{ $mainImage->alt }}"
+        <img src="{{ $mainImage->fileUrl() }}" alt="{{ $mainImage->alt }}"{!! App\Support\PortalLang::attribute() !!}
              loading="eager" fetchpriority="high" decoding="async"
              class="mx-auto block h-auto w-full max-w-[720px]">
         @if (filled($mainImage->alt))
-            <figcaption class="mt-3 text-center text-12-5 text-muted">{{ $mainImage->alt }}</figcaption>
+            <x-texto-del-portal tag="figcaption" class="mt-3 text-center text-12-5 text-muted">{{ $mainImage->alt }}</x-texto-del-portal>
         @endif
     </figure>
 @endif
 
 {{-- Cuerpo. El HTML se depuró al guardarlo (App\Support\RichText). --}}
 @if (filled($body))
-    <div class="huv-prose mt-8">{!! $body !!}</div>
+    <x-texto-del-portal tag="div" class="huv-prose mt-8">{!! $body !!}</x-texto-del-portal>
 @elseif (filled($fallback ?? null))
-    <p class="mt-8 text-15 leading-[1.75] text-body">{{ $fallback }}</p>
+    <x-texto-del-portal tag="p" class="mt-8 text-15 leading-[1.75] text-body">{{ $fallback }}</x-texto-del-portal>
 @endif
 
 {{-- Vídeo --}}
 @if ($video && $video->youtubeId())
     <div class="mt-8">
-        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">Vídeo</h2>
+        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">{{ __('estructura.medios.video') }}</h2>
         <div class="aspect-video overflow-hidden rounded-[4px] bg-navy-deep">
             {{-- youtube-nocookie: no deja rastro publicitario en quien solo pasa
                  por la página. --}}
             <iframe src="https://www.youtube-nocookie.com/embed/{{ $video->youtubeId() }}"
-                    title="{{ $video->alt ?: 'Vídeo del contenido' }}"
+                    title="{{ $video->alt ?: __('estructura.medios.video_titulo') }}"@if (filled($video->alt)){!! App\Support\PortalLang::attribute() !!}@endif
                     loading="lazy"
                     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
@@ -69,7 +69,7 @@
 {{-- Archivos --}}
 @if ($files->isNotEmpty())
     <div class="mt-8">
-        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">{{ $filesTitle ?? 'Documentos adjuntos' }}</h2>
+        <h2 class="m-0 mb-3 font-display text-17 font-bold text-heading">{{ $filesTitle ?? __('estructura.medios.documentos_adjuntos') }}</h2>
         <ul class="flex flex-col gap-2">
             @foreach ($files as $file)
                 <li>
@@ -82,9 +82,7 @@
                             <path d="M14 3v5h5" />
                             <path d="M19 8v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8Z" />
                         </svg>
-                        <span class="min-w-0 flex-1 break-words">
-                            {{ $file->alt ?: $file->original_name }}
-                        </span>
+                        <x-texto-del-portal class="min-w-0 flex-1 break-words">{{ $file->alt ?: $file->original_name }}</x-texto-del-portal>
                         <span class="shrink-0 text-12-5 text-muted">
                             {{ $file->extension() }}@if ($file->humanSize()) · {{ $file->humanSize() }}@endif
                         </span>

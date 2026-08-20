@@ -12,15 +12,15 @@
 <div x-data="huvA11y"
      x-show="! $store.huvUi.navOpen"
      role="toolbar"
-     aria-label="Herramientas de accesibilidad"
+     aria-label="{{ __('estructura.accesibilidad.herramientas') }}"
      aria-orientation="vertical"
      class="fixed top-[42%] right-0 z-60 flex flex-col overflow-hidden rounded-l-[4px] bg-azure
             shadow-[-3px_0_14px_rgba(23,32,64,0.22)] print:hidden">
 
     <button type="button" @click="toggleContrast()"
             :aria-pressed="contrast ? 'true' : 'false'"
-            aria-label="Alternar alto contraste"
-            title="Alto contraste"
+            aria-label="{{ __('estructura.accesibilidad.contraste.alternar') }}"
+            title="{{ __('estructura.accesibilidad.contraste.titulo') }}"
             class="flex size-10 items-center justify-center border-0 border-b border-on-accent/30 bg-transparent
                    text-on-accent hover:bg-azure-dark">
         <svg class="size-[19px]" viewBox="0 0 24 24" aria-hidden="true">
@@ -30,24 +30,24 @@
     </button>
 
     <button type="button" @click="biggerFont()"
-            aria-label="Aumentar tamaño del texto"
-            :title="'Aumentar texto (actual: ' + fontLabel + ')'"
+            aria-label="{{ __('estructura.accesibilidad.texto.aumentar') }}"
+            :title="@js(__('estructura.accesibilidad.texto.aumentar_titulo')).replace(':tamano', fontLabel)"
             class="flex size-10 items-center justify-center border-0 border-b border-on-accent/30 bg-transparent
                    text-14 font-bold text-on-accent hover:bg-azure-dark">
         A+
     </button>
 
     <button type="button" @click="smallerFont()"
-            aria-label="Reducir tamaño del texto"
-            :title="'Reducir texto (actual: ' + fontLabel + ')'"
+            aria-label="{{ __('estructura.accesibilidad.texto.reducir') }}"
+            :title="@js(__('estructura.accesibilidad.texto.reducir_titulo')).replace(':tamano', fontLabel)"
             class="flex size-10 items-center justify-center border-0 border-b border-on-accent/30 bg-transparent
                    text-12 font-bold text-on-accent hover:bg-azure-dark">
         A−
     </button>
 
     <button type="button" @click="reset()"
-            aria-label="Restablecer preferencias de accesibilidad"
-            title="Restablecer"
+            aria-label="{{ __('estructura.accesibilidad.restablecer.accion') }}"
+            title="{{ __('estructura.accesibilidad.restablecer.titulo') }}"
             class="flex size-10 items-center justify-center border-0 border-b border-on-accent/30 bg-transparent
                    text-on-accent hover:bg-azure-dark">
         <svg class="size-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -60,8 +60,8 @@
     {{-- El mismo destino que en el portal, que lo abre en una ventana aparte:
          es el servicio del Estado, no una página del hospital. --}}
     <a href="https://centroderelevo.gov.co" target="_blank" rel="noopener noreferrer"
-       aria-label="Centro de relevo — lengua de señas colombiana (se abre en una pestaña nueva)"
-       title="Lengua de señas colombiana"
+       aria-label="{{ __('estructura.accesibilidad.relevo.enlace') }}"
+       title="{{ __('estructura.accesibilidad.relevo.titulo') }}"
        class="flex size-10 items-center justify-center text-10-5 font-bold text-on-accent no-underline
               hover:bg-azure-dark hover:text-on-accent hover:no-underline">
         LSC
@@ -69,5 +69,6 @@
 
     {{-- Anuncio para lectores de pantalla del estado actual. --}}
     <span class="sr-only" aria-live="polite"
-          x-text="'Alto contraste ' + (contrast ? 'activado' : 'desactivado') + '. Tamaño de texto ' + fontLabel + '.'"></span>
+          x-text="(contrast ? @js(__('estructura.accesibilidad.estado.contraste_activado')) : @js(__('estructura.accesibilidad.estado.contraste_desactivado')))
+                  + ' ' + @js(__('estructura.accesibilidad.estado.tamano_texto')).replace(':tamano', fontLabel)"></span>
 </div>

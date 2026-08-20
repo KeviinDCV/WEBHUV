@@ -92,15 +92,15 @@ class ContentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'title' => 'título',
-            'category' => 'categoría',
-            'published_at' => 'fecha de visualización',
-            'excerpt' => 'resumen',
-            'body' => 'descripción',
-            'photos' => 'fotos',
-            'video_url' => 'URL del vídeo',
-            'files' => 'archivos',
-            'link' => 'enlace',
+            'title' => __('mensajes.campo.titulo'),
+            'category' => __('mensajes.campo.categoria'),
+            'published_at' => __('mensajes.campo.fecha_visualizacion'),
+            'excerpt' => __('mensajes.campo.resumen'),
+            'body' => __('mensajes.campo.descripcion'),
+            'photos' => __('mensajes.campo.fotos'),
+            'video_url' => __('mensajes.campo.url_video'),
+            'files' => __('mensajes.campo.archivos'),
+            'link' => __('mensajes.campo.enlace'),
         ];
     }
 
@@ -110,15 +110,14 @@ class ContentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'photos.*.max' => 'Cada foto puede pesar como máximo 2 MB.',
-            'photos.*.image' => 'Solo se admiten imágenes en gif, jpg, jpeg, png, bmp o webp.',
-            'photo_alts.*.required_with' => 'Cada foto necesita su descripción: sin ella, no se '
-                .'puede entender con un lector de pantalla.',
-            'video_url.regex' => 'El vídeo debe ser una dirección de YouTube.',
-            'files.*.max' => 'Cada archivo puede pesar como máximo 30 MB.',
-            'files.*.mimes' => 'Formatos admitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt y zip.',
-            'link.url' => 'El enlace debe empezar por http:// o https://',
-            'expires_at.after' => 'La fecha final debe ser posterior a la de publicación.',
+            'photos.*.max' => __('mensajes.validacion.foto_pesada'),
+            'photos.*.image' => __('mensajes.validacion.foto_formato'),
+            'photo_alts.*.required_with' => __('mensajes.validacion.foto_alt'),
+            'video_url.regex' => __('mensajes.validacion.video_youtube'),
+            'files.*.max' => __('mensajes.validacion.archivos_pesados'),
+            'files.*.mimes' => __('mensajes.validacion.archivo_formatos'),
+            'link.url' => __('mensajes.validacion.enlace_http'),
+            'expires_at.after' => __('mensajes.validacion.fecha_final_posterior'),
         ];
     }
 
@@ -138,8 +137,7 @@ class ContentRequest extends FormRequest
                     if (blank($this->input("photo_alts.{$index}"))) {
                         $validator->errors()->add(
                             "photo_alts.{$index}",
-                            'Cada foto necesita su descripción: sin ella, no se puede entender '
-                                .'con un lector de pantalla.'
+                            __('mensajes.validacion.foto_alt')
                         );
                     }
                 }
