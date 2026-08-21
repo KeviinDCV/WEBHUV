@@ -11,12 +11,17 @@ use App\Http\Controllers\Admin\TopicItemController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TopicController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('contents.show');
+
+// El buscador. Todo va en la dirección para que una búsqueda se pueda compartir
+// y para que funcione sin JavaScript.
+Route::get('/buscar', SearchController::class)->name('search');
 
 /*
 | Páginas propias del portal, fuera del esquema «/tema/…». Al añadir una hay que

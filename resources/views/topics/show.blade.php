@@ -289,7 +289,8 @@
                     </ul>
                 @else
                     {{-- Cada tarjeta mide lo que mide su texto: sin esto la rejilla estira la celda a la altura de la fila y el recuadro corto sale con un hueco dentro. --}}
-                <ul class="grid grid-cols-1 items-start gap-5" :class="view === 'grid' && 'md:grid-cols-2'">
+                <ul x-ref="rejilla" class="grid grid-cols-1 items-start gap-5"
+                    :class="view === 'grid' && 'md:grid-cols-2'">
                         @foreach ($items as $item)
                             <li x-show="isVisible({{ $item->id }})"
                                 :style="{ order: positionOf({{ $item->id }}) }"

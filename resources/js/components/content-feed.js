@@ -8,6 +8,8 @@
  * de más reciente a más antiguo.
  */
 
+import { acomodar, vigilar } from '../lib/masonry';
+
 const VIEW_KEY = 'huv:feedView';
 
 export default function huvContentFeed({
@@ -50,6 +52,23 @@ export default function huvContentFeed({
             ['tab', 'period', 'category'].forEach((prop) =>
                 this.$watch(prop, () => (this.shown = this.perPage))
             );
+
+            // Mampostería: que la tarjeta de abajo suba al hueco que deja la
+            // corta, como en el portal actual.
+            this.$nextTick(() => {
+                this.dejarDeVigilar = vigilar(this.$refs.rejilla);
+            });
+
+            // Cambiar de vista, de pestaña o de filtro no cambia el alto de
+            // ninguna tarjeta, así que el observador de tamaño no se entera:
+            // hay que recolocar a mano.
+            ['view', 'tab', 'period', 'category', 'shown'].forEach((prop) =>
+                this.$watch(prop, () => this.$nextTick(() => acomodar(this.$refs.rejilla)))
+            );
+        },
+
+        destroy() {
+            this.dejarDeVigilar?.();
         },
 
         setView(view) {

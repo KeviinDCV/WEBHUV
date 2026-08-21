@@ -160,8 +160,15 @@
                  Una rejilla estira sus celdas a la altura de la fila por
                  omisión, así que una noticia de dos renglones al lado de otra
                  con foto salía con el recuadro estirado y medio palmo de blanco
-                 dentro. El hueco va entre tarjetas, no dentro de una. --}}
-            <ul class="grid grid-cols-1 items-start gap-6" :class="view === 'grid' && 'md:grid-cols-2'">
+                 dentro.
+
+                 Y sobre eso, mampostería desde `resources/js/lib/masonry.js`:
+                 la tarjeta de abajo sube a ocupar el hueco que deja la corta,
+                 en vez de esperar a que acabe la fila, que es lo que hace el
+                 portal actual. Si no hay JavaScript se queda en esta rejilla,
+                 que sigue siendo un listado legible. --}}
+            <ul x-ref="rejilla" class="grid grid-cols-1 items-start gap-6"
+                :class="view === 'grid' && 'md:grid-cols-2'">
                 @foreach ($feed as $item)
                     <li x-show="isVisible({{ $item->id }})"
                         :style="{ order: positionOf({{ $item->id }}) }"

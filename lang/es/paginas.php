@@ -258,4 +258,36 @@ return [
             .'Oficina de Sistemas del hospital.',
     ],
 
+
+    // ---------------- Buscador ----------------
+    //
+    // Busca lo mismo que el buscador del portal actual: títulos y cuerpos de
+    // todo lo publicado —noticias, comunicados, documentos, enlaces, eventos—,
+    // y no los rótulos del menú ni los nombres de las categorías.
+    'buscador' => [
+        'titulo' => 'Buscador',
+        'descripcion' => 'Busque contenidos, documentos y publicaciones de :entidad.',
+        'que_buscas' => '¿Qué está buscando?',
+        'vacio' => 'Escriba lo que quiere encontrar y pulse «Buscar».',
+        'corto' => 'Escriba al menos :minimo letras.',
+        'sin_resultados' => 'No hay resultados para <strong>:termino</strong>. Pruebe con menos palabras o con otras.',
+        // Con regla de plural: «1 resultados» era la primera falta de
+        // concordancia que veía cualquiera que buscara algo concreto.
+        'recuento' => '{1}<strong>:total</strong> resultado para <strong>:termino</strong>.|'
+            .'[2,*]<strong>:total</strong> resultados para <strong>:termino</strong>.',
+
+        'tipo' => [
+            'etiqueta' => 'Tipo',
+            'todos' => 'Todos los contenidos',
+            'contenidos' => 'Noticias y comunicados',
+            'temas' => 'Documentos y publicaciones',
+        ],
+
+        'fechas' => [
+            'etiqueta' => 'Filtrar por fecha',
+            'desde' => 'Desde',
+            'hasta' => 'Hasta',
+        ],
+    ],
+
 ];

@@ -17,9 +17,15 @@ use Tests\TestCase;
  * DENTRO: el borde bajaba hasta donde acababa la vecina. `items-start` deja que
  * cada tarjeta mida lo que mide su texto y el hueco quede entre tarjetas.
  *
- * Aquí solo se puede comprobar que la clase sale en el HTML: la altura de una
- * caja la calcula el navegador, no el servidor. Sirve para que nadie la retire
- * sin enterarse, que es como llegó a perderse.
+ * Sobre eso va la mampostería —resources/js/lib/masonry.js—, que sube la
+ * tarjeta de abajo al hueco que deja la corta en vez de esperar a que acabe la
+ * fila, como hace el portal actual. Eso ocurre entero en el navegador; lo que
+ * se comprueba aquí es su enganche: la referencia `rejilla` que el componente
+ * busca para encontrar el listado.
+ *
+ * De la altura de una caja no puede decir nada una prueba de servidor: la
+ * calcula el navegador. Estas comprobaciones sirven para que nadie retire las
+ * clases ni la referencia sin enterarse, que es como llegó a perderse.
  */
 class LayoutTest extends TestCase
 {
@@ -48,7 +54,10 @@ class LayoutTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('class="grid grid-cols-1 items-start gap-6"', false);
+            ->assertSee('class="grid grid-cols-1 items-start gap-6"', false)
+            // El enganche de la mampostería: sin la referencia, el componente
+            // no encuentra la rejilla y las tarjetas dejan de subir al hueco.
+            ->assertSee('x-ref="rejilla"', false);
     }
 
     /** El listado de un tema de artículos. */
@@ -65,7 +74,8 @@ class LayoutTest extends TestCase
 
         $this->get(route('topics.show', $topic))
             ->assertOk()
-            ->assertSee('class="grid grid-cols-1 items-start gap-5"', false);
+            ->assertSee('class="grid grid-cols-1 items-start gap-5"', false)
+            ->assertSee('x-ref="rejilla"', false);
     }
 
     /**
@@ -118,6 +128,7 @@ class LayoutTest extends TestCase
 
         $this->get(route('topics.show', $topic))
             ->assertOk()
-            ->assertSee('class="grid grid-cols-1 items-start gap-5"', false);
+            ->assertSee('class="grid grid-cols-1 items-start gap-5"', false)
+            ->assertSee('x-ref="rejilla"', false);
     }
 }

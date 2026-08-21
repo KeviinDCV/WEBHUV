@@ -58,8 +58,7 @@
                 @endauth
             </div>
 
-            {{-- TODO: apuntar a la ruta del buscador cuando exista el backend de búsqueda. --}}
-            <form action="{{ url('/') }}" method="GET" role="search"
+            <form action="{{ route('search') }}" method="GET" role="search"
                   class="flex w-full items-center rounded-[26px] border border-stroke bg-card py-1 pr-1 pl-[18px]">
                 <label for="huv-buscar" class="sr-only">{{ __('cabecera.buscar.etiqueta') }}</label>
                 <input id="huv-buscar" type="search" name="q" value="{{ request('q') }}"

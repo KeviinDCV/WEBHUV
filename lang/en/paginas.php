@@ -229,4 +229,29 @@ return [
             .'Request access from the hospital IT Office.',
     ],
 
+
+    'buscador' => [
+        'titulo' => 'Search',
+        'descripcion' => 'Search content, documents and publications from :entidad.',
+        'que_buscas' => 'What are you looking for?',
+        'vacio' => 'Type what you want to find and press “Search”.',
+        'corto' => 'Type at least :minimo letters.',
+        'sin_resultados' => 'No results for <strong>:termino</strong>. Try fewer words, or different ones.',
+        'recuento' => '{1}<strong>:total</strong> result for <strong>:termino</strong>.|'
+            .'[2,*]<strong>:total</strong> results for <strong>:termino</strong>.',
+
+        'tipo' => [
+            'etiqueta' => 'Type',
+            'todos' => 'All content',
+            'contenidos' => 'News and press releases',
+            'temas' => 'Documents and publications',
+        ],
+
+        'fechas' => [
+            'etiqueta' => 'Filter by date',
+            'desde' => 'From',
+            'hasta' => 'To',
+        ],
+    ],
+
 ];

@@ -7,6 +7,8 @@
  * navegable: aparecen todos los contenidos, de más reciente a más antiguo.
  */
 
+import { acomodar, vigilar } from '../lib/masonry';
+
 const VIEW_KEY = 'huv:topicView';
 
 /** Categorías visibles antes de pulsar «Ver más». */
@@ -58,6 +60,22 @@ export default function huvTopicList({
             ['tab', 'period', 'category', 'kind', 'search'].forEach((prop) =>
                 this.$watch(prop, () => (this.shown = this.perPage))
             );
+
+            // Mampostería: la tarjeta de abajo sube al hueco que deja la corta,
+            // igual que en el muro de la portada y que en el portal actual.
+            this.$nextTick(() => {
+                this.dejarDeVigilar = vigilar(this.$refs.rejilla);
+            });
+
+            // Filtrar u ordenar no cambia el alto de ninguna tarjeta, así que
+            // el observador de tamaño no se entera: hay que recolocar a mano.
+            ['view', 'tab', 'period', 'category', 'kind', 'search', 'shown'].forEach((prop) =>
+                this.$watch(prop, () => this.$nextTick(() => acomodar(this.$refs.rejilla)))
+            );
+        },
+
+        destroy() {
+            this.dejarDeVigilar?.();
         },
 
         /**
