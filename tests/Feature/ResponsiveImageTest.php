@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Banner;
+use App\Models\Content;
+use App\Models\ContentMedia;
 use App\Models\User;
 use App\Support\ResponsiveImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -302,6 +304,61 @@ class ResponsiveImageTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
+
+    /* ------------------------------------------------------------------ */
+    /* Miniaturas de las tarjetas                                          */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * La tarjeta de un listado sirve la miniatura, no el original.
+     *
+     * El original de una noticia llega a pesar dos megas y en la tarjeta se
+     * pinta en un hueco de 220×150. Cada tanda de «Cargar más» traía casi un
+     * mega para seis sellos de correo.
+     */
+    public function test_la_tarjeta_sirve_la_miniatura_y_deja_el_original_de_reserva(): void
+    {
+        Storage::fake('public');
+
+        $ruta = 'contenidos/foto.jpg';
+        Storage::disk('public')->put($ruta, $this->jpeg(1024, 768));
+        ResponsiveImage::generate($ruta, 'public', ResponsiveImage::CARD_WIDTHS);
+
+        $noticia = Content::create([
+            'title' => 'Jornada de donación de sangre',
+            'category' => Content::NEWS_CATEGORY,
+            'is_active' => true,
+            'show_in_feed' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $noticia->media()->create([
+            'type' => ContentMedia::TYPE_IMAGE,
+            'path' => $ruta,
+            'is_main' => true,
+            'position' => 1,
+        ]);
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertStringContainsString('foto-440.webp 440w', $html);
+        $this->assertStringContainsString('foto-880.webp 880w', $html);
+        // Y el original sigue como reserva.
+        $this->assertStringContainsString('contenidos/foto.jpg', $html);
+        // Con dimensiones declaradas, que son la red frente a un salto futuro.
+        $this->assertStringContainsString('width="440" height="248"', $html);
+    }
+
+    /** Las miniaturas usan sus propios anchos, no los del banner. */
+    public function test_la_miniatura_usa_los_anchos_de_tarjeta(): void
+    {
+        $ruta = $this->subirBanner(2000, 1000);
+
+        $this->assertSame([440, 880], ResponsiveImage::generate($ruta, 'public', ResponsiveImage::CARD_WIDTHS));
+
+        // Y no genera las del carrusel por el camino.
+        $this->assertFalse(Storage::disk('public')->exists(ResponsiveImage::derivativePath($ruta, 1280)));
+    }
 
     /** Al subir un banner desde el panel, sus versiones se generan solas. */
     public function test_al_subir_un_banner_se_generan_sus_versiones(): void

@@ -31,6 +31,16 @@ class ResponsiveImage
      */
     public const WIDTHS = [768, 1280, 1920];
 
+    /**
+     * Los de una miniatura de tarjeta.
+     *
+     * La tarjeta pinta la foto en un hueco de 220×150 en lista y de unos 550 px
+     * de ancho en rejilla. 440 cubre los dos con holgura y 880 le da el doble de
+     * densidad a una pantalla que lo pida. Servir ahí el original es mandar dos
+     * megas para un sello de correo.
+     */
+    public const CARD_WIDTHS = [440, 880];
+
     /** Calidad de WebP. Por encima de 82 el fichero crece y no se nota. */
     private const QUALITY = 82;
 
@@ -44,7 +54,7 @@ class ResponsiveImage
      *
      * @return list<int>
      */
-    public static function generate(string $path, string $disk = 'public'): array
+    public static function generate(string $path, string $disk = 'public', ?array $widths = null): array
     {
         $almacen = Storage::disk($disk);
 
@@ -62,7 +72,7 @@ class ResponsiveImage
         $altoOriginal = imagesy($origen);
         $hechos = [];
 
-        foreach (self::WIDTHS as $ancho) {
+        foreach ($widths ?? self::WIDTHS as $ancho) {
             if ($ancho > $anchoOriginal) {
                 continue;
             }
@@ -98,7 +108,7 @@ class ResponsiveImage
      * sin comprobar nada más, y una imagen recién subida antes de generar sus
      * derivadas se sigue viendo.
      */
-    public static function srcset(?string $path, string $disk = 'public'): ?string
+    public static function srcset(?string $path, string $disk = 'public', ?array $widths = null): ?string
     {
         if (blank($path)) {
             return null;
@@ -106,7 +116,7 @@ class ResponsiveImage
 
         $almacen = Storage::disk($disk);
 
-        $partes = collect(self::WIDTHS)
+        $partes = collect($widths ?? self::WIDTHS)
             ->filter(fn (int $ancho): bool => $almacen->exists(self::derivativePath($path, $ancho)))
             ->map(fn (int $ancho): string => asset('storage/'.self::derivativePath($path, $ancho)).' '.$ancho.'w');
 
@@ -114,13 +124,13 @@ class ResponsiveImage
     }
 
     /** La derivada más pequeña, que es la que conviene precargar. */
-    public static function smallest(?string $path, string $disk = 'public'): ?string
+    public static function smallest(?string $path, string $disk = 'public', ?array $widths = null): ?string
     {
         if (blank($path)) {
             return null;
         }
 
-        foreach (self::WIDTHS as $ancho) {
+        foreach ($widths ?? self::WIDTHS as $ancho) {
             if (Storage::disk($disk)->exists(self::derivativePath($path, $ancho))) {
                 return asset('storage/'.self::derivativePath($path, $ancho));
             }
@@ -130,13 +140,13 @@ class ResponsiveImage
     }
 
     /** Borra las derivadas de una imagen. Se llama al reemplazarla. */
-    public static function forget(?string $path, string $disk = 'public'): void
+    public static function forget(?string $path, string $disk = 'public', ?array $widths = null): void
     {
         if (blank($path)) {
             return;
         }
 
-        foreach (self::WIDTHS as $ancho) {
+        foreach ($widths ?? self::WIDTHS as $ancho) {
             $derivada = self::derivativePath($path, $ancho);
 
             if (Storage::disk($disk)->exists($derivada)) {

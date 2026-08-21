@@ -290,4 +290,38 @@ return [
         ],
     ],
 
+
+    // ---------------- Páginas de error ----------------
+    //
+    // Antes se servía la pantalla por omisión de Laravel: en inglés, sin
+    // logotipo y sin salida. Cada texto dice qué pasó y qué se puede hacer;
+    // ninguno pide disculpas ni culpa a quien está leyendo.
+    'error' => [
+        '404' => [
+            'titulo' => 'Esta página no existe',
+            'texto' => 'La dirección es incorrecta o el contenido se retiró. Busque lo que necesita o vuelva al inicio.',
+        ],
+        '403' => [
+            'titulo' => 'Esta página está restringida',
+            'texto' => 'No tiene permiso para verla. Si cree que debería tenerlo, escriba a la Oficina de Sistemas del hospital.',
+        ],
+        '500' => [
+            'titulo' => 'Algo falló en el portal',
+            'texto' => 'El error quedó registrado y lo estamos revisando. Vuelva a intentarlo en unos minutos.',
+        ],
+        '503' => [
+            'titulo' => 'El portal está en mantenimiento',
+            'texto' => 'Estamos trabajando en él y volverá a estar disponible en breve. Gracias por su paciencia.',
+        ],
+    ],
+
+
+    // El titulo de la reja de resultados. Va oculto a la vista: el listado se
+    // entiende solo, pero sin el se saltaba del h1 de la pagina a los h3 de
+    // cada ficha, y quien navega por encabezados perdia el hilo.
+    'listado_titulo' => [
+        'tema' => 'Publicaciones de este tema',
+        'busqueda' => 'Resultados de la búsqueda',
+    ],
+
 ];

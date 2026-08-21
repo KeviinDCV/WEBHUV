@@ -34,18 +34,31 @@
                  con el nuevo parámetro y vuelve a esta misma sección. --}}
             <form method="GET" action="{{ url('/') }}#eventos" class="flex items-center gap-2">
                 <label for="huv-vista" class="sr-only">{{ __('portada.eventos.vista') }}</label>
-                <select id="huv-vista" name="vista" onchange="this.form.requestSubmit()"
+                {{--
+                    Sin recargar al cambiar de opción.
+
+                    Con `onchange` recargando, recorrer el desplegable con las
+                    flechas —que es como lo usa quien va por teclado— disparaba
+                    el envío en la primera opción intermedia y devolvía el foco
+                    al principio del documento: no había forma de llegar a la
+                    que se quería. Es el cambio de contexto que prohíbe el
+                    criterio 3.2.2 de WCAG.
+
+                    El botón deja de estar en <noscript> y se ve siempre: es la
+                    única manera de confirmar la elección, y con o sin
+                    JavaScript el formulario hace exactamente lo mismo.
+                --}}
+                <select id="huv-vista" name="vista"
                         class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                font-semibold text-heading">
                     <option value="semana" @selected($calendar->isWeekly())>{{ __('portada.eventos.semana') }}</option>
                     <option value="mes" @selected(! $calendar->isWeekly())>{{ __('portada.eventos.mes') }}</option>
                 </select>
-                <noscript>
-                    <button type="submit"
-                            class="rounded-[3px] border-0 bg-azure px-3 py-[7px] text-12-5 font-semibold text-on-accent">
-                        {{ __('portada.eventos.aplicar') }}
-                    </button>
-                </noscript>
+                <button type="submit"
+                        class="rounded-[3px] border-0 bg-azure px-3 py-[7px] text-12-5 font-semibold text-on-accent
+                               transition-colors hover:bg-azure-dark">
+                    {{ __('portada.eventos.aplicar') }}
+                </button>
             </form>
             </div>
         </div>

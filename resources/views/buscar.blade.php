@@ -117,10 +117,14 @@
                     ]) !!}
                 </p>
 
+                {{-- El título va oculto: la página se entiende sin él, pero sin
+                     él se saltaba del h1 a los h3 de cada resultado. --}}
+                <h2 id="huv-resultados" class="sr-only">{{ __('paginas.listado_titulo.busqueda') }}</h2>
+
                 {{-- Cada tarjeta mide lo que mide su texto, como en el resto de
                      listados. Aquí no hay mampostería: los resultados van en una
                      sola columna, así que no hay hueco que rellenar. --}}
-                <ul class="grid grid-cols-1 items-start gap-5">
+                <ul aria-labelledby="huv-resultados" class="grid grid-cols-1 items-start gap-5">
                     @foreach ($results as $result)
                         <li>
                             @if ($result instanceof Content)

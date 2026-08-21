@@ -141,12 +141,12 @@
                 <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <span id="huv-orden-tema" class="text-13-5 text-muted">{{ __('paginas.listado.orden.etiqueta') }}</span>
 
-                    <div role="tablist" aria-labelledby="huv-orden-tema"
+                    <div role="group" aria-labelledby="huv-orden-tema"
                          class="flex flex-wrap items-center gap-x-5 gap-y-2">
                         <template x-for="option in tabs" :key="option.key">
-                            <button type="button" role="tab"
+                            <button type="button"
                                     @click="tab = option.key"
-                                    :aria-selected="tab === option.key ? 'true' : 'false'"
+                                    :aria-pressed="tab === option.key ? 'true' : 'false'"
                                     :class="tab === option.key
                                         ? 'text-heading font-bold'
                                         : 'text-link font-medium hover:text-heading'"
@@ -238,8 +238,10 @@
                     {{ __('paginas.listado.vacio', ['tema' => $topic->name]) }}
                 </p>
             @else
+                <h2 id="huv-listado-tema" class="sr-only">{{ __('paginas.listado_titulo.tema') }}</h2>
+
                 {{-- Cada tarjeta mide lo que mide su texto: sin esto la rejilla estira la celda a la altura de la fila y el recuadro corto sale con un hueco dentro. --}}
-                <ul x-ref="rejilla" class="grid grid-cols-1 items-start gap-5"
+                <ul x-ref="rejilla" aria-labelledby="huv-listado-tema" class="grid grid-cols-1 items-start gap-5"
                     :class="view === 'grid' && 'md:grid-cols-2'">
                     @foreach ($items as $item)
                         <li x-show="isVisible({{ $item->id }})"

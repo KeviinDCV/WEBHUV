@@ -11,9 +11,8 @@
 --}}
 <div x-data="huvA11y"
      x-show="! $store.huvUi.navOpen"
-     role="toolbar"
+     role="group"
      aria-label="{{ __('estructura.accesibilidad.herramientas') }}"
-     aria-orientation="vertical"
      class="fixed top-[42%] right-0 z-60 flex flex-col overflow-hidden rounded-l-[4px] bg-azure
             shadow-[-3px_0_14px_rgba(23,32,64,0.22)] print:hidden">
 

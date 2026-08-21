@@ -15,6 +15,34 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [App\Http\Middleware\SetLocale::class]);
 
         /*
+         | Y antes de resolver los modelos de la ruta.
+         |
+         | Añadido al final del grupo, el idioma se fijaba DESPUÉS de buscar en
+         | la base el tema o el contenido de la dirección. Un enlace roto lanza
+         | su 404 en ese paso, así que la pantalla de error se pintaba siempre en
+         | español aunque se pidiera en inglés —y en un portal con mil doscientos
+         | contenidos traídos de otro sitio, los enlaces rotos existen—.
+         |
+         | Se declara el orden explícito de Laravel con SetLocale intercalado:
+         | después de la sesión, de la que lee la preferencia, y antes de
+         | SubstituteBindings, que es quien lanza el 404.
+        */
+        $middleware->priority([
+            \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            App\Http\Middleware\SetLocale::class,
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
+            \Illuminate\Contracts\Session\Middleware\AuthenticatesSessions::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Auth\Middleware\Authorize::class,
+        ]);
+
+        /*
          | Las cabeceras de seguridad, en la pila global y no en la de «web».
          |
          | Una dirección que no existe no llega a entrar en el grupo «web», así

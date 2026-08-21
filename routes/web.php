@@ -83,6 +83,16 @@ Route::post('/salir', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 /*
+| Cualquier otra dirección.
+|
+| Sin esta ruta, una que no case con ninguna no llega a entrar en el grupo «web»
+| y se queda sin sesión: la pantalla de error salía siempre en español aunque se
+| pidiera en inglés. Va al final a propósito —solo actúa cuando ninguna otra ha
+| respondido— y devuelve el mismo 404 que el resto del sitio.
+*/
+Route::fallback(fn () => response()->view('errors.404', [], 404));
+
+/*
 |--------------------------------------------------------------------------
 | Administración del contenido
 |--------------------------------------------------------------------------

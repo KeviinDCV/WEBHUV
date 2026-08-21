@@ -215,16 +215,30 @@
                      tabindex="0"
                      class="col-start-2 row-start-1 max-h-[min(62vh,540px)] overflow-y-auto overscroll-contain pl-8">
 
-                    <h3 class="m-0 mb-3 font-display text-13 font-bold tracking-[0.06em] text-heading uppercase">
+                    {{--
+                        El rótulo de la columna no es un encabezado del
+                        documento: es el nombre de una lista de enlaces dentro
+                        del menú. Como <h3> salía en el esquema de TODAS las
+                        páginas —y antes del <h1>, porque el menú va arriba—, de
+                        modo que quien navega por encabezados se encontraba
+                        cuatro entradas del menú antes del título de la página.
+
+                        Con un <p> y `aria-labelledby` la lista sigue teniendo
+                        nombre para un lector de pantalla, que es lo que hacía
+                        falta, y desaparece del esquema.
+                    --}}
+                    <p id="huv-columna-{{ $column['key'] }}"
+                       class="m-0 mb-3 font-display text-13 font-bold tracking-[0.06em] text-heading uppercase">
                         {{ ConfigLabel::of($column, 'title') }}
                         <span class="ml-1 font-normal text-faint normal-case">
                             ({{ count($column['links']) }})
                         </span>
-                    </h3>
+                    </p>
 
                     {{-- Columnas fijas: las etiquetas largas rompen línea en
                          lugar de estirar el panel. --}}
                     <ul class="grid gap-x-8 gap-y-[7px]"
+                        aria-labelledby="huv-columna-{{ $column['key'] }}"
                         style="grid-template-columns: repeat({{ $column['columns'] ?? 2 }}, minmax(0, 1fr))">
                         @foreach ($column['links'] as $link)
                             <li>

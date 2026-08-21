@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\ContentMedia;
+use App\Support\ResponsiveImage;
 use App\Models\LibraryImage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -54,9 +55,15 @@ final class MediaSync
         $alts = $request->input('photo_alts', []);
 
         foreach ($this->gallery ? $request->file('photos', []) : [] as $index => $photo) {
+            $ruta = $photo->store($this->directory, 'public');
+
+            // Las miniaturas de la tarjeta. Sin ellas, un listado sirve la foto
+            // original —hasta dos megas— en un hueco de 220 por 150.
+            ResponsiveImage::generate($ruta, 'public', ResponsiveImage::CARD_WIDTHS);
+
             $this->owner->media()->create([
                 'type' => ContentMedia::TYPE_IMAGE,
-                'path' => $photo->store($this->directory, 'public'),
+                'path' => $ruta,
                 'alt' => $alts[$index] ?? null,
                 'original_name' => $photo->getClientOriginalName(),
                 'size' => $photo->getSize(),

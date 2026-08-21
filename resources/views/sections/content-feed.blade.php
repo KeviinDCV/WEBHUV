@@ -47,11 +47,11 @@
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
                 <span id="huv-orden" class="text-13-5 text-muted">{{ __('portada.contenidos.orden') }}</span>
 
-                <div role="tablist" aria-labelledby="huv-orden" class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <div role="group" aria-labelledby="huv-orden" class="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <template x-for="option in tabs" :key="option.key">
-                        <button type="button" role="tab"
+                        <button type="button"
                                 @click="tab = option.key"
-                                :aria-selected="tab === option.key ? 'true' : 'false'"
+                                :aria-pressed="tab === option.key ? 'true' : 'false'"
                                 :class="tab === option.key
                                     ? 'text-heading font-bold'
                                     : 'text-link font-medium hover:text-heading'"

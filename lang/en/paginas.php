@@ -254,4 +254,30 @@ return [
         ],
     ],
 
+
+    'error' => [
+        '404' => [
+            'titulo' => 'This page does not exist',
+            'texto' => 'The address is wrong, or the content was taken down. Search for what you need, or go back to the home page.',
+        ],
+        '403' => [
+            'titulo' => 'This page is restricted',
+            'texto' => 'You do not have permission to view it. If you believe you should, write to the hospital IT Office.',
+        ],
+        '500' => [
+            'titulo' => 'Something failed on the portal',
+            'texto' => 'The error was logged and we are looking into it. Please try again in a few minutes.',
+        ],
+        '503' => [
+            'titulo' => 'The portal is under maintenance',
+            'texto' => 'We are working on it and it will be back shortly. Thank you for your patience.',
+        ],
+    ],
+
+
+    'listado_titulo' => [
+        'tema' => 'Publications in this topic',
+        'busqueda' => 'Search results',
+    ],
+
 ];

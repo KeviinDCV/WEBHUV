@@ -29,10 +29,29 @@
            @unless ($enTema) :class="view === 'grid' ? 'h-[150px]' : 'h-[150px] sm:h-auto sm:w-[220px]'" @endunless>
             {{-- En el tema manda la proporción, no la altura del padre: con
                  `h-full` sobre un contenedor sin altura, la foto se dibuja a su
-                 tamaño real y desborda la tarjeta. --}}
-            <img src="{{ $content->imageUrl() }}" alt=""
-                 loading="lazy" decoding="async"
-                 class="{{ $enTema ? 'aspect-[16/9] w-full object-cover' : 'size-full object-cover' }}">
+                 tamaño real y desborda la tarjeta.
+
+                 Y con miniatura si la hay: el original de una noticia llega a
+                 pesar dos megas y aquí se pinta en 220×150. Cada tanda de
+                 «Cargar más» traía casi un mega para seis sellos de correo. Sin
+                 miniatura generada todavía, se sirve el original y se ve igual.
+
+                 `width`/`height` no arreglan ningún salto de maquetación —el
+                 contenedor ya reserva la altura y el desplazamiento medido es
+                 cero—: están como red para que siga siendo así. --}}
+            @php $miniatura = App\Support\ResponsiveImage::srcset($content->mainImage()?->path, 'public', App\Support\ResponsiveImage::CARD_WIDTHS); @endphp
+
+            <picture>
+                @if ($miniatura)
+                    <source type="image/webp" srcset="{{ $miniatura }}"
+                            sizes="{{ $enTema ? '(min-width: 768px) 50vw, 100vw' : '220px' }}">
+                @endif
+
+                <img src="{{ $content->imageUrl() }}" alt=""
+                     width="440" height="248"
+                     loading="lazy" decoding="async"
+                     class="{{ $enTema ? 'aspect-[16/9] w-full object-cover' : 'size-full object-cover' }}">
+            </picture>
         </a>
     @endif
 
