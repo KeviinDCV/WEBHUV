@@ -81,12 +81,38 @@
                             class="relative block min-h-[440px] lg:min-h-[max(320px,25.81vw)]"
                             style="aspect-ratio: {{ Banner::IMAGE_WIDTH }} / {{ Banner::IMAGE_HEIGHT }}">
 
-                            <img src="{{ $banner->imageUrl() }}"
-                                 alt="{{ $banner->alt_text }}"
-                                 width="{{ Banner::IMAGE_WIDTH }}" height="{{ Banner::IMAGE_HEIGHT }}"
-                                 @if ($index === 0) loading="eager" fetchpriority="high" @else loading="lazy" fetchpriority="low" @endif
-                                 decoding="async"
-                                 class="absolute inset-0 size-full object-cover">
+                            {{--
+                                El original es un JPEG de 3750 px de ancho que
+                                se pinta a 1280 como mucho: se tiraba el 88 % de
+                                los píxeles. Con las derivadas, el navegador se
+                                lleva la que le sirve —20 KB en vez de 1 MB—.
+
+                                El <source> de WebP va delante porque gana el
+                                primero que el navegador entienda; el <img> del
+                                final es la reserva para quien no lo entienda, y
+                                también lo que se ve mientras no se hayan
+                                generado las derivadas de una imagen recién
+                                subida.
+
+                                `sizes` dice el ancho REAL de la caja: el
+                                carrusel ocupa el ancho de la ventana, así que
+                                100vw. Sin esto el navegador supone el ancho
+                                total y se lleva siempre la mayor.
+                            --}}
+                            @php $srcset = App\Support\ResponsiveImage::srcset($banner->image_path); @endphp
+
+                            <picture>
+                                @if ($srcset)
+                                    <source type="image/webp" srcset="{{ $srcset }}" sizes="100vw">
+                                @endif
+
+                                <img src="{{ $banner->imageUrl() }}"
+                                     alt="{{ $banner->alt_text }}"
+                                     width="{{ Banner::IMAGE_WIDTH }}" height="{{ Banner::IMAGE_HEIGHT }}"
+                                     @if ($index === 0) loading="eager" fetchpriority="high" @else loading="lazy" fetchpriority="low" @endif
+                                     decoding="async"
+                                     class="absolute inset-0 size-full object-cover">
+                            </picture>
 
                             @if ($banner->filterStyle())
                                 <span class="absolute inset-0" aria-hidden="true"

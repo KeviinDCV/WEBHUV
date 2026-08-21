@@ -17,6 +17,15 @@
     @endif
 @endpush
 
+@push('head')
+    <x-datos-estructurados :datos="App\Support\StructuredData::topicItem($item)" />
+    <x-datos-estructurados :datos="App\Support\StructuredData::breadcrumbs([
+        ['nombre' => __('paginas.ruta.inicio'), 'url' => route('home')],
+        ['nombre' => $topic->name, 'url' => route('topics.show', $topic)],
+        ['nombre' => Str::limit($item->title, 60), 'url' => $item->url()],
+    ])" />
+@endpush
+
 @section('content')
     <div class="bg-page">
         <x-container class="py-8 lg:py-10">

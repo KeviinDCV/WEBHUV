@@ -9,6 +9,15 @@
 @endif
 
 @push('head')
+    {{-- El bloque de la ficha y el rastro de migas. Las migas son las mismas
+         que se pintan debajo: un dato estructurado que no se corresponde con
+         lo que el visitante ve es marcado engañoso. --}}
+    <x-datos-estructurados :datos="App\Support\StructuredData::article($content)" />
+    <x-datos-estructurados :datos="App\Support\StructuredData::breadcrumbs([
+        ['nombre' => __('paginas.ruta.inicio'), 'url' => route('home')],
+        ['nombre' => App\Models\Content::categoryLabel($content->category), 'url' => $content->url()],
+    ])" />
+
     @if (! $content->is_active || $content->is_hidden || $content->isScheduled())
         {{-- Lo no publicado no debe indexarse aunque alguien comparta el enlace. --}}
         <meta name="robots" content="noindex, nofollow">

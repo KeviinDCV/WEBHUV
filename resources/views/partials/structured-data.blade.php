@@ -1,5 +1,6 @@
 @php
     use App\Support\ConfigLabel;
+    use App\Support\StructuredData;
 
     $institution = config('huv.institution');
     $seo = config('huv.seo');
@@ -9,6 +10,9 @@
     $structuredData = [
         '@context' => 'https://schema.org',
         '@type' => ['Hospital', 'GovernmentOrganization'],
+        // Un identificador estable para poder referir la organización desde el
+        // bloque de cada ficha, en lugar de repetirla entera en cada página.
+        '@id' => StructuredData::organizationId(),
         'name' => $institution['name'],
         'alternateName' => 'HUV',
         'url' => url('/'),
@@ -25,6 +29,25 @@
         'parentOrganization' => [
             '@type' => 'GovernmentOrganization',
             'name' => $institution['oversight'],
+        ],
+        // Los perfiles oficiales: es lo que usa un buscador para saber que esas
+        // cuentas son de la institución y no de un tercero que la suplanta.
+        'sameAs' => collect(config('huv.footer.social'))->pluck('url')->filter()->values()->all(),
+        // El horario de atención administrativa, el mismo que publica el pie.
+        // Urgencias no entra aquí: son veinticuatro horas y declararlo en el
+        // mismo bloque diría que todo el hospital abre a las siete.
+        'openingHoursSpecification' => collect([['07:00', '12:00'], ['13:00', '17:30']])
+            ->map(fn (array $tramo): array => [
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                'opens' => $tramo[0],
+                'closes' => $tramo[1],
+            ])
+            ->all(),
+        'areaServed' => [
+            '@type' => 'AdministrativeArea',
+            'name' => $institution['state'],
+            'containedInPlace' => ['@type' => 'Country', 'name' => $institution['country']],
         ],
         'address' => [
             '@type' => 'PostalAddress',

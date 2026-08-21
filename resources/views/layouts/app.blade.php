@@ -56,6 +56,30 @@
               href="{{ Vite::asset($fuente) }}">
     @endforeach
 
+    {{--
+        El primer banner del carrusel, que es el elemento más grande de la
+        portada y el que decide cuándo se considera cargada.
+
+        Su etiqueta está en el byte doscientos mil del HTML, detrás del menú
+        completo, así que el navegador no se enteraba de que existía hasta haber
+        leído todo eso. Anunciado aquí empieza a bajar de inmediato.
+
+        Solo el primero: los otros tres van `lazy` y precargarlos sería competir
+        con el que sí se ve. Y solo en la portada, que es donde hay carrusel.
+    --}}
+    @php
+        $primerBanner = request()->routeIs('home')
+            ? App\Models\Banner::query()->orderBy('position')->first()
+            : null;
+        $precarga = $primerBanner ? App\Support\ResponsiveImage::srcset($primerBanner->image_path) : null;
+    @endphp
+
+    @if ($precarga)
+        <link rel="preload" as="image" fetchpriority="high"
+              href="{{ App\Support\ResponsiveImage::smallest($primerBanner->image_path) }}"
+              imagesrcset="{{ $precarga }}" imagesizes="100vw">
+    @endif
+
     {{-- Open Graph / Twitter --}}
     <meta property="og:type" content="{{ $pageType }}">
     <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'es_CO' }}">

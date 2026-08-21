@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BannerRequest;
 use App\Models\Banner;
 use App\Models\Setting;
+use App\Support\ResponsiveImage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,6 +56,10 @@ class BannerController extends Controller
         $banner->image_path = $request->file('image')->store('banners', 'public');
         $banner->save();
 
+        // Las versiones a 768, 1280 y 1920 en WebP. El original se queda como
+        // reserva para quien no entienda WebP.
+        ResponsiveImage::generate($banner->image_path);
+
         // Al guardar se vuelve a la portada, que es donde se comprueba el
         // resultado. Para seguir administrando está el botón «Editar» sobre
         // el propio banner.
@@ -72,13 +77,21 @@ class BannerController extends Controller
     {
         $banner->fill($request->safe()->except('image'));
 
-        if ($request->hasFile('image')) {
-            // Se borra la anterior para no dejar archivos huérfanos en disco.
+        $cambiaLaImagen = $request->hasFile('image');
+
+        if ($cambiaLaImagen) {
+            // Se borra la anterior para no dejar archivos huérfanos en disco,
+            // y con ella sus derivadas.
+            ResponsiveImage::forget($banner->image_path);
             $banner->deleteImage();
             $banner->image_path = $request->file('image')->store('banners', 'public');
         }
 
         $banner->save();
+
+        if ($cambiaLaImagen) {
+            ResponsiveImage::generate($banner->image_path);
+        }
 
         return redirect()
             ->route('home')
