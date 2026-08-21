@@ -15,7 +15,7 @@
 
     // La dirección canónica: la actual, más el número de página si lo hay.
     $pagina = (int) request()->query('page');
-    $canonical = url()->current();
+    $canonical = $pagina > 1 ? url()->current().'?page='.$pagina : url()->current();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() === 'en' ? 'en' : 'es-CO' }}" dir="ltr">
