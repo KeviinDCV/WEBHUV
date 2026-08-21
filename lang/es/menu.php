@@ -24,9 +24,10 @@ return [
 
     // El título es la razón social del hospital y no se traduce.
     'seo' => [
+        // Por debajo de 155 caracteres: más allá, el buscador la recorta con
+        // puntos suspensivos y la frase queda a medias en el resultado.
         'descripcion' => 'Institución de salud pública de alta complejidad del suroccidente colombiano. '
-            .'Trámites, servicios, noticias y transparencia del Hospital Universitario del Valle E.S.E.',
-        'claves' => 'HUV, Hospital Universitario del Valle, Evaristo García, salud, Cali, Valle del Cauca, alta complejidad',
+            .'Trámites, servicios, noticias y transparencia del HUV en Cali.',
     ],
 
     // ---------------- Menú principal ----------------

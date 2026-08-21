@@ -36,7 +36,11 @@
                 de corregir una búsqueda sin volver a la cabecera, y de que el
                 botón «Atrás» del navegador devuelva lo que se escribió.
             --}}
-            <form action="{{ route('search') }}" method="GET" role="search" class="mt-6">
+            {{-- Con nombre propio: en esta página hay dos regiones de búsqueda
+                 —esta y la de la cabecera— y sin distinguirlas, la lista de
+                 regiones de un lector de pantalla ofrece dos entradas iguales. --}}
+            <form action="{{ route('search') }}" method="GET" role="search" class="mt-6"
+                  aria-label="{{ __('paginas.buscador.que_buscas') }}">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div class="min-w-0 flex-1">
                         <label for="q" class="text-13-5 font-semibold text-heading">
@@ -101,7 +105,10 @@
                     {!! __('paginas.buscador.sin_resultados', ['termino' => e($terms)]) !!}
                 </p>
             @else
-                <p class="m-0 mb-5 text-13-5 text-muted" aria-live="polite">
+                {{-- Sin aria-live: el recuento ya viene en el HTML de la
+                     respuesta, así que la región nunca cambia y no anuncia nada.
+                     Declararla solo promete un comportamiento que no ocurre. --}}
+                <p class="m-0 mb-5 text-13-5 text-muted">
                     {{-- El recuento manda al plural, pero el que se pinta es el
                          número ya formateado con el separador del idioma. --}}
                     {!! trans_choice('paginas.buscador.recuento', $results->total(), [

@@ -47,7 +47,7 @@
 @extends('layouts.app')
 
 @section('title', $topic->name.' — '.config('huv.institution.short_name'))
-@section('description', $topic->description ?: __('paginas.tema.descripcion_noticias', [
+@section('description', $topic->metaDescription() ?: __('paginas.tema.descripcion_noticias', [
     'entidad' => config('huv.institution.name_plain'),
 ]))
 

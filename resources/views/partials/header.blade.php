@@ -59,11 +59,12 @@
             </div>
 
             <form action="{{ route('search') }}" method="GET" role="search"
+                  aria-label="{{ __('cabecera.buscar.etiqueta') }}"
                   class="flex w-full items-center rounded-[26px] border border-stroke bg-card py-1 pr-1 pl-[18px]">
                 <label for="huv-buscar" class="sr-only">{{ __('cabecera.buscar.etiqueta') }}</label>
                 <input id="huv-buscar" type="search" name="q" value="{{ request('q') }}"
                        placeholder="{{ __('cabecera.buscar.etiqueta') }}" autocomplete="off"
-                       class="min-w-0 flex-1 border-0 bg-transparent py-[6px] text-14 text-ink outline-0 placeholder:text-faint">
+                       class="min-w-0 flex-1 border-0 bg-transparent py-[6px] text-14 text-ink outline-0 placeholder:text-muted">
                 <button type="submit" aria-label="{{ __('cabecera.buscar.boton') }}"
                         class="flex size-9 shrink-0 items-center justify-center rounded-full border-0 bg-azure text-on-accent transition-colors hover:bg-azure-dark">
                     <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"

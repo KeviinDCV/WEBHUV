@@ -69,7 +69,12 @@
 
     <main id="contenido" tabindex="-1">
         <x-container class="py-9">
-            <h1 class="m-0 font-display text-19 font-bold text-heading">@yield('heading')</h1>
+            {{-- Solo si la pantalla lo define: la carga masiva trae su propio
+                 h1, y aquí salía además uno vacío. Eran dos encabezados de nivel
+                 uno, y el primero sin texto. --}}
+            @hasSection('heading')
+                <h1 class="m-0 font-display text-19 font-bold text-heading">@yield('heading')</h1>
+            @endif
             @hasSection('subheading')
                 <p class="m-0 mt-1 text-14 text-muted">@yield('subheading')</p>
             @endif

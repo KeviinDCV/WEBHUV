@@ -21,7 +21,12 @@ Route::get('/contenidos/{slug}', [ContentController::class, 'show'])->name('cont
 
 // El buscador. Todo va en la dirección para que una búsqueda se pueda compartir
 // y para que funcione sin JavaScript.
-Route::get('/buscar', SearchController::class)->name('search');
+Route::get('/buscar', SearchController::class)
+    // Con tope de peticiones: la consulta recorre el cuerpo entero de las dos
+    // tablas, hasta ocho veces por término, y la ruta es pública. Sin el tope
+    // es la única forma de tumbar el portal desde fuera sin credenciales.
+    ->middleware('throttle:30,1')
+    ->name('search');
 
 /*
 | Páginas propias del portal, fuera del esquema «/tema/…». Al añadir una hay que

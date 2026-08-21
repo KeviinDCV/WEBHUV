@@ -215,6 +215,24 @@ class Topic extends Model
      */
     private const COMPACT_TOPICS = ['contrataciones'];
 
+    /**
+     * La descripción del tema, si da para meta descripción.
+     *
+     * Muchas vienen del portal en tres palabras —«Notificaciones Judiciales»
+     * trae veinticinco caracteres y «Noticias» treinta y cinco—, y así no dicen
+     * nada en la página de resultados: sale mejor la frase armada con el nombre
+     * del tema y el del hospital. Por debajo de este umbral se devuelve nada y
+     * la plantilla cae en su texto de reserva.
+     */
+    public const MIN_META_DESCRIPTION = 70;
+
+    public function metaDescription(): ?string
+    {
+        $texto = trim((string) $this->description);
+
+        return mb_strlen($texto) >= self::MIN_META_DESCRIPTION ? $texto : null;
+    }
+
     /** Listado en filas y no en tarjetas. */
     public function isRowList(): bool
     {

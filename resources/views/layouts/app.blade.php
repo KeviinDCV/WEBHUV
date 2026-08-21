@@ -12,6 +12,10 @@
     // sería siempre la genérica.
     $pageType = trim($__env->yieldContent('og_type')) ?: 'website';
     $pageImage = trim($__env->yieldContent('og_image')) ?: asset('img/og-huv.png');
+
+    // La dirección canónica: la actual, más el número de página si lo hay.
+    $pagina = (int) request()->query('page');
+    $canonical = url()->current();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() === 'en' ? 'en' : 'es-CO' }}" dir="ltr">
@@ -22,10 +26,19 @@
 
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $pageDescription }}">
-    <meta name="keywords" content="{{ ConfigLabel::of($seo, 'keywords', 'claves') }}">
     <meta name="author" content="{{ $institution['name'] }}">
     <meta name="theme-color" content="#2b3b80">
-    <link rel="canonical" href="{{ url()->current() }}">
+    {{--
+        La canónica conserva el número de página y nada más.
+
+        Con `url()->current()` a secas, las setenta y una páginas del listado de
+        Contrataciones se declaraban duplicado de la primera, y los cientos de
+        registros que solo viven de la segunda en adelante quedaban fuera del
+        índice. Los demás parámetros —`categoria`, `buscar`, `orden`, `idioma`—
+        sí deben seguir colapsando: son recortes del mismo listado, no páginas
+        distintas.
+    --}}
+    <link rel="canonical" href="{{ $canonical }}">
 
     {{--
         Las dos fuentes, antes que nada.
@@ -47,7 +60,7 @@
     <meta property="og:type" content="{{ $pageType }}">
     <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'es_CO' }}">
     <meta property="og:site_name" content="{{ $institution['name'] }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $pageDescription }}">
     <meta property="og:image" content="{{ $pageImage }}">

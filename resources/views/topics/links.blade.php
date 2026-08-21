@@ -5,7 +5,7 @@
 @extends('layouts.app')
 
 @section('title', $topic->name.' — '.config('huv.institution.short_name'))
-@section('description', $topic->description ?: __('paginas.tema.descripcion_enlaces', [
+@section('description', $topic->metaDescription() ?: __('paginas.tema.descripcion_enlaces', [
     'tema' => $topic->name,
     'entidad' => config('huv.institution.name_plain'),
 ]))

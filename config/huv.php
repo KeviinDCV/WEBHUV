@@ -116,9 +116,10 @@ return [
     'seo' => [
         'i18n' => 'menu.seo',
         'title' => 'Hospital Universitario del Valle «Evaristo García» E.S.E.',
+        // Por debajo de 155 caracteres: más allá, el buscador la recorta con
+        // puntos suspensivos y la frase queda a medias en el resultado.
         'description' => 'Institución de salud pública de alta complejidad del suroccidente colombiano. '
-            .'Trámites, servicios, noticias y transparencia del Hospital Universitario del Valle E.S.E.',
-        'keywords' => 'HUV, Hospital Universitario del Valle, Evaristo García, salud, Cali, Valle del Cauca, alta complejidad',
+            .'Trámites, servicios, noticias y transparencia del HUV en Cali.',
     ],
 
     /*

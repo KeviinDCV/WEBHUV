@@ -590,7 +590,7 @@ class ImportTopic extends Command
             // página de la gaceta. El portal los publica como a los demás, con
             // su fila y su enlace; quedarnos solo con `filePath` dejaba dos
             // fichas sin nada que ofrecer.
-            $item->source_url = $file['filePath'] ?? ($detail['embedUrl'] ?? null);
+            $item->source_url = $this->externalUrl($file['filePath'] ?? ($detail['embedUrl'] ?? null));
             $item->file_name = $name;
             $item->file_size = $file['size'] ?? null;
             // La extensión llega siempre vacía: se deduce del nombre.
@@ -631,7 +631,7 @@ class ImportTopic extends Command
             // gov.co, y sin ese destino el listado sería diez nombres sin nada
             // detrás.
             $item->source_url = in_array($kind, [TopicItem::KIND_LINK, TopicItem::KIND_PROCEDURE], true)
-                ? ($detail['embedUrl'] ?? $detail['embedURL'] ?? null)
+                ? $this->externalUrl($detail['embedUrl'] ?? $detail['embedURL'] ?? null)
                 : null;
         }
 
@@ -1096,6 +1096,29 @@ class ImportTopic extends Command
         }
 
         return rtrim((string) config('huv.legacy_base'), '/').$url;
+    }
+
+    /**
+     * Una dirección de fuera, y solo si es http o https.
+     *
+     * `source_url` acaba pintado en el `href` de una ficha. Las otras dos
+     * entradas al campo ya comprueban el esquema —el formulario del panel con
+     * `url:http,https` y la carga masiva con FILTER_VALIDATE_URL—; esta, que es
+     * la que trae lo que diga la API del portal anterior, no comprobaba nada.
+     * La incoherencia es el fallo: un `javascript:` colado ahí se publicaría
+     * como un enlace más.
+     */
+    private function externalUrl(?string $url): ?string
+    {
+        $url = trim((string) $url);
+
+        if ($url === '' || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)
+            ? $url
+            : null;
     }
 
     /** Dónde se guardan en disco los medios de este modelo. */

@@ -59,7 +59,7 @@
                                    value="{{ old('email') }}"
                                    @error('email') aria-invalid="true" aria-describedby="email-error" @enderror
                                    class="rounded-[3px] border border-stroke bg-card px-3 py-[10px] text-14 text-ink
-                                          placeholder:text-faint">
+                                          placeholder:text-muted">
                             @error('email')
                                 <p id="email-error" class="m-0 text-12-5 text-danger">{{ $message }}</p>
                             @enderror

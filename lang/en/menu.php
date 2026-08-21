@@ -17,8 +17,7 @@ return [
 
     'seo' => [
         'descripcion' => 'High-complexity public health institution of south-western Colombia. '
-            .'Procedures, services, news and transparency of Hospital Universitario del Valle E.S.E.',
-        'claves' => 'HUV, Hospital Universitario del Valle, Evaristo García, health, Cali, Valle del Cauca, high complexity',
+            .'Procedures, services, news and transparency from the HUV in Cali.',
     ],
 
     'nav' => [

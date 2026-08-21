@@ -137,12 +137,19 @@
     /* --- Texto sobre la página ------------------------------------------- */
     --color-heading: #2b3b80;       /* títulos y enlaces de navegación      */
     --color-heading-hover: #1d2a5e;
-    --color-link: #2676d2;          /* llamadas a la acción en texto        */
+    /* #2676d2 daba 4,56:1 sobre blanco pero se quedaba corto sobre las dos
+       superficies grises del tema, donde también se usa. Este llega a 5,0:1
+       sobre blanco y pasa de 4,5:1 sobre --color-surface y --color-tint. */
+    --color-link: #216cc2;          /* llamadas a la acción en texto        */
     --color-ink: #33383f;
     --color-ink-soft: #3d4552;
     --color-body: #4a5160;
     --color-muted: #5c6373;
-    --color-faint: #8a90a0;
+    /* #8a90a0 se quedaba en 3,19:1 sobre blanco, por debajo del 4,5:1 que
+       pide la pauta 1.4.3, y lo llevan textos de 11 y 12 px: las fechas de las
+       tarjetas y los días de la agenda. Este da 4,95:1 sobre blanco, 4,62:1
+       sobre --color-surface y 4,53:1 sobre --color-tint. */
+    --color-faint: #697082;
     --color-hint: #7b8194;
     --color-disabled: #a2a8b6;
     --color-azure-mist: #9fc3f0;    /* antetítulo sobre banner oscuro       */
@@ -163,7 +170,9 @@
     /* --- Controles del carrusel ------------------------------------------- */
     --color-control: rgba(60, 64, 72, 0.62);
     --color-control-hover: rgba(43, 59, 128, 0.9);
-    --color-controlbar: rgba(96, 100, 108, 0.82);
+    /* La barra va encima de fotos arbitrarias: con 0,82 de opacidad el texto
+       blanco de 12 px no llegaba a 4,5:1 sobre las claras. */
+    --color-controlbar: rgba(96, 100, 108, 0.92);
     --color-on-control: #ffffff;
     --color-dot-active: #ffffff;
 
