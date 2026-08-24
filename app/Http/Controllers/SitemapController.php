@@ -80,7 +80,7 @@ class SitemapController extends Controller
     /** La portada y las páginas propias, que no salen de la base. */
     private function fixedPages(): \Illuminate\Support\Collection
     {
-        return collect(['home', 'transparency', 'branches', 'policies', 'pqrds', 'contact'])
+        return collect(['home', 'transparency', 'branches', 'policies', 'pqrds', 'contact', 'sitemap.page'])
             ->map(fn (string $nombre): array => [
                 'loc' => route($nombre),
                 'changefreq' => $nombre === 'home' ? 'daily' : 'monthly',

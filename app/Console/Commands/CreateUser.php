@@ -20,12 +20,17 @@ use function Laravel\Prompts\text;
  */
 class CreateUser extends Command
 {
-    protected $signature = 'huv:usuario';
+    protected $signature = 'huv:usuario
+        {--simple : Acepta cualquier contraseña, sin exigir longitud ni símbolos}';
 
     protected $description = 'Crea una cuenta de acceso al portal';
 
     public function handle(): int
     {
+        if ($this->option('simple')) {
+            $this->components->warn('Sin reglas de contraseña: para cuentas de prueba.');
+        }
+
         $name = text(
             label: 'Nombre completo',
             required: true,
@@ -51,14 +56,7 @@ class CreateUser extends Command
         $secret = password(
             label: 'Contraseña',
             required: true,
-            validate: function (string $value): ?string {
-                $validator = Validator::make(
-                    ['password' => $value],
-                    ['password' => [Password::min(12)->letters()->numbers()->symbols()]]
-                );
-
-                return $validator->fails() ? $validator->errors()->first('password') : null;
-            },
+            validate: fn (string $value): ?string => $this->passwordError($value),
         );
 
         $confirmation = password(label: 'Repita la contraseña', required: true);
@@ -79,5 +77,32 @@ class CreateUser extends Command
         $this->info("Cuenta creada: {$user->name} <{$user->email}>");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Lo que le falta a la contraseña, o null si vale.
+     *
+     * Con --simple no se le pide nada más que no estar vacía. Es para las
+     * cuentas de prueba: escribir doce caracteres con símbolo cada vez que se
+     * crea un usuario en el portátil de quien programa no protege nada, y lo
+     * que de verdad pasaba es que se reutilizaba siempre la misma contraseña
+     * buena, que es peor.
+     *
+     * La opción hay que pedirla a mano y sale un aviso al usarla: sin las dos
+     * cosas, la regla acaba desapareciendo también de las cuentas de verdad, y
+     * estas abren la administración de un hospital.
+     */
+    private function passwordError(string $value): ?string
+    {
+        if ($this->option('simple')) {
+            return null;
+        }
+
+        $validator = Validator::make(
+            ['password' => $value],
+            ['password' => [Password::min(12)->letters()->numbers()->symbols()]]
+        );
+
+        return $validator->fails() ? $validator->errors()->first('password') : null;
     }
 }

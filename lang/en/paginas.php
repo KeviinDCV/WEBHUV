@@ -139,6 +139,18 @@ return [
             .'under Resolución 1519 de 2020.',
     ],
 
+    'estadisticas' => [
+        'titulo' => 'Statistics',
+        'descripcion' => 'Usage statistics for the :entidad portal.',
+    ],
+
+    'mapa' => [
+        'titulo' => 'Site map',
+        'descripcion' => 'Full tree of the sections of the :entidad portal.',
+        'entrada' => 'Every section of the portal, in the same order as in the menu.',
+        'arbol' => 'Portal sections',
+    ],
+
     'pqrds' => [
         'titulo' => 'PQRDS Request Reception',
         'descripcion' => 'Submit petitions, complaints, claims, suggestions, reports and requests for '

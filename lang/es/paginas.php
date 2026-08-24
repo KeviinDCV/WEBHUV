@@ -159,6 +159,24 @@ return [
             .'según la Resolución 1519 de 2020.',
     ],
 
+    // ---------------- Estadísticas ----------------
+    //
+    // La página está en blanco a propósito; el motivo, en la vista.
+
+    'estadisticas' => [
+        'titulo' => 'Estadísticas',
+        'descripcion' => 'Estadísticas de uso del portal del :entidad.',
+    ],
+
+    // ---------------- Mapa del sitio ----------------
+
+    'mapa' => [
+        'titulo' => 'Mapa del sitio',
+        'descripcion' => 'Árbol completo de las secciones del portal del :entidad.',
+        'entrada' => 'Todas las secciones del portal, en el mismo orden en que aparecen en el menú.',
+        'arbol' => 'Secciones del portal',
+    ],
+
     // ---------------- PQRDS ----------------
 
     'pqrds' => [

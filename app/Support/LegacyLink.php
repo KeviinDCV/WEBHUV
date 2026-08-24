@@ -38,6 +38,8 @@ class LegacyLink
         '/peticiones-quejas-reclamos' => 'pqrds',
         '/contactenos' => 'contact',
         '/transparencia' => 'transparency',
+        '/mapa-del-sitio' => 'sitemap.page',
+        '/estadisticas' => 'statistics',
     ];
 
     /**

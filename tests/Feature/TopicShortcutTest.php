@@ -330,11 +330,29 @@ class TopicShortcutTest extends TestCase
         $this->assertStringNotContainsString($anticorrupcion['value'], $m[0]);
     }
 
-    /** Lo que todavía no existe aquí sigue sirviéndose del portal anterior. */
+    /**
+     * Lo que todavía no existe aquí sigue sirviéndose del portal anterior.
+     *
+     * Ya no queda ninguna página del menú sin migrar —«Mapa del sitio» y
+     * «Estadísticas» eran las dos últimas, y las dos estaban escritas aquí
+     * hasta que se construyeron—, así que la regla se comprueba con una
+     * dirección cualquiera del portal de origen: mientras no esté declarada en
+     * LegacyLink se sirve de allí, que es lo que impide que un enlace del menú
+     * se quede roto a mitad de la migración.
+     */
     public function test_una_pagina_sin_migrar_sigue_en_el_portal_anterior(): void
     {
-        $this->assertSame('https://portal-anterior.gov.co/mapa-del-sitio', LegacyLink::rewrite('/mapa-del-sitio'));
-        $this->assertSame('https://portal-anterior.gov.co/estadisticas', LegacyLink::rewrite('/estadisticas'));
+        $this->assertSame(
+            'https://portal-anterior.gov.co/glosario',
+            LegacyLink::rewrite('/glosario')
+        );
+    }
+
+    /** Y las dos del pie ya se sirven de aquí. */
+    public function test_las_dos_paginas_del_pie_se_sirven_de_este_portal(): void
+    {
+        $this->assertSame(route('sitemap.page'), LegacyLink::rewrite('/mapa-del-sitio'));
+        $this->assertSame(route('statistics'), LegacyLink::rewrite('/estadisticas'));
     }
 
     /** El orden es el que colocó quien edita, no el de la fecha. */

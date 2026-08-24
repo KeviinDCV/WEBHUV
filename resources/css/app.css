@@ -589,6 +589,61 @@ html[data-huv-contrast='on'] {
         text-decoration: none;
     }
 
+    /* Árbol del mapa del sitio.
+
+       Las líneas son de adorno y por eso se dibujan con pseudoelementos: el
+       nivel ya lo dicen las listas anidadas, que es lo que anuncia un lector de
+       pantalla. La vertical de cada hermano baja de arriba abajo y la del
+       último se corta en su codo, que es lo que cierra la rama.
+
+       Las medidas van en rem y no en píxeles porque la barra de accesibilidad
+       agranda la letra desde la raíz: con píxeles, el codo se despegaría del
+       renglón en cuanto alguien pulsara «A+». */
+    .huv-tree ul {
+        margin: 0;
+        padding-left: 1.55rem;
+        list-style: none;
+    }
+
+    .huv-tree li {
+        position: relative;
+        padding-left: 1.1rem;
+    }
+
+    .huv-tree li::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        border-left: 1px solid var(--color-line);
+    }
+
+    .huv-tree li:last-child::before {
+        bottom: auto;
+        height: 0.9rem;
+    }
+
+    .huv-tree li::after {
+        content: '';
+        position: absolute;
+        top: 0.9rem;
+        left: 0;
+        width: 0.8rem;
+        border-top: 1px solid var(--color-line);
+    }
+
+    /* La raíz no cuelga de nada: ni sangrado ni codo. */
+    .huv-tree > ul,
+    .huv-tree > ul > li {
+        padding-left: 0;
+    }
+
+    .huv-tree > ul > li::before,
+    .huv-tree > ul > li::after {
+        content: none;
+    }
+
     /* Cuerpo de un contenido escrito con el editor de texto enriquecido.
        Las etiquetas vienen sin clases, así que se les da estilo aquí. */
     .huv-prose {

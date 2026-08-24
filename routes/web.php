@@ -52,6 +52,14 @@ Route::view('/peticiones-quejas-reclamos', 'pqrds')->name('pqrds');
 Route::view('/contactenos', 'contacto')->name('contact');
 Route::view('/transparencia', 'transparencia')->name('transparency');
 
+// El mapa del sitio para personas, que no es /sitemap.xml: aquel enumera las
+// más de dos mil direcciones publicadas para los buscadores, y este las
+// secciones por las que se navega. Los dos existen en el portal y hacen falta.
+Route::view('/mapa-del-sitio', 'mapa-del-sitio')->name('sitemap.page');
+
+// Estadísticas: existe y está en blanco a propósito. El motivo, en la vista.
+Route::view('/estadisticas', 'estadisticas')->name('statistics');
+
 /*
 | Temas: Presupuesto, Programas, Planes… Los que todavía no se han importado
 | siguen resolviéndose contra el portal actual; ver App\Support\LegacyLink.

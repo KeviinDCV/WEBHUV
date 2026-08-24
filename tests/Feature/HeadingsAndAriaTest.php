@@ -76,7 +76,7 @@ class HeadingsAndAriaTest extends TestCase
             'published_at' => now()->subDay(),
         ]);
 
-        $paginas = ['/', route('topics.show', $topic), route('transparency'), '/buscar?q=plan', route('contact')];
+        $paginas = ['/', route('topics.show', $topic), route('transparency'), '/buscar?q=plan', route('contact'), route('sitemap.page')];
 
         foreach ($paginas as $pagina) {
             $encabezados = $this->encabezados($this->get($pagina)->assertOk()->getContent());
@@ -148,7 +148,7 @@ class HeadingsAndAriaTest extends TestCase
     {
         $this->noticia();
 
-        foreach (['/', route('transparency'), '/buscar?q=donacion', route('branches')] as $pagina) {
+        foreach (['/', route('transparency'), '/buscar?q=donacion', route('branches'), route('sitemap.page')] as $pagina) {
             $encabezados = $this->encabezados($this->get($pagina)->assertOk()->getContent());
 
             $this->assertSame(
