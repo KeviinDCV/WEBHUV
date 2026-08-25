@@ -46,6 +46,9 @@ class ResponsiveImage
 
     private const SUBDIR = 'derivadas';
 
+    /** @var array<string, array{0: int, 1: int}|null> */
+    private static array $dimensions = [];
+
     /**
      * Genera las derivadas que falten y devuelve los anchos disponibles.
      *
@@ -153,6 +156,56 @@ class ResponsiveImage
                 Storage::disk($disk)->delete($derivada);
             }
         }
+    }
+
+    /**
+     * El tamaño real de una imagen, para reservarle su hueco exacto.
+     *
+     * Hace falta para pintar la foto entera y sin recortarla, que es lo que
+     * hace el portal de origen: cada noticia trae la suya con la proporción que
+     * tenga —las hay de 4:3, de 3:2 y verticales de 0,79— y la tarjeta se
+     * adapta. Sin `width` y `height` de verdad, el navegador no sabe cuánto
+     * hueco dejar y la página pega un salto al cargar cada imagen.
+     *
+     * Se lee del fichero y no de la base a propósito: es una propiedad del
+     * archivo, no del contenido, y así no puede quedarse desfasada cuando
+     * alguien reemplaza la imagen. `getimagesize` solo lee la cabecera —unos
+     * cientos de bytes— y el resultado se guarda para el resto de la petición,
+     * que es donde se repetiría: la misma foto sale en la portada, en el tema y
+     * en los relacionados.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    public static function dimensions(?string $path, string $disk = 'public'): ?array
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $almacen = Storage::disk($disk);
+
+        // Solo si el disco es local: sobre almacenamiento remoto esto sería una
+        // petición de red por imagen, y entonces sí costaría.
+        $absoluta = method_exists($almacen, 'path') ? $almacen->path($path) : null;
+
+        if ($absoluta === null || ! is_file($absoluta)) {
+            return null;
+        }
+
+        // La clave lleva la fecha y el tamaño del fichero, no solo su ruta: al
+        // reemplazar una imagen conservando el nombre, la anterior seguiría
+        // guardada y se reservaría el hueco del tamaño viejo.
+        $clave = $absoluta.':'.filemtime($absoluta).':'.filesize($absoluta);
+
+        if (array_key_exists($clave, self::$dimensions)) {
+            return self::$dimensions[$clave];
+        }
+
+        $medidas = @getimagesize($absoluta);
+
+        return self::$dimensions[$clave] = $medidas === false
+            ? null
+            : [(int) $medidas[0], (int) $medidas[1]];
     }
 
     /** banners/abc.jpg + 1280 → banners/derivadas/abc-1280.webp */

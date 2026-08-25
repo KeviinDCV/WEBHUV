@@ -127,6 +127,13 @@ return [
     | Menú principal
     |--------------------------------------------------------------------------
     | Cada ítem admite: label, url, key (para desplegables), children.
+    |
+    | OJO: esto ya no es lo que se pinta. El menú vive en la tabla `menu_items`
+    | para que se pueda editar sin tocar código, y esto es su semilla y su red:
+    | `php artisan db:seed --class=MenuSeeder` lo vuelca a la base, y mientras
+    | la base no tenga menú se sirve esto. Ver App\Models\MenuItem::tree().
+    |
+    | O sea: cambiar algo aquí NO cambia el portal si la tabla ya está llena.
     */
     'nav' => [
         [
@@ -217,6 +224,8 @@ return [
     | Dos niveles: las categorías a la izquierda y sus enlaces al lado.
     | Cada enlace declara 'path' (interno, resuelto contra legacy_base) o
     | 'url' (externo, se abre en una pestaña nueva).
+    |
+    | Semilla y red, igual que 'nav': manda la tabla `menu_items`.
     */
     'mega_menu' => [
 

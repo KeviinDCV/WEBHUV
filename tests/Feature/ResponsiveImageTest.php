@@ -345,8 +345,9 @@ class ResponsiveImageTest extends TestCase
         $this->assertStringContainsString('foto-880.webp 880w', $html);
         // Y el original sigue como reserva.
         $this->assertStringContainsString('contenidos/foto.jpg', $html);
-        // Con dimensiones declaradas, que son la red frente a un salto futuro.
-        $this->assertStringContainsString('width="440" height="248"', $html);
+        // Y con las medidas de verdad del fichero, que es lo que le dice al
+        // navegador cuánto hueco reservar ahora que la altura no la fija nadie.
+        $this->assertStringContainsString('width="1024" height="768"', $html);
     }
 
     /** Las miniaturas usan sus propios anchos, no los del banner. */
@@ -390,5 +391,125 @@ class ResponsiveImageTest extends TestCase
                 'Falta la versión de '.$ancho.' px'
             );
         }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* La foto entera                                                      */
+    /* ------------------------------------------------------------------ */
+
+    /** Una noticia con su foto, del tamaño que se pida. */
+    private function noticiaConFoto(int $ancho, int $alto, string $titulo, string $fichero): Content
+    {
+        $ruta = 'contenidos/'.$fichero.'.jpg';
+        Storage::disk('public')->put($ruta, $this->jpeg($ancho, $alto));
+
+        $noticia = Content::create([
+            'title' => $titulo,
+            'category' => Content::NEWS_CATEGORY,
+            'is_active' => true,
+            'show_in_feed' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $noticia->media()->create([
+            'type' => ContentMedia::TYPE_IMAGE,
+            'path' => $ruta,
+            'is_main' => true,
+            'position' => 1,
+        ]);
+
+        return $noticia;
+    }
+
+    /**
+     * La tarjeta no recorta la foto.
+     *
+     * Es lo que hace el portal de origen: cada noticia trae la suya con la
+     * proporción que tenga y la tarjeta se adapta. Aquí se forzaba una altura
+     * de 150 px con `object-cover`, así que una foto de grupo salía partida.
+     */
+    public function test_la_tarjeta_no_recorta_la_foto(): void
+    {
+        Storage::fake('public');
+
+        $this->noticiaConFoto(1024, 768, 'Jornada de donacion', 'apaisada');
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        // Solo la tarjeta del muro. La franja azul de «Noticias» es otra
+        // sección, con otro diseño —una nota destacada y sus titulares, todas
+        // en 16:9 a propósito— y ahí el recorte no sobra.
+        preg_match_all('~<picture>.*?</picture>~s', $html, $imagenes);
+
+        $tarjeta = collect($imagenes[0])->first(fn (string $img): bool => str_contains($img, 'apaisada'));
+
+        $this->assertNotNull($tarjeta, 'No se encontró la imagen de la tarjeta.');
+
+        // Nada que corte: ni recorte, ni proporción impuesta, ni altura fija.
+        $this->assertStringNotContainsString('object-cover', $tarjeta);
+        $this->assertStringNotContainsString('aspect-[', $tarjeta);
+        $this->assertStringNotContainsString('h-[150px]', $tarjeta);
+        $this->assertStringContainsString('h-auto', $tarjeta);
+
+        // Y el contenedor tampoco le impone una altura.
+        $this->assertStringNotContainsString("view === 'grid' ? 'h-[150px]'", $html);
+    }
+
+    /**
+     * Cada foto conserva SU proporción, no una común.
+     *
+     * Las noticias del portal las hay apaisadas de 4:3, de 3:2 y verticales de
+     * 0,79. Declarar una proporción única las recortaría todas menos una.
+     */
+    public function test_cada_foto_conserva_su_propia_proporcion(): void
+    {
+        Storage::fake('public');
+
+        $this->noticiaConFoto(1024, 768, 'Jornada de donacion', 'apaisada');
+        $this->noticiaConFoto(1024, 1289, 'Rueda de prensa del hospital', 'vertical');
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertStringContainsString('width="1024" height="768"', $html);
+        $this->assertStringContainsString('width="1024" height="1289"', $html);
+    }
+
+    /** Y las medidas salen del fichero, no de un valor escrito a mano. */
+    public function test_las_medidas_se_leen_del_fichero(): void
+    {
+        Storage::fake('public');
+
+        $ruta = 'contenidos/foto.jpg';
+        Storage::disk('public')->put($ruta, $this->jpeg(913, 600));
+
+        $this->assertSame([913, 600], ResponsiveImage::dimensions($ruta));
+    }
+
+    /**
+     * Sin fichero no se inventa nada.
+     *
+     * Más vale que el navegador no sepa cuánto reservar —y la página dé un
+     * salto en esa imagen— a que reserve un hueco del tamaño equivocado.
+     */
+    public function test_sin_fichero_no_hay_medidas(): void
+    {
+        Storage::fake('public');
+
+        $this->assertNull(ResponsiveImage::dimensions(null));
+        $this->assertNull(ResponsiveImage::dimensions('contenidos/no-existe.jpg'));
+    }
+
+    /** Y si la imagen se reemplaza, las medidas cambian con ella. */
+    public function test_al_reemplazar_la_imagen_las_medidas_se_actualizan(): void
+    {
+        Storage::fake('public');
+
+        $ruta = 'contenidos/foto.jpg';
+
+        Storage::disk('public')->put($ruta, $this->jpeg(1024, 768));
+        $this->assertSame([1024, 768], ResponsiveImage::dimensions($ruta));
+
+        Storage::disk('public')->put($ruta, $this->jpeg(600, 900));
+        $this->assertSame([600, 900], ResponsiveImage::dimensions($ruta));
     }
 }

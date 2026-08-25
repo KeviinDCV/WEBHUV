@@ -17,6 +17,7 @@ return [
     ],
 
     'barra_admin' => [
+        'menu' => 'Portal menu',
         'sesion_iniciada' => 'Signed in as',
         'controles_edicion' => 'Editing controls',
         'cerrar_sesion' => 'Sign out',

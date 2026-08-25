@@ -391,8 +391,16 @@ class TopicArticleTest extends TestCase
         $this->assertSame(1, substr_count($etiqueta[0], 'class='), $etiqueta[0]);
         $this->assertStringContainsString('flex-col', $etiqueta[0]);
 
-        // La foto manda por proporción, no por la altura de un padre sin altura.
-        $this->assertStringContainsString('aspect-[16/9]', $html);
+        // La foto ocupa el ancho y se queda con la altura que le toque por su
+        // propia proporción: ni la recorta un `object-cover`, ni se la impone
+        // un 16:9, ni la estira un padre sin altura. Es lo que hace el portal
+        // de origen, donde cada noticia trae la suya como la subieron.
+        preg_match('~<picture>.*?</picture>~s', $html, $foto);
+
+        $this->assertNotEmpty($foto, 'No se encontró la foto de la tarjeta.');
+        $this->assertStringContainsString('h-auto', $foto[0]);
+        $this->assertStringNotContainsString('object-cover', $foto[0]);
+        $this->assertStringNotContainsString('aspect-[', $foto[0]);
     }
 
     /** Un «Link» del portal es una noticia cuyo destino está fuera. */

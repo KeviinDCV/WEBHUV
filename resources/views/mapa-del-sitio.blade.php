@@ -32,7 +32,7 @@
           la lista.
     --}}
     @php
-        $nav = config('huv.nav');
+        $nav = App\Models\MenuItem::bar();
 
         // La portada es la raíz y todo lo demás cuelga de ella. Las secciones
         // de la barra y los grupos del menú completo son la misma cosa vista
@@ -47,7 +47,7 @@
                 'field' => 'label',
                 'children' => $item['children'] ?? [],
             ])
-            ->concat(collect(config('huv.mega_menu'))->map(fn (array $grupo): array => [
+            ->concat(collect(App\Models\MenuItem::mega())->map(fn (array $grupo): array => [
                 'entry' => $grupo,
                 'field' => 'title',
                 'children' => $grupo['links'],

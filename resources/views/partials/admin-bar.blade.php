@@ -31,6 +31,14 @@
                     {{ __('estructura.barra_admin.controles_edicion') }}
                 </button>
 
+                {{-- El menú es lo único de la administración que no cuelga de
+                     una página: no es de ninguna, es de todas. Por eso se llega
+                     desde aquí y no con un lápiz sobre una sección. --}}
+                <a href="{{ route('admin.menu.index') }}"
+                   class="text-13 font-semibold text-on-brand underline underline-offset-4">
+                    {{ __('estructura.barra_admin.menu') }}
+                </a>
+
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"

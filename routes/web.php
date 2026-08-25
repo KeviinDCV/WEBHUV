@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ContentBlockController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\MediaLibraryController;
+use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\ShortcutController;
 use App\Http\Controllers\Admin\TopicBulkController;
 use App\Http\Controllers\Admin\TopicItemController;
@@ -142,6 +143,23 @@ Route::middleware('auth')
         Route::get('accesos/{block}/{shortcut}/editar', [ShortcutController::class, 'editShortcut'])->name('shortcuts.item.edit');
         Route::put('accesos/{block}/{shortcut}', [ShortcutController::class, 'updateShortcut'])->name('shortcuts.item.update');
         Route::delete('accesos/{block}/{shortcut}', [ShortcutController::class, 'destroyShortcut'])->name('shortcuts.item.destroy');
+
+        /*
+        | El menú del portal.
+        |
+        | Es lo único de la administración que no cuelga de una página: el menú
+        | no es de ninguna, es de todas. Por eso se llega desde la barra azul y
+        | no desde un lápiz sobre una sección.
+        */
+        Route::get('menu', [MenuController::class, 'index'])->name('menu.index');
+        Route::post('menu/copiar', [MenuController::class, 'adopt'])->name('menu.adopt');
+        Route::get('menu/nueva', [MenuController::class, 'create'])->name('menu.create');
+        Route::post('menu', [MenuController::class, 'store'])->name('menu.store');
+        Route::get('menu/{item}/editar', [MenuController::class, 'edit'])->name('menu.edit');
+        Route::put('menu/{item}', [MenuController::class, 'update'])->name('menu.update');
+        Route::delete('menu/{item}', [MenuController::class, 'destroy'])->name('menu.destroy');
+        Route::post('menu/{item}/mover', [MenuController::class, 'move'])->name('menu.move');
+        Route::post('menu/{item}/visible', [MenuController::class, 'toggle'])->name('menu.toggle');
 
         // Biblioteca de imágenes reutilizables.
         Route::post('biblioteca/categorias', [MediaLibraryController::class, 'storeCategory'])->name('library.categories.store');

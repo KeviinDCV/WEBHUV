@@ -14,6 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([ContentSeeder::class, ShortcutSeeder::class]);
+        $this->call([MenuSeeder::class, ContentSeeder::class, ShortcutSeeder::class]);
     }
 }

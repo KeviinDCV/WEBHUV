@@ -17,6 +17,7 @@ return [
     ],
 
     'barra_admin' => [
+        'menu' => 'Menú del portal',
         'sesion_iniciada' => 'Sesión iniciada como',
         'controles_edicion' => 'Controles de edición',
         'cerrar_sesion' => 'Cerrar sesión',

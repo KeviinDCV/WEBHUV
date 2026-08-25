@@ -1,8 +1,12 @@
 @php
+    use App\Models\MenuItem;
     use App\Support\ConfigLabel;
 
-    $items = config('huv.nav');
-    $mega = config('huv.mega_menu');
+    // De la base, y de la configuración mientras la base no tenga menú. Los dos
+    // caminos devuelven la misma forma de array, así que de aquí abajo nada
+    // cambia; ver MenuItem::tree().
+    $items = MenuItem::bar();
+    $mega = MenuItem::mega();
     $megaKeys = array_column($mega, 'key');
 @endphp
 

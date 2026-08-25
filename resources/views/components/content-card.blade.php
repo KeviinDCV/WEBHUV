@@ -26,31 +26,44 @@
         <a href="{{ $content->url() }}" tabindex="-1" aria-hidden="true"
            @if ($content->isExternal()) target="_blank" rel="noopener noreferrer" @endif
            class="block shrink-0 {{ $enTema ? 'w-full' : '' }}"
-           @unless ($enTema) :class="view === 'grid' ? 'h-[150px]' : 'h-[150px] sm:h-auto sm:w-[220px]'" @endunless>
-            {{-- En el tema manda la proporción, no la altura del padre: con
-                 `h-full` sobre un contenedor sin altura, la foto se dibuja a su
-                 tamaño real y desborda la tarjeta.
+           @unless ($enTema) :class="view === 'grid' ? '' : 'sm:w-[220px]'" @endunless>
+            {{-- La foto entera, con su proporción, y sin recortarla.
+
+                 Es lo que hace el portal de origen: cada noticia trae la suya
+                 como la subieron —hay de 4:3, de 3:2 y verticales de 0,79— y la
+                 tarjeta se adapta a ella. Aquí se forzaba una altura de 150 px
+                 con `object-cover`, así que una foto de grupo salía partida por
+                 la mitad. Que las tarjetas queden de distinta altura no es un
+                 problema: para eso está el acomodo en mampostería.
 
                  Y con miniatura si la hay: el original de una noticia llega a
-                 pesar dos megas y aquí se pinta en 220×150. Cada tanda de
-                 «Cargar más» traía casi un mega para seis sellos de correo. Sin
-                 miniatura generada todavía, se sirve el original y se ve igual.
+                 pesar dos megas y aquí se pinta a 550 px de ancho como mucho.
+                 Sin miniatura generada todavía, se sirve el original y se ve
+                 igual.
 
-                 `width`/`height` no arreglan ningún salto de maquetación —el
-                 contenedor ya reserva la altura y el desplazamiento medido es
-                 cero—: están como red para que siga siendo así. --}}
-            @php $miniatura = App\Support\ResponsiveImage::srcset($content->mainImage()?->path, 'public', App\Support\ResponsiveImage::CARD_WIDTHS); @endphp
+                 `width` y `height` son los de verdad, leídos del fichero, y
+                 ahora sí hacen falta: sin ellos el navegador no sabe cuánta
+                 altura reservar —ya no la fija el contenedor— y la página daría
+                 un salto al cargar cada foto. --}}
+            @php
+                $imagen = $content->mainImage();
+                $miniatura = App\Support\ResponsiveImage::srcset($imagen?->path, 'public', App\Support\ResponsiveImage::CARD_WIDTHS);
+                $medidas = App\Support\ResponsiveImage::dimensions($imagen?->path);
+            @endphp
 
             <picture>
                 @if ($miniatura)
+                    {{-- En rejilla la tarjeta ocupa media fila; en lista, 220 px.
+                         Se declara la primera porque quedarse corto se ve —una
+                         foto borrosa— y pasarse solo cuesta unos kilobytes. --}}
                     <source type="image/webp" srcset="{{ $miniatura }}"
-                            sizes="{{ $enTema ? '(min-width: 768px) 50vw, 100vw' : '220px' }}">
+                            sizes="(min-width: 768px) 50vw, 100vw">
                 @endif
 
                 <img src="{{ $content->imageUrl() }}" alt=""
-                     width="440" height="248"
+                     @if ($medidas) width="{{ $medidas[0] }}" height="{{ $medidas[1] }}" @endif
                      loading="lazy" decoding="async"
-                     class="{{ $enTema ? 'aspect-[16/9] w-full object-cover' : 'size-full object-cover' }}">
+                     class="block h-auto w-full">
             </picture>
         </a>
     @endif
