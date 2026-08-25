@@ -306,4 +306,79 @@ class QualityTest extends TestCase
             $this->assertSame($bueno, $metodo->invoke($comando, $bueno));
         }
     }
+
+    /* ------------------------------------------------------------------ */
+    /* Colores que no existen                                              */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Ninguna plantilla usa el nombre de una FAMILIA de color como si fuera un
+     * color.
+     *
+     * La paleta declara «--color-rule-brand» y «--color-rule-accent», pero
+     * nunca declaró «--color-rule». Ocho sitios escribían `border-rule`, así
+     * que Tailwind no generaba esa clase, `border-t` se quedaba sin color y el
+     * navegador caía en `currentColor`: una raya casi negra en medio de las
+     * tablas y del índice de Transparencia. Llevaba meses ahí, y no se veía
+     * como un fallo sino como una línea fea.
+     *
+     * Es un fallo que no avisa: no hay error, ni en consola ni en la
+     * compilación, solo un color que no es. Por eso se comprueba aquí.
+     *
+     * El criterio es preciso a propósito —«existe --color-X-algo pero no
+     * --color-X»— para no dar falsos positivos con las decenas de clases de
+     * Tailwind que empiezan igual y no son colores: `text-balance`,
+     * `border-dashed`, `bg-cover`…
+     */
+    public function test_ninguna_plantilla_usa_una_familia_de_color_como_si_fuera_un_color(): void
+    {
+        $css = (string) file_get_contents(resource_path('css/app.css'));
+
+        preg_match_all('/--color-([a-z0-9-]+)\s*:/', $css, $c);
+
+        $definidos = array_flip($c[1]);
+
+        // Las raíces de familia: «rule» de «rule-brand», «line» de «line-soft»…
+        $familias = [];
+
+        foreach (array_keys($definidos) as $nombre) {
+            $trozos = explode('-', $nombre);
+
+            for ($i = 1; $i < count($trozos); $i++) {
+                $raiz = implode('-', array_slice($trozos, 0, $i));
+
+                if (! isset($definidos[$raiz])) {
+                    $familias[$raiz] = true;
+                }
+            }
+        }
+
+        $prefijos = 'border|bg|text|fill|stroke|decoration|outline|ring|divide|from|via|to|accent|caret|shadow';
+        $fallos = [];
+
+        foreach (glob(resource_path('views').'/{,*/,*/*/,*/*/*/}*.blade.php', GLOB_BRACE) as $ruta) {
+            $contenido = (string) file_get_contents($ruta);
+
+            preg_match_all('/\b(?:'.$prefijos.')-([a-z0-9-]+)/', $contenido, $usos);
+
+            foreach ($usos[1] as $nombre) {
+                // Las direccionales llevan letra en medio: border-t-rule.
+                $limpio = preg_replace('/^[tblrxy]-/', '', $nombre);
+
+                foreach (array_unique([$nombre, $limpio]) as $candidato) {
+                    if (isset($familias[$candidato])) {
+                        $fallos[] = basename($ruta).' → '.$candidato;
+                    }
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            array_values(array_unique($fallos)),
+            'Hay plantillas usando el nombre de una familia de color como color. '
+            .'Tailwind no genera esa clase y el navegador cae en currentColor, '
+            .'que en este portal es azul oscuro casi negro.'
+        );
+    }
 }

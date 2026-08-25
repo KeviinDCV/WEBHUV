@@ -24,6 +24,12 @@ class LegacyLink
     /** @var list<string>|null */
     private static ?array $migratedTopics = null;
 
+    /** @var array<string, true>|null «tema/elemento» de todo lo publicado. */
+    private static ?array $itemSlugs = null;
+
+    /** @var array<string, int>|null «tema/categoria» => id de la categoría. */
+    private static ?array $categoryIds = null;
+
     /**
      * Páginas propias ya migradas, las que no son un tema.
      *
@@ -222,16 +228,18 @@ class LegacyLink
 
         [$topicSlug, $itemSlug] = $parts;
 
+        // La comprobación va antes de tocar el mapa a propósito: si el tema no
+        // está migrado no hay nada que buscar, y así una página que solo enlace
+        // a temas sin migrar no paga ni una consulta.
         if (! in_array($topicSlug, self::migratedTopics(), true)) {
             return null;
         }
 
-        $item = TopicItem::query()
-            ->whereHas('topic', fn ($query) => $query->where('slug', $topicSlug))
-            ->where('slug', $itemSlug)
-            ->first();
+        if (! isset(self::itemSlugs()[$topicSlug.'/'.$itemSlug])) {
+            return null;
+        }
 
-        return $item ? route('topics.items.show', [$topicSlug, $itemSlug]) : null;
+        return route('topics.items.show', [$topicSlug, $itemSlug]);
     }
 
     /**
@@ -249,18 +257,89 @@ class LegacyLink
             preg_replace('/-\d+$/', '', $category),
         ])));
 
-        $matches = TopicCategory::query()
-            ->whereHas('topic', fn ($query) => $query->where('slug', $topic))
-            ->whereIn('slug', $candidates)
-            ->pluck('id', 'slug');
+        $categorias = self::categoryIds();
 
         foreach ($candidates as $candidate) {
-            if ($matches->has($candidate)) {
-                return (int) $matches[$candidate];
+            if (isset($categorias[$topic.'/'.$candidate])) {
+                return $categorias[$topic.'/'.$candidate];
             }
         }
 
         return null;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Los dos mapas                                                       */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Todos los elementos publicados, como «tema/elemento».
+     *
+     * Antes se preguntaba por cada enlace, uno a uno. El índice de
+     * Transparencia tiene veintitrés enlaces de dos tramos, así que pintarlo
+     * costaba veintitrés consultas —más las doce de las categorías— para
+     * responder algo que no cambia entre ellas. Ahora es una sola consulta de
+     * dos columnas, y las veintitrés preguntas se resuelven en memoria.
+     *
+     * El mapa trae TODO, también lo de los temas sin importar. Llevaba un filtro
+     * por `imported_at` y lo quité: quien decide es la comprobación de
+     * itemRoute(), que corta antes de llegar aquí, así que el filtro no cambiaba
+     * ninguna respuesta —ninguna mutación lo detectaba— y hoy tampoco ahorraba
+     * ni una fila, porque los cuarenta y siete temas están importados. Una
+     * condición que no hace nada y parece que sí es peor que no tenerla.
+     *
+     * @return array<string, true>
+     */
+    private static function itemSlugs(): array
+    {
+        if (self::$itemSlugs !== null) {
+            return self::$itemSlugs;
+        }
+
+        $mapa = [];
+
+        $filas = TopicItem::query()
+            ->join('topics', 'topics.id', '=', 'topic_items.topic_id')
+            ->select('topics.slug as tema', 'topic_items.slug as elemento')
+            // Sin hidratar modelos: son dos cadenas por fila y aquí hay casi
+            // dos mil elementos.
+            ->toBase()
+            ->get();
+
+        foreach ($filas as $fila) {
+            $mapa[$fila->tema.'/'.$fila->elemento] = true;
+        }
+
+        return self::$itemSlugs = $mapa;
+    }
+
+    /**
+     * Las categorías de todos los temas, como «tema/categoria» => id.
+     *
+     * Mismo motivo que arriba: el índice de Transparencia enlaza doce veces a
+     * un tema ya filtrado por categoría, y cada una era su propia consulta.
+     *
+     * @return array<string, int>
+     */
+    private static function categoryIds(): array
+    {
+        if (self::$categoryIds !== null) {
+            return self::$categoryIds;
+        }
+
+        $mapa = [];
+
+        $filas = TopicCategory::query()
+            ->join('topics', 'topics.id', '=', 'topic_categories.topic_id')
+            ->select('topics.slug as tema', 'topic_categories.slug as categoria', 'topic_categories.id')
+            ->toBase()
+            ->get();
+
+        foreach ($filas as $fila) {
+            $mapa[$fila->tema.'/'.$fila->categoria] = (int) $fila->id;
+        }
+
+        return self::$categoryIds = $mapa;
     }
 
     /** @return list<string> */
@@ -272,9 +351,17 @@ class LegacyLink
             ->all();
     }
 
-    /** Solo para las pruebas: obliga a volver a consultar los temas migrados. */
+    /**
+     * Solo para las pruebas: obliga a volver a consultar.
+     *
+     * Los tres mapas se vacían juntos porque los tres se llenan de lo mismo
+     * —lo que hay importado— y dejar uno a medias daría enlaces incoherentes:
+     * un tema migrado cuyos elementos todavía apuntan al portal anterior.
+     */
     public static function forget(): void
     {
         self::$migratedTopics = null;
+        self::$itemSlugs = null;
+        self::$categoryIds = null;
     }
 }

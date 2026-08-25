@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Topic;
 use App\Models\TopicItem;
 use App\Support\LegacyLink;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -302,5 +303,106 @@ class TransparencyTest extends TestCase
         }
 
         $this->assertSame([], $sinDestino);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Coste                                                               */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * El índice no hace una consulta por enlace.
+     *
+     * Resolver un enlace de dos tramos —«/control/informe-al-entidad»— es
+     * preguntar si ese elemento existe en ese tema, y eso se preguntaba una vez
+     * por enlace: veintitrés consultas para los elementos y doce más para las
+     * categorías, treinta y siete en total, para pintar un índice que no cambia
+     * casi nunca. Ahora son dos mapas que se traen de una vez.
+     *
+     * Se comprueban dos cosas, y hacen falta las dos: que no haya una consulta
+     * por enlace, y un techo fijo. Sin el techo, doce consultas —una por cada
+     * enlace con categoría— seguirían pasando por «menos de veintitrés».
+     */
+    public function test_el_indice_no_hace_una_consulta_por_enlace(): void
+    {
+        $dosTramos = $this->enlacesDeDosTramos();
+
+        // Con menos de diez no habría diferencia visible entre una consulta por
+        // enlace y un mapa, y la prueba no probaría nada.
+        $this->assertGreaterThan(10, count($dosTramos), 'El índice ya no tiene enlaces de dos tramos.');
+
+        // Se migran los temas a los que apuntan, con su elemento: es lo que
+        // hace que el enlace se resuelva aquí y dispare la consulta.
+        foreach ($dosTramos as [$temaSlug, $elementoSlug]) {
+            $tema = Topic::firstOrCreate(
+                ['slug' => $temaSlug],
+                ['name' => Str::headline($temaSlug), 'legacy_content_types' => ['Document'], 'imported_at' => now()]
+            );
+
+            $tema->items()->firstOrCreate(
+                ['slug' => $elementoSlug],
+                ['kind' => TopicItem::KIND_DOCUMENT, 'title' => Str::headline($elementoSlug), 'published_at' => now()->subDay()]
+            );
+        }
+
+        LegacyLink::forget();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->get(route('transparency'))->assertOk();
+
+        $consultas = count(DB::getQueryLog());
+
+        DB::disableQueryLog();
+
+        $this->assertLessThan(
+            count($dosTramos),
+            $consultas,
+            'El índice hace '.$consultas.' consultas para '.count($dosTramos).' enlaces de dos tramos: '
+            .'ha vuelto a preguntar uno por uno.'
+        );
+
+        // Y un techo fijo, porque la comprobación de arriba sola se conforma
+        // con poco: doce consultas para veintitrés enlaces también «bajan de
+        // veintitrés», y serían una por cada enlace con categoría. Hoy son
+        // cinco; ocho deja margen para un par más sin tapar una vuelta atrás.
+        $this->assertLessThanOrEqual(
+            8,
+            $consultas,
+            'El índice hace '.$consultas.' consultas. Eran cinco: algo volvió a preguntar de uno en uno.'
+        );
+    }
+
+    /**
+     * Los enlaces del índice con forma «tema/elemento», sacados de la propia
+     * configuración para que la prueba siga valiendo si el índice cambia.
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    private function enlacesDeDosTramos(): array
+    {
+        $encontrados = [];
+
+        $recorrer = function (array $entradas) use (&$recorrer, &$encontrados): void {
+            foreach ($entradas as $entrada) {
+                $path = $entrada['path'] ?? null;
+
+                if (is_string($path) && ! str_starts_with($path, '/tema/')) {
+                    $partes = explode('/', trim($path, '/'));
+
+                    if (count($partes) === 2) {
+                        $encontrados[] = $partes;
+                    }
+                }
+
+                $recorrer($entrada['children'] ?? []);
+            }
+        };
+
+        foreach (config('huv.transparency_index.groups') as $grupo) {
+            $recorrer($grupo['items']);
+        }
+
+        return $encontrados;
     }
 }

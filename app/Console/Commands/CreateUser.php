@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
 use function Laravel\Prompts\password;
+use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
 /**
@@ -67,14 +68,30 @@ class CreateUser extends Command
             return self::FAILURE;
         }
 
+        // El permiso se pregunta al final, cuando ya se sabe que la cuenta se
+        // va a crear: pedirlo antes de comprobar que las dos contraseñas
+        // coinciden sería pedir un dato para tirarlo acto seguido.
+        //
+        // Y el operador va primero, y por tanto marcado por omisión: quien
+        // pulse Enter sin leer se lleva el permiso menor, no el mayor.
+        $role = select(
+            label: 'Permiso',
+            options: [
+                User::ROLE_OPERATOR => 'Operador — edita el portal',
+                User::ROLE_ADMIN => 'Administrador — además, cuentas y estadísticas',
+            ],
+            default: User::ROLE_OPERATOR,
+        );
+
         $user = User::create([
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($secret),
+            'role' => $role,
         ]);
 
         $this->newLine();
-        $this->info("Cuenta creada: {$user->name} <{$user->email}>");
+        $this->info("Cuenta creada: {$user->name} <{$user->email}> — {$user->role}");
 
         return self::SUCCESS;
     }

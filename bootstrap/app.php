@@ -15,6 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [App\Http\Middleware\SetLocale::class]);
 
         /*
+         | El recuento de visitas, también en «web» y no en la pila global.
+         |
+         | Necesita la sesión para saber si dos páginas las vio el mismo
+         | navegador, y la sesión solo existe dentro de este grupo. Anota al
+         | terminar —en `terminate()`— así que la escritura ocurre con la
+         | respuesta ya enviada y no la retrasa.
+        */
+        $middleware->web(append: [App\Http\Middleware\RecordVisit::class]);
+
+        /*
          | Y antes de resolver los modelos de la ruta.
          |
          | Añadido al final del grupo, el idioma se fijaba DESPUÉS de buscar en

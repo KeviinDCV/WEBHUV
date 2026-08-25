@@ -11,6 +11,37 @@
 @section('subheading', __('admin-menu.subtitulo'))
 
 @section('content')
+    {{-- ---------------- Solo para el administrador ----------------
+
+         Va arriba y separado del resto a propósito: no es una parte más del
+         menú del portal, es lo que este rol puede y el otro no. El operador no
+         ve este bloque, y aunque llegara a la dirección a mano se encontraría
+         con el 403: quien decide es `can:administrar` en las rutas, no esto. --}}
+    @can('administrar')
+        <section aria-labelledby="huv-administracion"
+                 class="mb-9 rounded-[4px] border border-line border-l-4 border-l-navy bg-card px-5 py-4">
+            <h2 id="huv-administracion" class="m-0 font-display text-15 font-bold text-heading">
+                {{ __('estructura.admin.solo_administrador') }}
+            </h2>
+
+            <ul class="m-0 mt-3 flex flex-wrap gap-x-7 gap-y-2 p-0 text-14">
+                <li class="list-none">
+                    <a href="{{ route('admin.users.index') }}"
+                       class="font-semibold text-link underline underline-offset-4">
+                        {{ __('admin-usuarios.titulo') }}
+                    </a>
+                </li>
+
+                <li class="list-none">
+                    <a href="{{ route('admin.statistics.index') }}"
+                       class="font-semibold text-link underline underline-offset-4">
+                        {{ __('admin-estadisticas.titulo') }}
+                    </a>
+                </li>
+            </ul>
+        </section>
+    @endcan
+
     {{--
         El menú del portal.
 
@@ -105,7 +136,7 @@
                             @include('admin.menu.partials.fila', ['item' => $item])
 
                             @if ($item->children->isNotEmpty())
-                                <div class="flex flex-col gap-px border-t border-rule bg-rule pl-6">
+                                <div class="flex flex-col gap-px border-t border-divider bg-divider pl-6">
                                     @foreach ($item->children as $hijo)
                                         <div class="bg-card">
                                             @include('admin.menu.partials.fila', ['item' => $hijo])
@@ -114,7 +145,7 @@
                                 </div>
                             @endif
 
-                            <div class="border-t border-rule px-4 py-3">
+                            <div class="border-t border-divider px-4 py-3">
                                 <a href="{{ route('admin.menu.create', ['padre' => $item->id]) }}"
                                    class="inline-flex items-center gap-2 text-13-5 font-semibold text-link
                                           underline underline-offset-4">

@@ -182,4 +182,34 @@ class AuthenticationTest extends TestCase
         $this->actingAs($this->usuario())->get('/')
             ->assertSee('data-huv-edit="accesos-'.$block->id.'"', false);
     }
+
+    /**
+     * Y hay un segundo tope, este por origen y no por cuenta.
+     *
+     * El de arriba frena que adivinen la contraseña de ALGUIEN concreto. No
+     * frena lo contrario: probar la misma contraseña frecuente contra cien
+     * correos distintos, porque cada correo estrena su propio cubo y ninguno
+     * llega al tope. Y los correos del hospital siguen un patrón publicado.
+     *
+     * Lo encontró una revisión adversarial del reparto de permisos, y es de las
+     * cosas que no se ven mirando una cuenta a la vez.
+     */
+    public function test_probar_muchas_cuentas_desde_el_mismo_sitio_tambien_se_limita(): void
+    {
+        // Cada intento va contra un correo distinto, así que el tope por cuenta
+        // no llega a saltar nunca: si esta prueba pasa, es por el de origen.
+        for ($i = 1; $i <= 10; $i++) {
+            $this->post('/ingresar', [
+                'email' => 'victima'.$i.'@huv.gov.co',
+                'password' => 'Contrasena-Frecuente-2026#',
+            ]);
+        }
+
+        $this->post('/ingresar', [
+            'email' => 'victima11@huv.gov.co',
+            'password' => 'Contrasena-Frecuente-2026#',
+        ])->assertStatus(429);
+
+        $this->assertGuest();
+    }
 }

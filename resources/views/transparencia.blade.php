@@ -94,7 +94,7 @@
                                 @foreach ($grupo['items'] as $indiceEntrada => $entrada)
                                     @php $orden = $numero.'.'.($indiceEntrada + 1); @endphp
 
-                                    <li class="border-b border-rule last:border-b-0">
+                                    <li class="border-b border-divider last:border-b-0">
                                         <x-transparency-link :link="$entrada" :order="$orden" />
 
                                         @if (! empty($entrada['children']))
@@ -102,9 +102,9 @@
                                                  queda en 4,17:1 y el mínimo para texto es 4,5:1.
                                                  El tercer nivel ya se distingue por el sangrado y
                                                  por la raya de arriba. --}}
-                                            <ol class="m-0 list-none border-t border-rule p-0">
+                                            <ol class="m-0 list-none border-t border-divider p-0">
                                                 @foreach ($entrada['children'] as $indiceHija => $hija)
-                                                    <li class="border-b border-rule last:border-b-0">
+                                                    <li class="border-b border-divider last:border-b-0">
                                                         <x-transparency-link :link="$hija"
                                                                              :order="$orden.'.'.($indiceHija + 1)"
                                                                              nested />

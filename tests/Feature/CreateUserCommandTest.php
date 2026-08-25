@@ -31,6 +31,7 @@ class CreateUserCommandTest extends TestCase
     private const BUZON = 'Correo institucional';
     private const CLAVE = 'Contraseña';
     private const REPITA = 'Repita la contraseña';
+    private const PERMISO = 'Permiso';
 
     /**
      * El comando con sus respuestas escritas.
@@ -46,12 +47,21 @@ class CreateUserCommandTest extends TestCase
      *
      * @param  list<array{string, string}>  $respuestas  Pregunta y respuesta, en orden.
      */
-    private function comando(array $respuestas, bool $simple = false): PendingCommand
+    private function comando(array $respuestas, bool $simple = false, ?string $rol = null): PendingCommand
     {
         $comando = $this->artisan('huv:usuario', $simple ? ['--simple' => true] : []);
 
         foreach ($respuestas as [$pregunta, $respuesta]) {
             $comando->expectsQuestion($pregunta, $respuesta);
+        }
+
+        // El permiso solo se pregunta cuando la cuenta va a crearse de verdad,
+        // así que las pruebas que se cortan antes no lo declaran.
+        if ($rol !== null) {
+            $comando->expectsChoice(self::PERMISO, $rol, [
+                User::ROLE_OPERATOR => 'Operador — edita el portal',
+                User::ROLE_ADMIN => 'Administrador — además, cuentas y estadísticas',
+            ]);
         }
 
         return $comando;
@@ -104,7 +114,7 @@ class CreateUserCommandTest extends TestCase
     /** Y una que cumple, sí. */
     public function test_sin_la_opcion_una_contrasena_que_cumple_crea_la_cuenta(): void
     {
-        $this->comando($this->alta('Contrasena-2026!'))->assertSuccessful()->run();
+        $this->comando($this->alta('Contrasena-2026!'), rol: User::ROLE_OPERATOR)->assertSuccessful()->run();
 
         $usuario = User::where('email', self::CORREO)->first();
 
@@ -120,7 +130,7 @@ class CreateUserCommandTest extends TestCase
     /** Con --simple valen cuatro caracteres. */
     public function test_con_la_opcion_simple_valen_cuatro_caracteres(): void
     {
-        $this->comando($this->alta('1234'), simple: true)->assertSuccessful()->run();
+        $this->comando($this->alta('1234'), simple: true, rol: User::ROLE_OPERATOR)->assertSuccessful()->run();
 
         $usuario = User::where('email', self::CORREO)->first();
 
@@ -131,7 +141,7 @@ class CreateUserCommandTest extends TestCase
     /** Pero avisa de lo que es, para que no se use sin darse cuenta. */
     public function test_la_opcion_simple_deja_aviso(): void
     {
-        $this->comando($this->alta('1234'), simple: true)
+        $this->comando($this->alta('1234'), simple: true, rol: User::ROLE_OPERATOR)
             ->expectsOutputToContain('Sin reglas de contraseña')
             ->assertSuccessful()
             ->run();
@@ -140,7 +150,7 @@ class CreateUserCommandTest extends TestCase
     /** Y sin la opción no hay aviso que dar. */
     public function test_sin_la_opcion_no_sale_ningun_aviso(): void
     {
-        $this->comando($this->alta('Contrasena-2026!'))
+        $this->comando($this->alta('Contrasena-2026!'), rol: User::ROLE_OPERATOR)
             ->doesntExpectOutputToContain('Sin reglas de contraseña')
             ->assertSuccessful()
             ->run();
@@ -189,5 +199,32 @@ class CreateUserCommandTest extends TestCase
         ], simple: true)->assertFailed()->run();
 
         $this->assertDatabaseCount('users', 1);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* El permiso                                                          */
+    /* ------------------------------------------------------------------ */
+
+    /** Por consola se puede dar de alta un administrador. */
+    public function test_por_consola_se_puede_crear_un_administrador(): void
+    {
+        $this->comando($this->alta('Contrasena-2026!'), rol: User::ROLE_ADMIN)
+            ->assertSuccessful()
+            ->run();
+
+        $usuario = User::where('email', self::CORREO)->firstOrFail();
+
+        $this->assertSame(User::ROLE_ADMIN, $usuario->role);
+        $this->assertTrue($usuario->isAdmin());
+    }
+
+    /** Y el permiso menor es el que sale marcado. */
+    public function test_el_permiso_que_viene_marcado_es_el_de_operador(): void
+    {
+        $this->comando($this->alta('Contrasena-2026!'), rol: User::ROLE_OPERATOR)
+            ->assertSuccessful()
+            ->run();
+
+        $this->assertFalse(User::where('email', self::CORREO)->firstOrFail()->isAdmin());
     }
 }

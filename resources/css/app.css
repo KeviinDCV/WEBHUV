@@ -170,9 +170,16 @@
     /* --- Controles del carrusel ------------------------------------------- */
     --color-control: rgba(60, 64, 72, 0.62);
     --color-control-hover: rgba(43, 59, 128, 0.9);
-    /* La barra va encima de fotos arbitrarias: con 0,82 de opacidad el texto
-       blanco de 12 px no llegaba a 4,5:1 sobre las claras. */
-    --color-controlbar: rgba(96, 100, 108, 0.92);
+    /* La barra va encima de fotos arbitrarias, así que el peor caso es una foto
+       BLANCA debajo, y ahí el texto blanco de 12 px tiene que llegar a 4,5:1.
+       Con el gris medio de antes eso obligaba a 0,92 de opacidad: casi opaca, y
+       se veía como una franja gris pegada a la foto.
+       Bajar la opacidad de aquel gris no era opción —a 0,80 se queda en 3,80:1—
+       así que se oscurece el color y se abre la opacidad: este da 5,02:1 sobre
+       blanco, algo MEJOR que los 4,94:1 de antes, y deja pasar veintiséis
+       puntos más de foto. Cristal ahumado en vez de pintura gris.
+       El suelo está en 0,66: a 0,60 baja a 4,17:1 y ya no cumple. */
+    --color-controlbar: rgba(33, 37, 46, 0.66);
     --color-on-control: #ffffff;
     --color-dot-active: #ffffff;
 

@@ -7,8 +7,10 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\MediaLibraryController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\ShortcutController;
+use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TopicBulkController;
 use App\Http\Controllers\Admin\TopicItemController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\HomeController;
@@ -84,7 +86,26 @@ Route::scopeBindings()->group(function (): void {
 */
 Route::middleware('guest')->group(function (): void {
     Route::get('/ingresar', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/ingresar', [AuthenticatedSessionController::class, 'store']);
+
+    /*
+    | Con tope por IP, ADEMÁS del que ya hay por cuenta.
+    |
+    | LoginRequest limita los intentos por «correo|IP»: cinco por minuto contra
+    | UNA cuenta. Eso frena que adivinen la contraseña de alguien concreto, pero
+    | no frena lo contrario —probar la MISMA contraseña frecuente contra cien
+    | correos—, porque cada correo estrena su propio cubo y ninguno llega al
+    | tope. Y los correos del hospital siguen un patrón que está publicado.
+    |
+    | Los dos límites son complementarios: aquel protege una cuenta, este frena
+    | el barrido. Diez por minuto deja sitio de sobra a quien se equivoca al
+    | teclear y no a un guion.
+    |
+    | OJO al desplegar detrás de un proxy: sin TRUSTED_PROXIES fijado, Laravel
+    | ve la IP del proxy y este tope pasaría a ser uno solo para todo el
+    | hospital. Ver bootstrap/app.php.
+    */
+    Route::post('/ingresar', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:10,1');
 });
 
 Route::post('/salir', [AuthenticatedSessionController::class, 'destroy'])
@@ -160,6 +181,22 @@ Route::middleware('auth')
         Route::delete('menu/{item}', [MenuController::class, 'destroy'])->name('menu.destroy');
         Route::post('menu/{item}/mover', [MenuController::class, 'move'])->name('menu.move');
         Route::post('menu/{item}/visible', [MenuController::class, 'toggle'])->name('menu.toggle');
+
+        /*
+        | Lo que solo puede el administrador.
+        |
+        | El operador administra el CONTENIDO del portal; el administrador,
+        | además, la herramienta: quién entra. Va en su propio grupo con
+        | `can:administrar` para que añadir una pantalla aquí dentro no exija
+        | acordarse de protegerla: si está en el grupo, ya lo está.
+        */
+        Route::middleware('can:administrar')->group(function (): void {
+            Route::get('estadisticas', [StatisticsController::class, 'index'])->name('statistics.index');
+
+            Route::get('usuarios', [UserController::class, 'index'])->name('users.index');
+            Route::get('usuarios/nuevo', [UserController::class, 'create'])->name('users.create');
+            Route::post('usuarios', [UserController::class, 'store'])->name('users.store');
+        });
 
         // Biblioteca de imágenes reutilizables.
         Route::post('biblioteca/categorias', [MediaLibraryController::class, 'storeCategory'])->name('library.categories.store');

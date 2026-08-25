@@ -101,6 +101,7 @@ return [
     ],
 
     'admin' => [
+        'solo_administrador' => 'Administrator only',
         'area' => 'Administration',
         'cerrar_sesion' => 'Sign out',
         'atras' => 'Back',
