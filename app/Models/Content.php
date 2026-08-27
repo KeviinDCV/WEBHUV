@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\FeedType;
+
 use App\Support\CommentWall;
 use App\Support\RichText;
 use Illuminate\Database\Eloquent\Builder;
@@ -225,6 +227,41 @@ class Content extends Model
     public function displayDate(): ?Carbon
     {
         return $this->published_at;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* El muro de la portada                                               */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * El tipo con el que este contenido se filtra en el muro.
+     *
+     * El muro mezcla contenidos y elementos de tema, igual que el portal de
+     * origen, y su filtro es por TIPO y no por categoría. Todo lo que vive en
+     * `contents` vino de un «Article» del origen —noticias, comunicados y
+     * notificaciones judiciales son la misma cosa con etiqueta distinta—, así
+     * que aquí todos son «Noticia». La categoría se sigue viendo en la tarjeta.
+     */
+    public function feedType(): string
+    {
+        return FeedType::NEWS;
+    }
+
+    /**
+     * Clave única dentro del muro.
+     *
+     * Hace falta porque el muro mezcla dos tablas y los identificadores se
+     * repiten: el contenido 5 y el elemento de tema 5 existen los dos.
+     */
+    public function feedKey(): string
+    {
+        return 'c-'.$this->id;
+    }
+
+    /** El rótulo que la tarjeta pinta encima del título. */
+    public function feedLabel(): string
+    {
+        return self::categoryLabel($this->category);
     }
 
     /** Programado: tiene fecha, pero todavía no ha llegado. */

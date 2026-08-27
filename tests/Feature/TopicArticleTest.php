@@ -498,24 +498,61 @@ class TopicArticleTest extends TestCase
     }
 
     /**
-     * La frontera con la portada.
+     * La frontera con la portada, que ya se cruzó, y a propósito.
      *
-     * El portal de origen marca qué contenidos salen en su portada y ese dato se
-     * conserva, pero el muro de aquí consulta otra tabla: unirlos algún día
-     * tiene que ser un acto deliberado, no un descuido.
+     * Esta prueba decía que un elemento de tema NO podía salir en la portada, y
+     * su comentario avisaba: «unirlos algún día tiene que ser un acto
+     * deliberado, no un descuido». Ese día llegó —el muro pasó a filtrar por
+     * tipo, como el portal de origen, y para eso tiene que mezclar—, así que la
+     * prueba cambia de contenido pero no de intención: sigue custodiando la
+     * frontera, solo que ahora la frontera es otra.
+     *
+     * La regla nueva: sale lo que el portal de origen marcó para su portada, y
+     * solo eso. La marca se importó en `legacy_show_on_home` y aquí no se
+     * decide nada por cuenta propia.
      */
-    public function test_un_articulo_de_tema_no_se_cuela_en_la_portada(): void
+    public function test_a_la_portada_solo_llega_lo_que_el_portal_marco(): void
     {
         $topic = $this->tema();
+
         $this->articulo($topic, [
-            'title' => 'Programa que no debe salir en la portada',
+            'title' => 'Marcado para la portada',
             'legacy_show_on_home' => true,
+        ]);
+
+        $this->articulo($topic, [
+            'title' => 'Sin marcar, se queda en su tema',
+            'legacy_show_on_home' => false,
+            // Destacado dentro de su tema, que es otra cosa: destacar no es
+            // publicar en la portada.
             'is_featured' => true,
         ]);
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertDontSee('Programa que no debe salir en la portada');
+            ->assertSee('Marcado para la portada')
+            ->assertDontSee('Sin marcar, se queda en su tema');
+    }
+
+    /** Y ni marcado sale lo que el origen no considera contenido de muro. */
+    public function test_una_pregunta_o_un_tramite_no_van_al_muro_ni_marcados(): void
+    {
+        $topic = $this->tema();
+
+        foreach ([TopicItem::KIND_QUESTION, TopicItem::KIND_PROCEDURE] as $clase) {
+            $topic->items()->create([
+                'kind' => $clase,
+                'title' => 'No es contenido de muro: '.$clase,
+                'slug' => 'no-muro-'.$clase,
+                'published_at' => now()->subDay(),
+                'legacy_show_on_home' => true,
+            ]);
+        }
+
+        $respuesta = $this->get(route('home'))->assertOk();
+
+        $respuesta->assertDontSee('No es contenido de muro: '.TopicItem::KIND_QUESTION);
+        $respuesta->assertDontSee('No es contenido de muro: '.TopicItem::KIND_PROCEDURE);
     }
 
     /** Un artículo de tema vive en /tema/…, no en /contenidos/…: una sola URL. */

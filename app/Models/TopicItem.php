@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\FeedType;
+
 use App\Support\CommentWall;
 use App\Support\FileSize;
 use App\Support\LegacyLink;
@@ -338,6 +340,52 @@ class TopicItem extends Model
     public function date(): ?Carbon
     {
         return $this->modified_at ?? $this->published_at ?? $this->issued_at ?? $this->created_at;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* El muro de la portada                                               */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * La fecha con el nombre que usa la tarjeta del muro.
+     *
+     * La tarjeta la comparten los contenidos y los elementos de tema, así que
+     * los dos tienen que responder a lo mismo. Aquí es `date()`, que sabe de
+     * qué fecha tirar entre las cuatro que puede tener un elemento.
+     */
+    public function displayDate(): ?Carbon
+    {
+        return $this->date();
+    }
+
+    /** Su detalle vive fuera del portal: un enlace con destino ajeno. */
+    public function isExternal(): bool
+    {
+        return $this->isLink() && filled($this->source_url);
+    }
+
+    /** El tipo con el que se filtra en el muro, o null si no es de muro. */
+    public function feedType(): ?string
+    {
+        return FeedType::fromKind($this->kind);
+    }
+
+    /** Clave única dentro del muro; ver Content::feedKey(). */
+    public function feedKey(): string
+    {
+        return 't-'.$this->id;
+    }
+
+    /**
+     * El rótulo que la tarjeta pinta encima del título.
+     *
+     * El del tema al que pertenece —«Contrataciones», «Convocatorias»—, que es
+     * el equivalente de la categoría de un contenido: dice de qué va la ficha
+     * antes de leer el título.
+     */
+    public function feedLabel(): string
+    {
+        return (string) ($this->topic?->name ?? '');
     }
 
     /** Resumen en texto plano, para las fichas del listado. */

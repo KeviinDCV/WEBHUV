@@ -35,7 +35,7 @@ export default function huvContentFeed({
 
         tab: 'recientes',
         period: 'todos',
-        category: 'todos',
+        type: 'todos',
         view: 'grid',
         shown: perPage,
 
@@ -49,7 +49,7 @@ export default function huvContentFeed({
 
             // Cualquier cambio de criterio reinicia la paginación: mantener el
             // «cargar más» anterior mostraría un recuento incoherente.
-            ['tab', 'period', 'category'].forEach((prop) =>
+            ['tab', 'period', 'type'].forEach((prop) =>
                 this.$watch(prop, () => (this.shown = this.perPage))
             );
 
@@ -62,7 +62,7 @@ export default function huvContentFeed({
             // Cambiar de vista, de pestaña o de filtro no cambia el alto de
             // ninguna tarjeta, así que el observador de tamaño no se entera:
             // hay que recolocar a mano.
-            ['view', 'tab', 'period', 'category', 'shown'].forEach((prop) =>
+            ['view', 'tab', 'period', 'type', 'shown'].forEach((prop) =>
                 this.$watch(prop, () => this.$nextTick(() => acomodar(this.$refs.rejilla)))
             );
         },
@@ -115,7 +115,7 @@ export default function huvContentFeed({
 
             return this.meta
                 .filter((item) => this.matchesTab(item))
-                .filter((item) => this.category === 'todos' || item.category === this.category)
+                .filter((item) => this.type === 'todos' || item.type === this.type)
                 .filter((item) => days === null || now - item.timestamp <= days * 86400000)
                 .sort((a, b) => b.timestamp - a.timestamp);
         },
@@ -158,7 +158,7 @@ export default function huvContentFeed({
         reset() {
             this.tab = 'recientes';
             this.period = 'todos';
-            this.category = 'todos';
+            this.type = 'todos';
             this.shown = this.perPage;
         },
     };

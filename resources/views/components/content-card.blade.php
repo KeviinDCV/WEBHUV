@@ -75,7 +75,7 @@
             @endif
         </p>
 
-        <p class="m-0 text-12-5 text-link">{{ App\Models\Content::categoryLabel($content->category) }}</p>
+        <p class="m-0 text-12-5 text-link">{{ $content->feedLabel() }}</p>
 
         <h3 class="m-0 font-display text-15 leading-[1.4] font-bold text-balance">
             <a href="{{ $content->url() }}"

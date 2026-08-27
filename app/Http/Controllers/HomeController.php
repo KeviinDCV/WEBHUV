@@ -12,6 +12,7 @@ use App\Models\ShortcutBlock;
 use App\Models\Topic;
 use App\Models\TopicItem;
 use App\Support\EventCalendar;
+use App\Support\FeedType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -178,7 +179,9 @@ class HomeController extends Controller
      */
     private function feed(): \Illuminate\Support\Collection
     {
-        return Content::query()
+        $tope = (int) config('huv.content_feed.max_items', 120);
+
+        $contenidos = Content::query()
             ->with('media')
             ->where('show_in_feed', true)
             // Una sección puede estar marcada como «oculta en muro de
@@ -186,7 +189,48 @@ class HomeController extends Controller
             ->whereNotIn('category', $this->categoriesHiddenFromFeed())
             ->tap($this->visibility(...))
             ->recent()
-            ->limit(config('huv.content_feed.max_items', 120))
+            ->limit($tope)
+            ->get();
+
+        /*
+         | Los elementos de tema NO entran en el recorte por fecha.
+         |
+         | Si se recortara la mezcla a los ciento veinte más recientes, los
+         | contenidos se lo comerían todo —son cuatrocientos noventa y cinco
+         | frente a ciento treinta— y el filtro por tipo quedaría inservible:
+         | medido, salían ciento dieciséis noticias, dos documentos, dos
+         | eventos y ni una convocatoria ni un enlace, o sea cuatro de los seis
+         | tipos vacíos.
+         |
+         | Son ciento treinta fichas en total, así que caben enteras. El orden
+         | que se ve sigue siendo por fecha; lo único que cambia es que la cola
+         | de la lista tiene variedad en vez de más de lo mismo.
+        */
+        return $contenidos
+            ->concat($this->feedItems())
+            ->sortByDesc(fn (Content|TopicItem $item): int => $item->displayDate()?->getTimestamp() ?? 0)
+            ->values();
+    }
+
+    /**
+     * Los elementos de tema que van al muro.
+     *
+     * El portal de origen mezcla en su muro todos los tipos de contenido, y
+     * marca uno a uno cuáles salen en la portada. Esa marca se importó en
+     * `legacy_show_on_home`, así que aquí no hay que decidir nada: se respeta la
+     * que trajo cada elemento. Hoy son ciento treinta.
+     *
+     * Se descartan las clases que el origen no considera contenido de muro
+     * —preguntas frecuentes y trámites—; ver App\Support\FeedType.
+     */
+    private function feedItems(): \Illuminate\Support\Collection
+    {
+        return TopicItem::query()
+            ->with(['media', 'topic'])
+            ->where('legacy_show_on_home', true)
+            ->whereIn('kind', FeedType::feedKinds())
+            ->visible()
+            ->orderByDesc('published_at')
             ->get();
     }
 

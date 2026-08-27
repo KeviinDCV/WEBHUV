@@ -58,6 +58,22 @@ return [
             'mes' => 'Last month',
             'anio' => 'Last year',
         ],
+        // Los tipos del portal de origen. La clave es el valor guardado,
+        // así que no se traduce: lo que se traduce es lo que se lee.
+        'filtro_tipo' => [
+            'rotulo' => 'Filter by content type',
+            'todos' => 'All content',
+        ],
+
+        'tipo' => [
+            'Noticia' => 'News',
+            'Documento' => 'Document',
+            'Convocatoria' => 'Call for applications',
+            'Evento' => 'Event',
+            'Link' => 'Link',
+            'Clasificados' => 'Classifieds',
+        ],
+
         'filtro_categoria' => [
             'rotulo' => 'Filter by content type',
             'todas' => 'All content',

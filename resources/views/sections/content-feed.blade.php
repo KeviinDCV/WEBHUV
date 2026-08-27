@@ -1,17 +1,29 @@
 @php
     use App\Models\Content;
+    use App\Models\TopicItem;
+    use App\Support\FeedType;
     use App\Support\ListTabs;
 
     $perPage = config('huv.content_feed.per_page', 6);
 
-    $meta = $feed->map(fn (Content $item): array => [
-        'id' => $item->id,
-        'category' => $item->category,
+    // El muro mezcla contenidos y elementos de tema, así que la clave no puede
+    // ser el identificador: el contenido 5 y el elemento 5 existen los dos.
+    $meta = $feed->map(fn (Content|TopicItem $item): array => [
+        'id' => $item->feedKey(),
+        'type' => $item->feedType(),
         'timestamp' => ($item->displayDate() ?? $item->created_at)->getTimestampMs(),
         'isActive' => $item->is_active,
         'isFeatured' => $item->is_featured,
         'isHidden' => $item->is_hidden,
     ]);
+
+    // Solo los tipos que de verdad hay en el muro. El portal de origen enseña
+    // los seis siempre, pero el hospital nunca ha publicado un clasificado y
+    // una opción que no filtra nada es una opción que estorba. El día que
+    // exista uno, aparece sola.
+    $tiposPresentes = collect(FeedType::ALL)
+        ->filter(fn (string $tipo): bool => $meta->contains('type', $tipo))
+        ->values();
 
     // El arreglo se arma aquí: @json no admite varias líneas y rompería el
     // PHP generado, algo que `view:cache` no detecta porque solo falla al
@@ -75,13 +87,13 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <label for="huv-categoria" class="sr-only">{{ __('portada.contenidos.filtro_categoria.rotulo') }}</label>
-                    <select id="huv-categoria" x-model="category"
+                    <label for="huv-tipo" class="sr-only">{{ __('portada.contenidos.filtro_tipo.rotulo') }}</label>
+                    <select id="huv-tipo" x-model="type"
                             class="rounded-[3px] border border-stroke bg-card px-3 py-[6px] text-13-5
                                    font-semibold text-heading">
-                        <option value="todos">{{ __('portada.contenidos.filtro_categoria.todas') }}</option>
-                        @foreach (Content::CATEGORIES as $category)
-                            <option value="{{ $category }}">{{ Content::categoryLabel($category) }}</option>
+                        <option value="todos">{{ __('portada.contenidos.filtro_tipo.todos') }}</option>
+                        @foreach ($tiposPresentes as $tipo)
+                            <option value="{{ $tipo }}">{{ __('portada.contenidos.tipo.'.$tipo) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -170,8 +182,8 @@
             <ul x-ref="rejilla" class="grid grid-cols-1 items-start gap-6"
                 :class="view === 'grid' && 'md:grid-cols-2'">
                 @foreach ($feed as $item)
-                    <li x-show="isVisible({{ $item->id }})"
-                        :style="{ order: positionOf({{ $item->id }}) }"
+                    <li x-show="isVisible(@js($item->feedKey()))"
+                        :style="{ order: positionOf(@js($item->feedKey())) }"
                         class="flex">
                         <x-content-card :content="$item" />
                     </li>

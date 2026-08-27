@@ -103,16 +103,17 @@ class InterfaceLanguageTest extends TestCase
      * «All / Noticias / Comunicados» y, dos centímetros más abajo, las mismas
      * categorías rotuladas «News» y «Press releases» en cada tarjeta.
      */
-    public function test_el_filtro_de_categorias_usa_el_rotulo_traducido(): void
+    public function test_el_filtro_del_muro_usa_el_rotulo_traducido(): void
     {
         $this->noticia();
 
         $html = $this->get('/?idioma=en')->assertOk()->getContent();
 
-        // El valor sigue crudo: con él compara el filtro de Alpine y lo exige
-        // la validación del servidor.
-        $this->assertStringContainsString('<option value="Noticias">News</option>', $html);
-        $this->assertStringNotContainsString('<option value="Noticias">Noticias</option>', $html);
+        // El filtro pasó de categoría a TIPO, que es por lo que filtra el
+        // portal de origen. El valor sigue crudo —con él compara Alpine— y lo
+        // que se traduce es lo que se lee.
+        $this->assertStringContainsString('<option value="Noticia">News</option>', $html);
+        $this->assertStringNotContainsString('<option value="Noticia">Noticia</option>', $html);
     }
 
     /** La ruta de la sección en el editor de bloques estaba escrita a mano. */
