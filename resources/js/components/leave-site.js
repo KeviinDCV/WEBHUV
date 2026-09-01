@@ -14,6 +14,7 @@ export default function huvLeaveSite() {
     return {
         open: false,
         url: '',
+        newTab: false,
         host: '',
         trigger: null,
 
@@ -25,9 +26,16 @@ export default function huvLeaveSite() {
             const link = event.target.closest?.('a[data-huv-confirm-exit]');
             if (!link) return;
 
-            // Abrir en otra pestaña no es «salir»: no se interrumpe.
+            // Si es QUIEN NAVEGA el que decide abrirlo aparte, no se le
+            // interrumpe: ya sabe lo que hace y no está abandonando la página.
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-            if (link.target === '_blank') return;
+
+            // Antes se descartaba también cualquier enlace con target="_blank",
+            // y eso dejaba el aviso inerte: TODOS los enlaces externos del
+            // portal abren en pestaña nueva, así que no se mostraba nunca. Que
+            // el destino se abra aparte no cambia lo que hay que avisar —que se
+            // va a un sitio ajeno al hospital—; lo único que cambia es dónde se
+            // abre después de aceptar, y de eso se encarga accept().
 
             if (this.isSameSite(link.href)) return;
 
@@ -47,6 +55,7 @@ export default function huvLeaveSite() {
 
         show(link) {
             this.url = link.href;
+            this.newTab = link.target === '_blank';
             this.host = new URL(link.href, window.location.href).hostname;
             this.trigger = link;
 
@@ -68,8 +77,20 @@ export default function huvLeaveSite() {
 
         accept() {
             const destination = this.url;
+            const aparte = this.newTab;
 
             this.close();
+
+            // Se respeta lo que decía el enlace. Y `window.open` funciona aquí
+            // porque esto ocurre dentro del clic de «Aceptar», que para el
+            // navegador es un gesto de la persona: llamado fuera de un gesto,
+            // el bloqueador de ventanas lo impediría.
+            if (aparte) {
+                window.open(destination, '_blank', 'noopener');
+
+                return;
+            }
+
             window.location.href = destination;
         },
     };

@@ -26,8 +26,19 @@
     $tramites = ['peticion', 'queja', 'reclamo', 'sugerencia', 'felicitacion', 'denuncia',
         'solicitud-informacion', 'solicitud-datos', 'cita'];
 
-    // Donde el trámite se radica de verdad, hoy.
-    $radicacion = rtrim((string) config('huv.legacy_base'), '/').'/peticiones-quejas-reclamos';
+    /*
+     | Donde el trámite se radica de verdad: el CROSS del hospital.
+     |
+     | Antes esta página mandaba al portal anterior, que a su vez rebotaba al
+     | mismo sitio. Un salto de más, y por un dominio que algún día se apagará.
+     |
+     | Se enlaza el destino final y no «acortar.link/OUtyCS», que es como lo
+     | publica el portal viejo: un acortador esconde a dónde se va, deja el
+     | enlace en manos de un tercero y no se puede revisar. Es la misma
+     | dirección y la misma decisión que ya estaba tomada para «Mecanismos de
+     | contacto»; ver el comentario de huv.contact en config/huv.php.
+    */
+    $radicacion = (string) config('huv.contact.request_form');
 @endphp
 
 @section('content')
@@ -81,6 +92,7 @@
 
                                 <p class="m-0 mt-3">
                                     <a href="{{ $radicacion }}" target="_blank" rel="noopener noreferrer"
+                                       data-huv-confirm-exit
                                        class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-5 py-[9px]
                                               font-display text-12-5 font-bold tracking-[0.04em] text-on-accent
                                               uppercase no-underline transition-colors hover:bg-azure-dark
@@ -102,6 +114,7 @@
 
                     <p class="m-0 mt-4">
                         <a href="{{ $radicacion }}" target="_blank" rel="noopener noreferrer"
+                           data-huv-confirm-exit
                            class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-6 py-[10px]
                                   font-display text-12-5 font-bold tracking-[0.04em] text-on-accent uppercase
                                   no-underline transition-colors hover:bg-azure-dark hover:no-underline">

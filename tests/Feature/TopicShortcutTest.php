@@ -272,12 +272,31 @@ class TopicShortcutTest extends TestCase
 
         $html = $respuesta->getContent();
 
-        // Los diez botones —nueve trámites y el seguimiento— llevan a donde se
-        // radica de verdad, y avisan de que se abre fuera.
+        /*
+         | Los diez botones —nueve trámites y el seguimiento— llevan al CROSS
+         | del hospital, que es donde se radica de verdad.
+         |
+         | Antes apuntaban al portal anterior, que a su vez rebotaba al mismo
+         | sitio: un salto de más por un dominio que algún día se apagará. Y se
+         | enlaza el destino final y no el acortador con el que lo publica el
+         | portal viejo, por lo que dice el comentario de huv.contact.
+        */
         $this->assertSame(
             10,
-            preg_match_all('~href="https://portal-anterior\.gov\.co/peticiones-quejas-reclamos"~', $html)
+            preg_match_all(
+                '~href="'.preg_quote(e(config('huv.contact.request_form')), '~').'"~',
+                $html
+            ),
+            'Los diez botones deben llevar al formulario de radicación.'
         );
+
+        // Y ninguno al portal anterior.
+        $this->assertStringNotContainsString('portal-anterior.gov.co/peticiones-quejas-reclamos', $html);
+
+        // Los diez avisan de que se sale del portal. Radicar una petición
+        // termina en un sistema ajeno donde hay que dar datos personales: es
+        // justo el momento de decir que se está saliendo del hospital.
+        $this->assertSame(10, preg_match_all('~data-huv-confirm-exit~', $html));
 
         // Y los nueve iconos son decorativos: lo que dicen ya está en el título.
         $this->assertSame(9, preg_match_all('~/img/pqrds/[a-z-]+\.svg" alt=""~', $html));
