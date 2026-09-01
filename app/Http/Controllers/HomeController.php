@@ -116,7 +116,7 @@ class HomeController extends Controller
     private function events(): \Illuminate\Support\Collection
     {
         $block = ContentBlock::events();
-        $topic = Topic::firstWhere('slug', $block->option('source', ContentBlock::DEFAULT_EVENT_SOURCE));
+        $topic = Topic::firstWhere('slug', $block->eventSource());
 
         if (! $topic) {
             return collect();

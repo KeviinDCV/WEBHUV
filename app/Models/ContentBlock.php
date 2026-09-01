@@ -65,6 +65,34 @@ class ContentBlock extends Model
         return data_get($this->options, $key, $default);
     }
 
+    /**
+     * El slug del tema que alimenta la agenda, siempre uno válido.
+     *
+     * Existe porque un valor equivocado aquí no da error: deja el calendario
+     * vacío y sin una sola pista de por qué. Pasó de verdad —la fila guardaba
+     * «Calendario de actividades», el NOMBRE del tema, y la agenda busca por
+     * slug— y costó un rato entender que había 141 eventos importados y
+     * ninguno saliendo.
+     *
+     * El formulario y su validación son correctos y solo guardan slugs, así
+     * que ese valor entró por fuera de la aplicación. Aun así se tolera: si lo
+     * que hay es el nombre de un tema conocido, se traduce a su slug; si no se
+     * reconoce, se cae al tema por omisión en vez de a la nada.
+     */
+    public function eventSource(): string
+    {
+        $guardado = $this->option('source');
+
+        if (is_string($guardado) && array_key_exists($guardado, self::EVENT_SOURCES)) {
+            return $guardado;
+        }
+
+        // ¿Es el rótulo en vez de la clave?
+        $porNombre = array_search($guardado, self::EVENT_SOURCES, true);
+
+        return is_string($porNombre) ? $porNombre : self::DEFAULT_EVENT_SOURCE;
+    }
+
     /** Bloque de la agenda, creándolo con valores por defecto si no existe. */
     public static function events(): self
     {
