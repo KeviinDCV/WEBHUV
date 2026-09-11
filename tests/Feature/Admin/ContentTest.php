@@ -432,6 +432,26 @@ class ContentTest extends TestCase
     }
 
     /**
+     * Los datos estructurados distinguen publicación de modificación.
+     *
+     * La tarjeta enseña la fecha de modificación, pero `datePublished` es la
+     * de publicación: decirle al buscador que una noticia de 2024 se publicó
+     * ayer porque se le corrigió una errata es marcado engañoso.
+     */
+    public function test_los_datos_estructurados_no_confunden_publicacion_con_modificacion(): void
+    {
+        $content = $this->noticia([
+            'published_at' => '2024-07-01 20:05:10',
+            'modified_at' => '2026-08-05 08:27:32',
+        ]);
+
+        $this->get("/contenidos/{$content->slug}")
+            ->assertOk()
+            ->assertSee('"datePublished":"'.$content->published_at->toAtomString().'"', false)
+            ->assertSee('"dateModified":"'.$content->modified_at->toAtomString().'"', false);
+    }
+
+    /**
      * Corregir a mano una noticia importada actualiza su fecha de modificación.
      *
      * La otra mitad del arreglo de arriba. Sellar `modified_at` en la ficha sin

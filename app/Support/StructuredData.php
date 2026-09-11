@@ -44,7 +44,9 @@ class StructuredData
             'headline' => Str::limit($content->title, 110, ''),
             'description' => Str::squish($content->summary(160)) ?: null,
             'inLanguage' => config('huv.content_locale'),
-            'datePublished' => $content->displayDate()?->toAtomString(),
+            // La de publicación de verdad, no la que enseña la tarjeta: esa es
+            // la de modificación, que ya va en dateModified.
+            'datePublished' => $content->published_at?->toAtomString(),
             'dateModified' => ($content->modified_at ?? $content->published_at ?? $content->updated_at)?->toAtomString(),
             'image' => $content->imageUrl() ?: null,
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $content->url()],

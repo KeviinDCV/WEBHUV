@@ -149,7 +149,13 @@ class Content extends Model
     }
 
     /**
-     * Más reciente primero.
+     * Más reciente primero, contando las modificaciones.
+     *
+     * La fecha que manda es la de la última modificación, la misma que enseña
+     * la tarjeta —ver displayDate()— y la misma por la que ordena el portal de
+     * origen. Ordenar por una fecha y enseñar otra es lo que dejaba enterrado
+     * el comunicado de la CNSC: en el origen salía «hace 6 días» y aquí, con la
+     * misma fila, estaba a cuatrocientas fichas de la portada.
      *
      * Un contenido «sin fecha de visualización» no tiene published_at, así que
      * se ordena por su fecha de creación para que no caiga siempre al final.
@@ -158,7 +164,7 @@ class Content extends Model
     {
         $direction = $descending ? 'desc' : 'asc';
 
-        $query->orderByRaw('COALESCE(published_at, created_at) '.$direction)->orderBy('id', $direction);
+        $query->orderByRaw('COALESCE(modified_at, published_at, created_at) '.$direction)->orderBy('id', $direction);
     }
 
     /** @param  Builder<self>  $query */
@@ -223,10 +229,26 @@ class Content extends Model
     /* Fechas y enlaces */
     /* ------------------------------------------------------------------ */
 
-    /** Fecha que se muestra; nula si se publicó «sin fecha de visualización». */
+    /**
+     * Fecha que se muestra: la de la última modificación, como en el portal.
+     *
+     * Igual que en un elemento de tema —ver TopicItem::date()—. Hay contenidos
+     * que son una lista viva: el comunicado de cancelación en el Registro
+     * Público de Carrera ante la CNSC se creó en mayo de 2025 y desde entonces
+     * lleva veinticinco cartas adjuntas, la última de septiembre de 2026. Cada
+     * carta nueva es lo que el ciudadano tiene que ver, y el portal de origen
+     * lo enseña como «hace 6 días», no como «hace un año».
+     *
+     * Nula si se publicó «sin fecha de visualización»: esa elección de quien
+     * publica se respeta aunque después se haya editado.
+     */
     public function displayDate(): ?Carbon
     {
-        return $this->published_at;
+        if ($this->published_at === null) {
+            return null;
+        }
+
+        return $this->modified_at ?? $this->published_at;
     }
 
     /* ------------------------------------------------------------------ */

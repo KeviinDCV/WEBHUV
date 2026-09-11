@@ -186,6 +186,72 @@ class HomePageTest extends TestCase
         $this->assertStringContainsString('Cargar más contenidos', $html);
     }
 
+    /**
+     * Un contenido antiguo que se modifica vuelve al principio del muro.
+     *
+     * Hay contenidos que son una lista viva: el comunicado de cancelación en el
+     * Registro Público de Carrera ante la CNSC se creó en mayo de 2025 y desde
+     * entonces suma cartas adjuntas; la vigésimo quinta llegó en septiembre de
+     * 2026. En el origen salía «hace 6 días» y aquí, con la misma fila
+     * importada, estaba a cuatrocientas fichas de la portada: el muro ordenaba
+     * y recortaba por la fecha de publicación mientras el portal lo hace por
+     * la de modificación.
+     *
+     * El tope se baja a dos para que el recorte en SQL cuente: si solo se
+     * corrigiera el orden en PHP, el comunicado se quedaría fuera antes de
+     * llegar a ordenarse.
+     */
+    public function test_un_contenido_antiguo_que_se_modifica_vuelve_al_principio_del_muro(): void
+    {
+        config(['huv.content_feed.max_items' => 2]);
+
+        $categoria = 'Notificaciones Judiciales';
+
+        $listaViva = Content::create([
+            'title' => 'Comunicado Cancelación en el Registro Público de Carrera',
+            'category' => $categoria,
+            'published_at' => now()->subYear(),
+            'modified_at' => now()->subDays(2),
+        ]);
+
+        $reciente = Content::create([
+            'title' => 'Respuesta del caso más reciente',
+            'category' => $categoria,
+            'published_at' => now()->subDays(5),
+        ]);
+
+        Content::create([
+            'title' => 'Respuesta del caso de la semana pasada',
+            'category' => $categoria,
+            'published_at' => now()->subDays(8),
+        ]);
+
+        $muro = $this->get('/')->assertOk()->viewData('feed');
+
+        $this->assertSame(
+            [$listaViva->id, $reciente->id],
+            $muro->pluck('id')->all(),
+            'El comunicado modificado anteayer va primero, y el de hace ocho días se queda fuera del tope.'
+        );
+
+        // Y la tarjeta enseña la fecha de la modificación, que es la que
+        // explica por qué está ahí.
+        $this->assertTrue($listaViva->displayDate()->isSameDay(now()->subDays(2)));
+    }
+
+    /** Publicar «sin fecha de visualización» se respeta aunque se edite después. */
+    public function test_sin_fecha_de_visualizacion_no_hay_fecha_aunque_se_haya_editado(): void
+    {
+        $content = Content::create([
+            'title' => 'Aviso sin fecha',
+            'category' => Content::NEWS_CATEGORY,
+            'published_at' => null,
+            'modified_at' => now(),
+        ]);
+
+        $this->assertNull($content->displayDate());
+    }
+
     public function test_la_agenda_navega_entre_periodos_por_la_url(): void
     {
         // Semana actual: debe contener el evento programado para hoy.
