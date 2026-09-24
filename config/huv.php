@@ -109,8 +109,16 @@ return [
     |
     */
     'contact' => [
+        // Radicar: el formulario con el que se presenta una PQRDS.
         'request_form' => 'http://cross.huv.gov.co/cross/apps/CROSSHUV/ASAP/applications/cross300/'
             .'index.php?action=FeCrCmdDefaultWebUser&username=webuser&context=2&lang=es',
+
+        // Seguimiento: la consulta del estado con el código que dio el
+        // formulario. Es el mismo CROSS pero otra pantalla; mandar aquí al
+        // formulario de radicación, que es lo que se hacía, ponía a quien ya
+        // radicó a radicar otra vez.
+        'tracking_form' => 'http://cross.huv.gov.co/cross/apps/CROSSHUV/ASAP/applications/cross300/'
+            .'index.php?action=FeCrCmdDefaultFichaOrdWeb&username=webuser&context=2&lang=es',
     ],
 
     'seo' => [

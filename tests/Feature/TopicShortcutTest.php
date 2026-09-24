@@ -273,8 +273,8 @@ class TopicShortcutTest extends TestCase
         $html = $respuesta->getContent();
 
         /*
-         | Los diez botones —nueve trámites y el seguimiento— llevan al CROSS
-         | del hospital, que es donde se radica de verdad.
+         | Los nueve trámites llevan al formulario de radicación del CROSS del
+         | hospital, que es donde se radica de verdad.
          |
          | Antes apuntaban al portal anterior, que a su vez rebotaba al mismo
          | sitio: un salto de más por un dominio que algún día se apagará. Y se
@@ -282,13 +282,26 @@ class TopicShortcutTest extends TestCase
          | portal viejo, por lo que dice el comentario de huv.contact.
         */
         $this->assertSame(
-            10,
+            9,
             preg_match_all(
                 '~href="'.preg_quote(e(config('huv.contact.request_form')), '~').'"~',
                 $html
             ),
-            'Los diez botones deben llevar al formulario de radicación.'
+            'Los nueve trámites deben llevar al formulario de radicación.'
         );
+
+        // El seguimiento es otra pantalla: la consulta por código. Durante un
+        // tiempo mandó al formulario de radicación, y quien ya había radicado
+        // se encontraba radicando otra vez.
+        $this->assertSame(
+            1,
+            preg_match_all(
+                '~href="'.preg_quote(e(config('huv.contact.tracking_form')), '~').'"~',
+                $html
+            ),
+            'El botón de seguimiento debe llevar a la consulta por código.'
+        );
+        $this->assertStringContainsString('FeCrCmdDefaultFichaOrdWeb', $html);
 
         // Y ninguno al portal anterior.
         $this->assertStringNotContainsString('portal-anterior.gov.co/peticiones-quejas-reclamos', $html);

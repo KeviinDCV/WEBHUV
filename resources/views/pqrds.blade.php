@@ -39,6 +39,9 @@
      | contacto»; ver el comentario de huv.contact en config/huv.php.
     */
     $radicacion = (string) config('huv.contact.request_form');
+
+    // El seguimiento es otra pantalla del mismo CROSS: la consulta por código.
+    $seguimiento = (string) config('huv.contact.tracking_form');
 @endphp
 
 @section('content')
@@ -113,7 +116,7 @@
                     </p>
 
                     <p class="m-0 mt-4">
-                        <a href="{{ $radicacion }}" target="_blank" rel="noopener noreferrer"
+                        <a href="{{ $seguimiento }}" target="_blank" rel="noopener noreferrer"
                            data-huv-confirm-exit
                            class="inline-flex items-center gap-2 rounded-full border-0 bg-azure px-6 py-[10px]
                                   font-display text-12-5 font-bold tracking-[0.04em] text-on-accent uppercase
